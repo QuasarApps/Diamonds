@@ -21,4 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Diamonds"
 include(":app")
- 
+include(":core")
+include(":data")
+include(":ui")
+include(":common")

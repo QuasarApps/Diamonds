@@ -1,0 +1,263 @@
+package com.example.diamonds.data.mapper
+
+import com.example.diamonds.data.local.entity.*
+import com.example.diamonds.data.remote.backend.*
+import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.repository.SyncOperation
+import com.example.diamonds.domain.repository.EntityType
+import com.example.diamonds.domain.repository.SyncOperationType
+
+/**
+ * Maps between Domain Models, DTOs, and Entities
+ */
+
+// Entity to Domain
+
+fun ClientEntity.toDomain(): Client = Client(
+    id = id,
+    name = name,
+    email = email,
+    phoneNumber = phoneNumber,
+    profileImageUrl = profileImageUrl,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun ProviderEntity.toDomain(): Provider = Provider(
+    id = id,
+    name = name,
+    email = email,
+    phoneNumber = phoneNumber,
+    profileImageUrl = profileImageUrl,
+    bio = bio,
+    rating = rating,
+    reviewCount = reviewCount,
+    verificationStatus = VerificationStatus.valueOf(verificationStatus),
+    serviceRadius = serviceRadius,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun ServiceEntity.toDomain(): Service = Service(
+    id = id,
+    providerId = providerId,
+    title = title,
+    description = description,
+    basePrice = basePrice,
+    duration = duration,
+    category = ServiceCategory.valueOf(category),
+    imageUrl = imageUrl,
+    isActive = isActive,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun BookingEntity.toDomain(): Booking = Booking(
+    id = id,
+    clientId = clientId,
+    providerId = providerId,
+    serviceId = serviceId,
+    status = BookingStatus.valueOf(status),
+    scheduledDate = scheduledDate,
+    scheduledTime = scheduledTime,
+    estimatedDuration = estimatedDuration,
+    totalPrice = totalPrice,
+    notes = notes,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    syncStatus = SyncStatus.valueOf(syncStatus),
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun ReviewEntity.toDomain(): Review = Review(
+    id = id,
+    bookingId = bookingId,
+    clientId = clientId,
+    providerId = providerId,
+    rating = rating,
+    comment = comment,
+    imageUrls = try {
+        kotlinx.serialization.json.Json.decodeFromString(imageUrls)
+    } catch (e: Exception) {
+        emptyList()
+    },
+    syncStatus = SyncStatus.valueOf(syncStatus),
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun PaymentEntity.toDomain(): Payment = Payment(
+    id = id,
+    bookingId = bookingId,
+    clientId = clientId,
+    providerId = providerId,
+    amount = amount,
+    status = PaymentStatus.valueOf(status),
+    method = PaymentMethod.valueOf(method),
+    transactionId = transactionId,
+    syncStatus = SyncStatus.valueOf(syncStatus),
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun SyncQueueEntity.toDomain(): SyncOperation = SyncOperation(
+    id = id,
+    operationType = SyncOperationType.valueOf(operationType),
+    entityType = EntityType.valueOf(entityType),
+    entityId = entityId,
+    payload = payload,
+    status = SyncStatus.valueOf(status),
+    retryCount = retryCount,
+    createdAt = createdAt,
+    lastAttemptAt = lastAttemptAt,
+    error = error
+)
+
+// Domain to Entity
+
+fun Client.toEntity(): ClientEntity = ClientEntity(
+    id = id,
+    name = name,
+    email = email,
+    phoneNumber = phoneNumber,
+    profileImageUrl = profileImageUrl,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun Provider.toEntity(): ProviderEntity = ProviderEntity(
+    id = id,
+    name = name,
+    email = email,
+    phoneNumber = phoneNumber,
+    profileImageUrl = profileImageUrl,
+    bio = bio,
+    rating = rating,
+    reviewCount = reviewCount,
+    verificationStatus = verificationStatus.name,
+    serviceRadius = serviceRadius,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun Service.toEntity(): ServiceEntity = ServiceEntity(
+    id = id,
+    providerId = providerId,
+    title = title,
+    description = description,
+    basePrice = basePrice,
+    duration = duration,
+    category = category.name,
+    imageUrl = imageUrl,
+    isActive = isActive,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun Booking.toEntity(): BookingEntity = BookingEntity(
+    id = id,
+    clientId = clientId,
+    providerId = providerId,
+    serviceId = serviceId,
+    status = status.name,
+    scheduledDate = scheduledDate,
+    scheduledTime = scheduledTime,
+    estimatedDuration = estimatedDuration,
+    totalPrice = totalPrice,
+    notes = notes,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    syncStatus = syncStatus.name,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+// DTO to Domain
+
+fun ClientDto.toDomain(): Client = Client(
+    id = id,
+    name = name,
+    email = email,
+    phoneNumber = phoneNumber,
+    profileImageUrl = profileImageUrl,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun ProviderDto.toDomain(): Provider = Provider(
+    id = id,
+    name = name,
+    email = email,
+    phoneNumber = phoneNumber,
+    profileImageUrl = profileImageUrl,
+    bio = bio,
+    rating = rating,
+    reviewCount = reviewCount,
+    verificationStatus = VerificationStatus.valueOf(verificationStatus),
+    serviceRadius = serviceRadius,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun ServiceDto.toDomain(): Service = Service(
+    id = id,
+    providerId = providerId,
+    title = title,
+    description = description,
+    basePrice = basePrice,
+    duration = duration,
+    category = ServiceCategory.valueOf(category),
+    imageUrl = imageUrl,
+    isActive = isActive,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun BookingDto.toDomain(): Booking = Booking(
+    id = id,
+    clientId = clientId,
+    providerId = providerId,
+    serviceId = serviceId,
+    status = BookingStatus.valueOf(status),
+    scheduledDate = scheduledDate,
+    scheduledTime = scheduledTime,
+    estimatedDuration = estimatedDuration,
+    totalPrice = totalPrice,
+    notes = notes,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    syncStatus = SyncStatus.SYNCED,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun ReviewDto.toDomain(): Review = Review(
+    id = id,
+    bookingId = bookingId,
+    clientId = clientId,
+    providerId = providerId,
+    rating = rating,
+    comment = comment,
+    imageUrls = imageUrls,
+    syncStatus = SyncStatus.SYNCED,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun PaymentDto.toDomain(): Payment = Payment(
+    id = id,
+    bookingId = bookingId,
+    clientId = clientId,
+    providerId = providerId,
+    amount = amount,
+    status = PaymentStatus.valueOf(status),
+    method = PaymentMethod.valueOf(method),
+    transactionId = transactionId,
+    syncStatus = SyncStatus.SYNCED,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
