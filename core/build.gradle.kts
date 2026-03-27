@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.jetbrains.kotlin.android)
     id("java-library")
+    id("org.jetbrains.kotlin.jvm")
 }
 
 java {
