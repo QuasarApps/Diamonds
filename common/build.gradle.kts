@@ -9,10 +9,14 @@ android {
 
     defaultConfig {
         minSdk = 24
+    }
+
+    lint {
         targetSdk = 34
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -27,14 +31,16 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
 
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
     // Compose
-    implementation("androidx.compose.ui:ui:1.6.0")
-    implementation("androidx.compose.material3:material3:1.2.0")
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.material3)
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.androidx.datastore.preferences)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 }

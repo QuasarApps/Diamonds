@@ -1,5 +1,6 @@
 package com.example.diamonds.data.connectivity
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -10,8 +11,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 /**
- * Observes network connectivity changes
+ * Observes network connectivity changes.
+ * Requires ACCESS_NETWORK_STATE permission (declared in app manifest).
  */
+@SuppressLint("MissingPermission")
 class ConnectivityObserver(private val context: Context) {
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 

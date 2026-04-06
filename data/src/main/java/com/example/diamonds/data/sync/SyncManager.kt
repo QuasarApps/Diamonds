@@ -1,3 +1,5 @@
+@file:Suppress("NewApi") // java.time APIs are handled by core library desugaring (configured in build.gradle.kts)
+
 package com.example.diamonds.data.sync
 
 import com.example.diamonds.common.util.Constants

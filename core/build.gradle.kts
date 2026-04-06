@@ -19,8 +19,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
 
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation(libs.kotlinx.serialization.json)
 
     // Coroutines for Flow support
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation(libs.kotlinx.coroutines.core)
 }

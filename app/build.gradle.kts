@@ -29,6 +29,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -51,29 +52,31 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":common"))
 
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
     // Compose
-    implementation("androidx.compose.ui:ui:1.6.0")
-    implementation("androidx.compose.foundation:foundation:1.6.0")
-    implementation("androidx.compose.material3:material3:1.2.0")
-    implementation("androidx.activity:activity-compose:1.8.1")
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     // Room (needed for Dagger-generated code that references RoomDatabase)
-    implementation("androidx.room:room-runtime:2.6.1")
+    implementation(libs.androidx.room.runtime)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-compiler:2.50")
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 
     // WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
