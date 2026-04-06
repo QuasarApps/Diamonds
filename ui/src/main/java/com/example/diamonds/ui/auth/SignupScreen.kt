@@ -1,0 +1,190 @@
+﻿package com.example.diamonds.ui.auth
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.domain.repository.UserRole
+@Composable
+fun SignupScreen(
+    onSignupSuccess: (UserRole) -> Unit,
+    onNavigateToLogin: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val name by viewModel.name.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val phone by viewModel.phone.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val confirmPassword by viewModel.confirmPassword.collectAsState()
+    val selectedRole by viewModel.selectedRole.collectAsState()
+    val error by viewModel.error.collectAsState()
+    LaunchedEffect(uiState.signupSuccess) {
+        if (uiState.signupSuccess) {
+            val role = uiState.authenticatedRole ?: UserRole.CLIENT
+            viewModel.clearAuthSuccess()
+            onSignupSuccess(role)
+        }
+    }
+    var passwordVisible by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 32.dp)
+            .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Create Account", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        Text("Join Diamonds today", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(32.dp))
+        if (error != null) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = error ?: "",
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(12.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+        OutlinedTextField(
+            value = name,
+            onValueChange = viewModel::onNameChange,
+            label = { Text("Full Name") },
+            singleLine = true,
+            isError = uiState.fieldErrors.containsKey(AuthField.NAME),
+            supportingText = uiState.fieldErrors[AuthField.NAME]?.let { msg -> { Text(msg) } },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(12.dp))
+        OutlinedTextField(
+            value = email,
+            onValueChange = viewModel::onEmailChange,
+            label = { Text("Email") },
+            singleLine = true,
+            isError = uiState.fieldErrors.containsKey(AuthField.EMAIL),
+            supportingText = uiState.fieldErrors[AuthField.EMAIL]?.let { msg -> { Text(msg) } },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(12.dp))
+        OutlinedTextField(
+            value = phone,
+            onValueChange = viewModel::onPhoneChange,
+            label = { Text("Phone Number") },
+            singleLine = true,
+            isError = uiState.fieldErrors.containsKey(AuthField.PHONE),
+            supportingText = uiState.fieldErrors[AuthField.PHONE]?.let { msg -> { Text(msg) } },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(12.dp))
+        OutlinedTextField(
+            value = password,
+            onValueChange = viewModel::onPasswordChange,
+            label = { Text("Password") },
+            singleLine = true,
+            isError = uiState.fieldErrors.containsKey(AuthField.PASSWORD),
+            supportingText = uiState.fieldErrors[AuthField.PASSWORD]?.let { msg -> { Text(msg) } },
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+            trailingIcon = {
+                TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Text(if (passwordVisible) "Hide" else "Show", fontSize = 12.sp)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(12.dp))
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = viewModel::onConfirmPasswordChange,
+            label = { Text("Confirm Password") },
+            singleLine = true,
+            isError = uiState.fieldErrors.containsKey(AuthField.CONFIRM_PASSWORD),
+            supportingText = uiState.fieldErrors[AuthField.CONFIRM_PASSWORD]?.let { msg -> { Text(msg) } },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); viewModel.signup() }),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(20.dp))
+        Text("I am a...", style = MaterialTheme.typography.labelLarge, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            UserRole.entries.forEach { role ->
+                FilterChip(
+                    selected = selectedRole == role,
+                    onClick = { viewModel.onRoleChange(role) },
+                    label = { Text(role.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+        Spacer(Modifier.height(28.dp))
+        Button(
+            onClick = { focusManager.clearFocus(); viewModel.signup() },
+            enabled = !uiState.isLoading,
+            modifier = Modifier.fillMaxWidth().height(50.dp)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text("Create Account", fontSize = 16.sp)
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Already have an account?", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = onNavigateToLogin) { Text("Sign In") }
+        }
+    }
+}

@@ -20,7 +20,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Flip to false (and add google-services.json) to use FirebaseAuthService
+            buildConfigField("boolean", "USE_MOCK_AUTH", "true")
+        }
         release {
+            buildConfigField("boolean", "USE_MOCK_AUTH", "false")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -39,6 +44,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {

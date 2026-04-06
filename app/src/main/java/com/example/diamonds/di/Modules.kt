@@ -5,6 +5,7 @@ import androidx.work.WorkManager
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.local.preferences.PreferencesDataStore
+import com.example.diamonds.data.remote.auth.IAuthService
 import com.example.diamonds.data.remote.backend.BackendServiceStub
 import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.data.repository.*
@@ -70,10 +71,10 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun provideAuthRepository(
-        preferencesDataStore: PreferencesDataStore,
-        backendService: IBackendService
+        authService: IAuthService,
+        preferencesDataStore: PreferencesDataStore
     ): IAuthRepository {
-        return AuthRepository(backendService, preferencesDataStore)
+        return AuthRepository(authService, preferencesDataStore)
     }
 
     @Singleton

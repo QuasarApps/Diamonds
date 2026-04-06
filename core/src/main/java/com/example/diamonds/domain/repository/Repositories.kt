@@ -18,6 +18,7 @@ interface IAuthRepository {
 
     suspend fun logout(): Result<Unit>
     suspend fun refreshToken(): Result<String>
+    suspend fun sendPasswordReset(email: String): Result<Unit>
     fun getCurrentUserSession(): Flow<UserSession?>
 }
 

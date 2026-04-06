@@ -4,21 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.diamonds.domain.repository.UserRole
+import com.example.diamonds.ui.auth.LoginScreen
+import com.example.diamonds.ui.auth.SignupScreen
+import com.example.diamonds.ui.home.ClientHomeScreen
+import com.example.diamonds.ui.home.ProviderHomeScreen
 import com.example.diamonds.ui.placeholder.PlaceholderScreen
 import com.example.diamonds.ui.splash.SplashScreen
 
-/**
- * Root navigation graph for the Diamonds app.
- *
- * Starts on the [Screen.Splash] destination which decides whether to route
- * the user to [Screen.Login] or their home screen depending on auth state.
- *
- * Replace each [PlaceholderScreen] call with the real composable as screens
- * are built in later phases.
- */
 @Composable
 fun DiamondsNavHost() {
     val navController = rememberNavController()
+
+    fun homeRouteFor(role: UserRole) =
+        if (role == UserRole.PROVIDER) Screen.ProviderHome.route else Screen.ClientHome.route
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
@@ -28,7 +28,6 @@ fun DiamondsNavHost() {
             SplashScreen(
                 onNavigateTo = { destination ->
                     navController.navigate(destination.route) {
-                        // Remove splash from the back stack so back-press doesn't return to it
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
@@ -36,28 +35,49 @@ fun DiamondsNavHost() {
         }
 
         composable(Screen.Login.route) {
-            // TODO Phase 2: replace with real LoginScreen
-            PlaceholderScreen(label = "Login – coming in Phase 2")
+            LoginScreen(
+                onLoginSuccess = { role ->
+                    navController.navigate(homeRouteFor(role)) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onNavigateToSignup = { navController.navigate(Screen.Signup.route) }
+            )
         }
 
         composable(Screen.Signup.route) {
-            // TODO Phase 2: replace with real SignupScreen
-            PlaceholderScreen(label = "Sign Up – coming in Phase 2")
+            SignupScreen(
+                onSignupSuccess = { role ->
+                    navController.navigate(homeRouteFor(role)) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.RoleSelection.route) {
-            // TODO Phase 2: replace with real RoleSelectionScreen
-            PlaceholderScreen(label = "Role Selection – coming in Phase 2")
+            PlaceholderScreen(label = "Role Selection")
         }
 
         composable(Screen.ClientHome.route) {
-            // TODO Phase 3: replace with real ClientHomeScreen
-            PlaceholderScreen(label = "Client Home – coming in Phase 3")
+            ClientHomeScreen(
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(Screen.ProviderHome.route) {
-            // TODO Phase 4: replace with real ProviderHomeScreen
-            PlaceholderScreen(label = "Provider Home – coming in Phase 4")
+            ProviderHomeScreen(
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
