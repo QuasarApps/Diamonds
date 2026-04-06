@@ -31,10 +31,8 @@ interface ProviderDao {
     fun observeById(id: String): Flow<ProviderEntity?>
 
     @Query("SELECT * FROM providers LIMIT :limit")
-    suspend fun getNearby(limit: Int = 20): List<ProviderEntity>
+    suspend fun getNearby(limit: Int): List<ProviderEntity>
 
-    @Query("SELECT * FROM providers WHERE category = :category LIMIT :limit")
-    suspend fun getByCategory(category: String, limit: Int = 20): List<ProviderEntity>
 
     @Delete
     suspend fun delete(provider: ProviderEntity)

@@ -4,16 +4,14 @@ import android.content.Context
 import androidx.work.*
 import com.example.diamonds.common.util.Constants
 import com.example.diamonds.data.sync.SyncManager
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
 
 /**
  * WorkManager task for syncing queued operations with exponential backoff
  */
-class SyncWorker @AssistedInject constructor(
-    @Assisted context: Context,
-    @Assisted params: WorkerParameters,
+class SyncWorker(
+    context: Context,
+    params: WorkerParameters,
     private val syncManager: SyncManager
 ) : CoroutineWorker(context, params) {
 
@@ -59,11 +57,9 @@ class SyncWorker @AssistedInject constructor(
 }
 
 /**
- * Factory for creating SyncWorker with Hilt injection
+ * Factory for creating SyncWorker instances with dependency injection
  */
-class SyncWorkerFactory @AssistedInject constructor(
-    private val syncManager: SyncManager
-) : WorkerFactory() {
+class SyncWorkerFactory(private val syncManager: SyncManager) : WorkerFactory() {
     override fun createWorker(
         appContext: Context,
         workerClassName: String,

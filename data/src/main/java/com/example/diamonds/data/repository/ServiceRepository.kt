@@ -39,7 +39,8 @@ class ServiceRepository(
                     serviceDao.upsert(service.toEntity())
                     Result.Success(service)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -66,7 +67,8 @@ class ServiceRepository(
                     services.forEach { serviceDao.upsert(it.toEntity()) }
                     Result.Success(services)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -93,7 +95,8 @@ class ServiceRepository(
                     services.forEach { serviceDao.upsert(it.toEntity()) }
                     Result.Success(services)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -127,7 +130,8 @@ class ServiceRepository(
                     serviceDao.upsert(createdService.toEntity())
                     Result.Success(createdService)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)

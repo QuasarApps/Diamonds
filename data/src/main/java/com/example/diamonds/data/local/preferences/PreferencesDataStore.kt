@@ -48,10 +48,8 @@ class PreferencesDataStore(private val context: Context) {
     /**
      * Get current session synchronously (for immediate access)
      */
-    suspend fun getUserSession(): UserSession? =
-        observeUserSession().map { it }.collect { session ->
-            return@collect session
-        }.let { null } // Placeholder - should use collectFirst in practice
+    fun observeCurrentUserSession(): Flow<UserSession?> =
+        observeUserSession()
 
     /**
      * Save user session

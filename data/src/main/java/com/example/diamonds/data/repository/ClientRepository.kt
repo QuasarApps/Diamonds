@@ -42,7 +42,8 @@ class ClientRepository(
                     clientDao.upsert(client.toEntity())
                     Result.Success(client)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -72,7 +73,8 @@ class ClientRepository(
                     clientDao.upsert(updatedClient.toEntity())
                     Result.Success(updatedClient)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)

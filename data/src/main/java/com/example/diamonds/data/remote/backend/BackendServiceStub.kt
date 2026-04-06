@@ -1,5 +1,7 @@
 package com.example.diamonds.data.remote.backend
 
+import com.example.diamonds.domain.model.Result
+
 /**
  * Stub implementation of backend service for development/testing
  * Replace with real Firebase or REST implementation later
@@ -45,6 +47,7 @@ class BackendServiceStub : IBackendService {
             name = "Stub Provider",
             email = "provider@example.com",
             phoneNumber = "+1234567890",
+            verificationStatus = "UNVERIFIED",
             createdAt = System.currentTimeMillis().toString(),
             updatedAt = System.currentTimeMillis().toString()
         ))

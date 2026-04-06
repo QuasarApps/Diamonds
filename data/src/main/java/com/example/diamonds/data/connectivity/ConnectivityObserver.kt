@@ -44,7 +44,7 @@ class ConnectivityObserver(private val context: Context) {
         }
 
         connectivityManager.registerDefaultNetworkCallback(callback)
-        emit(getCurrentConnectivityState())
+        trySend(getCurrentConnectivityState())
 
         awaitClose {
             connectivityManager.unregisterNetworkCallback(callback)

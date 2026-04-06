@@ -87,7 +87,8 @@ class BookingRepository(
                     bookingDao.upsert(domainBooking.toEntity())
                     Result.Success(domainBooking)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -114,7 +115,8 @@ class BookingRepository(
                     bookings.forEach { bookingDao.upsert(it.toEntity()) }
                     Result.Success(bookings)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -141,7 +143,8 @@ class BookingRepository(
                     bookings.forEach { bookingDao.upsert(it.toEntity()) }
                     Result.Success(bookings)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -162,7 +165,8 @@ class BookingRepository(
                     bookingDao.upsert(domainBooking.toEntity())
                     Result.Success(domainBooking)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -183,7 +187,8 @@ class BookingRepository(
                     bookingDao.upsert(domainBooking.toEntity())
                     Result.Success(domainBooking)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)

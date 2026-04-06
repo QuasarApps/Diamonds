@@ -41,7 +41,8 @@ class ProviderRepository(
                     providerDao.upsert(provider.toEntity())
                     Result.Success(provider)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -72,7 +73,8 @@ class ProviderRepository(
                     providers.forEach { providerDao.upsert(it.toEntity()) }
                     Result.Success(providers)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -86,7 +88,7 @@ class ProviderRepository(
         radius: Int
     ): Result<List<Provider>> {
         // READ: Can work offline with cached data
-        val cached = providerDao.getByCategory(category.name, limit = 20)
+        val cached = providerDao.getNearby(limit = 20)
         if (cached.isNotEmpty()) {
             return Result.Success(cached.map { it.toDomain() })
         }
@@ -104,7 +106,8 @@ class ProviderRepository(
                     providers.forEach { providerDao.upsert(it.toEntity()) }
                     Result.Success(providers)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)

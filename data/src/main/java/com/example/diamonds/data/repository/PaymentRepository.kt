@@ -41,7 +41,8 @@ class PaymentRepository(
                     paymentDao.upsert(domainPayment.toEntity())
                     Result.Success(domainPayment)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -68,7 +69,8 @@ class PaymentRepository(
                     paymentDao.upsert(payment.toEntity())
                     Result.Success(payment)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)

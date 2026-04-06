@@ -44,7 +44,8 @@ class ReviewRepository(
                     reviewDao.upsert(domainReview.toEntity())
                     Result.Success(domainReview)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -71,7 +72,8 @@ class ReviewRepository(
                     reviews.forEach { reviewDao.upsert(it.toEntity()) }
                     Result.Success(reviews)
                 }
-                else -> result
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
@@ -109,7 +111,7 @@ class ReviewRepository(
             rating = rating,
             comment = comment,
             imageUrls = try {
-                kotlinx.serialization.json.Json.encodeToString(imageUrls)
+                if (imageUrls.isEmpty()) "" else imageUrls.joinToString(",", "[\"", "\"]") { "\"$it\"" }
             } catch (e: Exception) {
                 ""
             },
