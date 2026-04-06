@@ -68,6 +68,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
+    // Navigation (needed transitively for NavHostController resolution)
+    implementation(libs.androidx.navigation.compose)
+
     // Room (needed for Dagger-generated code that references RoomDatabase)
     implementation(libs.androidx.room.runtime)
 
