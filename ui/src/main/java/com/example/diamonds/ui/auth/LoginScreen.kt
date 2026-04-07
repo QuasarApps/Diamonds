@@ -1,4 +1,4 @@
-﻿package com.example.diamonds.ui.auth
+package com.example.diamonds.ui.auth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,10 +41,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.diamonds.domain.repository.UserRole
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (UserRole) -> Unit,
+    onLoginSuccess: () -> Unit,
     onNavigateToSignup: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -54,9 +53,8 @@ fun LoginScreen(
     val error by viewModel.error.collectAsState()
     LaunchedEffect(uiState.loginSuccess) {
         if (uiState.loginSuccess) {
-            val role = uiState.authenticatedRole ?: UserRole.CLIENT
             viewModel.clearAuthSuccess()
-            onLoginSuccess(role)
+            onLoginSuccess()
         }
     }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -100,7 +98,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("*", fontSize = 56.sp, color = MaterialTheme.colorScheme.primary)
+        Text("\u25C6", fontSize = 56.sp, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(8.dp))
         Text("Diamonds", fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text("Sign in to continue", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)

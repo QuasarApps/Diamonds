@@ -20,6 +20,7 @@ class PreferencesDataStore(private val context: Context) {
         private val USER_ID_KEY = stringPreferencesKey("user_id")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_ROLE_KEY = stringPreferencesKey("user_role")
+        private val USER_DISPLAY_NAME_KEY = stringPreferencesKey("user_display_name")
     }
 
     /**
@@ -31,12 +32,14 @@ class PreferencesDataStore(private val context: Context) {
             val userId = prefs[USER_ID_KEY]
             val email = prefs[USER_EMAIL_KEY]
             val roleStr = prefs[USER_ROLE_KEY]
+            val displayName = prefs[USER_DISPLAY_NAME_KEY]
 
             if (token != null && userId != null && email != null && roleStr != null) {
                 UserSession(
                     userId = userId,
                     email = email,
-                    role = UserRole.valueOf(roleStr),
+                    displayName = displayName,
+                    role = parseRole(roleStr),
                     authToken = token,
                     isAuthenticated = true
                 )
@@ -60,6 +63,7 @@ class PreferencesDataStore(private val context: Context) {
             prefs[USER_ID_KEY] = session.userId
             prefs[USER_EMAIL_KEY] = session.email
             prefs[USER_ROLE_KEY] = session.role.name
+            session.displayName?.let { prefs[USER_DISPLAY_NAME_KEY] = it }
         }
     }
 
@@ -72,6 +76,17 @@ class PreferencesDataStore(private val context: Context) {
             prefs.remove(USER_ID_KEY)
             prefs.remove(USER_EMAIL_KEY)
             prefs.remove(USER_ROLE_KEY)
+            prefs.remove(USER_DISPLAY_NAME_KEY)
         }
+    }
+
+    /**
+     * Parse stored role string, handling legacy "CLIENT"/"PROVIDER" values
+     * that may exist from before the rename to CUSTOMER/CLEANER.
+     */
+    private fun parseRole(roleStr: String): UserRole = when (roleStr) {
+        "CLIENT", "CUSTOMER" -> UserRole.CUSTOMER
+        "PROVIDER", "CLEANER" -> UserRole.CLEANER
+        else -> UserRole.CUSTOMER
     }
 }

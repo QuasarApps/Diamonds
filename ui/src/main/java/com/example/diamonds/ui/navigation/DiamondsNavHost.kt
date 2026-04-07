@@ -4,26 +4,31 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.ui.auth.LoginScreen
 import com.example.diamonds.ui.auth.SignupScreen
-import com.example.diamonds.ui.home.ClientHomeScreen
-import com.example.diamonds.ui.home.ProviderHomeScreen
-import com.example.diamonds.ui.placeholder.PlaceholderScreen
+import com.example.diamonds.ui.shell.AppShell
 import com.example.diamonds.ui.splash.SplashScreen
 
+/**
+ * Root navigation graph.
+ *
+ * There is one entry point: [Screen.Splash].  After the splash the user
+ * is either sent to [Screen.Login] (unauthenticated) or [Screen.AppShell]
+ * (authenticated).
+ *
+ * [Screen.AppShell] is the **single post-auth destination** for both
+ * Customer and Cleaner modes.  It reads the session role internally and
+ * renders the appropriate bottom-nav tabs and screens.
+ */
 @Composable
 fun DiamondsNavHost() {
     val navController = rememberNavController()
-
-    fun homeRouteFor(role: UserRole) =
-        if (role == UserRole.PROVIDER) Screen.ProviderHome.route else Screen.ClientHome.route
 
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
     ) {
-
+        // ── Splash ─────────────────────────────────────────────────────────
         composable(Screen.Splash.route) {
             SplashScreen(
                 onNavigateTo = { destination ->
@@ -34,10 +39,11 @@ fun DiamondsNavHost() {
             )
         }
 
+        // ── Auth ───────────────────────────────────────────────────────────
         composable(Screen.Login.route) {
             LoginScreen(
-                onLoginSuccess = { role ->
-                    navController.navigate(homeRouteFor(role)) {
+                onLoginSuccess = {
+                    navController.navigate(Screen.AppShell.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -47,8 +53,8 @@ fun DiamondsNavHost() {
 
         composable(Screen.Signup.route) {
             SignupScreen(
-                onSignupSuccess = { role ->
-                    navController.navigate(homeRouteFor(role)) {
+                onSignupSuccess = {
+                    navController.navigate(Screen.AppShell.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -56,25 +62,12 @@ fun DiamondsNavHost() {
             )
         }
 
-        composable(Screen.RoleSelection.route) {
-            PlaceholderScreen(label = "Role Selection")
-        }
-
-        composable(Screen.ClientHome.route) {
-            ClientHomeScreen(
+        // ── Post-auth: single shell, role decides content ──────────────────
+        composable(Screen.AppShell.route) {
+            AppShell(
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(Screen.ProviderHome.route) {
-            ProviderHomeScreen(
-                onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )

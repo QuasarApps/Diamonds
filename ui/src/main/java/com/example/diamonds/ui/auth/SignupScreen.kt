@@ -1,4 +1,4 @@
-﻿package com.example.diamonds.ui.auth
+package com.example.diamonds.ui.auth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,9 +42,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.repository.UserRole
+
 @Composable
 fun SignupScreen(
-    onSignupSuccess: (UserRole) -> Unit,
+    onSignupSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -58,9 +59,8 @@ fun SignupScreen(
     val error by viewModel.error.collectAsState()
     LaunchedEffect(uiState.signupSuccess) {
         if (uiState.signupSuccess) {
-            val role = uiState.authenticatedRole ?: UserRole.CLIENT
             viewModel.clearAuthSuccess()
-            onSignupSuccess(role)
+            onSignupSuccess()
         }
     }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -90,6 +90,35 @@ fun SignupScreen(
             }
             Spacer(Modifier.height(16.dp))
         }
+        // -- Role selector (prominent, at the top) ---------------------------
+        Text("I want to...", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            FilterChip(
+                selected = selectedRole == UserRole.CUSTOMER,
+                onClick = { viewModel.onRoleChange(UserRole.CUSTOMER) },
+                label = {
+                    Column {
+                        Text("Customer", fontWeight = FontWeight.SemiBold)
+                        Text("Book cleaners", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+            FilterChip(
+                selected = selectedRole == UserRole.CLEANER,
+                onClick = { viewModel.onRoleChange(UserRole.CLEANER) },
+                label = {
+                    Column {
+                        Text("Cleaner", fontWeight = FontWeight.SemiBold)
+                        Text("Get hired", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(Modifier.height(24.dp))
+        // -- Form fields -----------------------------------------------------
         OutlinedTextField(
             value = name,
             onValueChange = viewModel::onNameChange,
@@ -156,19 +185,6 @@ fun SignupScreen(
             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); viewModel.signup() }),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(20.dp))
-        Text("I am a...", style = MaterialTheme.typography.labelLarge, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            UserRole.entries.forEach { role ->
-                FilterChip(
-                    selected = selectedRole == role,
-                    onClick = { viewModel.onRoleChange(role) },
-                    label = { Text(role.name.lowercase().replaceFirstChar { it.uppercase() }) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
         Spacer(Modifier.height(28.dp))
         Button(
             onClick = { focusManager.clearFocus(); viewModel.signup() },
@@ -178,7 +194,8 @@ fun SignupScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text("Create Account", fontSize = 16.sp)
+                val label = if (selectedRole == UserRole.CLEANER) "Join as Cleaner" else "Create Account"
+                Text(label, fontSize = 16.sp)
             }
         }
         Spacer(Modifier.height(16.dp))

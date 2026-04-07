@@ -115,10 +115,18 @@ interface ISyncRepository {
 }
 
 /**
- * User role for role-based access control
+ * User role for role-based access control.
+ *
+ * The app has a single entry point but operates in two distinct modes:
+ *  - [CUSTOMER]: books cleaning services, browses providers, leaves reviews
+ *  - [CLEANER]:  manages availability, accepts bookings, views earnings
+ *
+ * The role is set at signup, persisted in [UserSession], and used throughout
+ * the UI layer to decide which navigation graph, screens, and features are
+ * available. All role checks flow through [UserSession.role].
  */
 enum class UserRole {
-    CLIENT, PROVIDER
+    CUSTOMER, CLEANER
 }
 
 /**
@@ -127,6 +135,7 @@ enum class UserRole {
 data class UserSession(
     val userId: String,
     val email: String,
+    val displayName: String? = null,
     val role: UserRole,
     val authToken: String,
     val isAuthenticated: Boolean

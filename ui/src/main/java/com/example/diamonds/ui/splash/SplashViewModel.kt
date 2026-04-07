@@ -3,7 +3,6 @@ package com.example.diamonds.ui.splash
 import androidx.lifecycle.viewModelScope
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.domain.repository.IAuthRepository
-import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.ui.base.BaseViewModel
 import com.example.diamonds.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,8 +49,7 @@ class SplashViewModel @Inject constructor(
 
             val next = when {
                 session == null || !session.isAuthenticated -> Screen.Login
-                session.role == UserRole.PROVIDER -> Screen.ProviderHome
-                else -> Screen.ClientHome
+                else -> Screen.AppShell
             }
 
             updateState { it.copy(isLoading = false) }
