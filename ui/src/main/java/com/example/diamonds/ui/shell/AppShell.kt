@@ -24,7 +24,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.booking.BookingConfirmationScreen
@@ -34,7 +33,10 @@ import com.example.diamonds.ui.booking.BookingsListScreen
 import com.example.diamonds.ui.booking.ProviderSearchScreen
 import com.example.diamonds.ui.booking.ServiceListScreen
 import com.example.diamonds.ui.cleaner.CleanerBookingRequestsScreen
+import com.example.diamonds.ui.cleaner.CleanerEarningsScreen
+import com.example.diamonds.ui.cleaner.CleanerProfileScreen
 import com.example.diamonds.ui.cleaner.CleanerScheduleScreen
+import com.example.diamonds.ui.cleaner.ServiceManagementScreen
 import com.example.diamonds.ui.company.CompanyBookingsScreen
 import com.example.diamonds.ui.company.CompanyDashboardScreen
 import com.example.diamonds.ui.company.CompanyTeamScreen
@@ -49,13 +51,14 @@ private val routesWithoutBottomBar = setOf(
     Screen.ServiceList().route,
     Screen.BookingForm().route,
     Screen.BookingConfirmation().route,
-    Screen.BookingDetail().route
+    Screen.BookingDetail().route,
+    Screen.CleanerServiceManage.route,
+    Screen.CompanyServiceManage.route
 )
 
 /** Derive the top-bar title from the current route and session context. */
 private fun titleForRoute(route: String?, session: UserSession): String {
-    val isCompany = session.cleanerType == CleanerType.COMPANY
-    val appName   = if (session.role == UserRole.CLEANER) "Diamonds Pro" else "Diamonds"
+    val appName = if (session.role == UserRole.CLEANER) "Diamonds Pro" else "Diamonds"
     return when {
         route == null -> appName
         route.startsWith("customer/search")   -> "Find a Cleaner"
@@ -67,11 +70,13 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("cleaner/schedule")  -> "My Schedule"
         route.startsWith("cleaner/earnings")  -> "Earnings"
         route.startsWith("cleaner/profile")   -> "My Profile"
+        route.startsWith("cleaner/services")  -> "Manage Services"
         route.startsWith("company/dashboard") -> "Overview"
         route.startsWith("company/bookings")  -> "All Bookings"
         route.startsWith("company/team")      -> "My Team"
         route.startsWith("company/earnings")  -> "Revenue"
         route.startsWith("company/profile")   -> "Company Profile"
+        route.startsWith("company/services")  -> "Manage Services"
         else -> appName
     }
 }
@@ -223,10 +228,16 @@ fun AppShell(
                 CleanerScheduleScreen()
             }
             composable(Screen.CleanerEarnings.route) {
-                PlaceholderScreen("Earnings\n\nTrack your income and payouts.")
+                CleanerEarningsScreen()
             }
             composable(Screen.CleanerProfile.route) {
-                PlaceholderScreen("Profile\n\nManage your cleaner profile and services.")
+                CleanerProfileScreen(
+                    session          = s,
+                    onManageServices = { innerNav.navigate(Screen.CleanerServiceManage.route) }
+                )
+            }
+            composable(Screen.CleanerServiceManage.route) {
+                ServiceManagementScreen()
             }
 
             // ── Company screens ────────────────────────────────────────────
@@ -243,7 +254,13 @@ fun AppShell(
                 PlaceholderScreen("Revenue\n\nTrack company earnings and payouts.")
             }
             composable(Screen.CompanyProfile.route) {
-                PlaceholderScreen("Company Profile\n\nManage your business details.")
+                CleanerProfileScreen(
+                    session          = s,
+                    onManageServices = { innerNav.navigate(Screen.CompanyServiceManage.route) }
+                )
+            }
+            composable(Screen.CompanyServiceManage.route) {
+                ServiceManagementScreen()
             }
         }
     }

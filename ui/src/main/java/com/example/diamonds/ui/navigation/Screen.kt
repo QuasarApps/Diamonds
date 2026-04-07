@@ -42,11 +42,12 @@ sealed class Screen(val route: String) {
     }
 
     // ── Cleaner tab destinations ───────────────────────────────────────────
-    data object CleanerDashboard : Screen("cleaner/dashboard")
-    data object CleanerRequests  : Screen("cleaner/requests")
-    data object CleanerSchedule  : Screen("cleaner/schedule")
-    data object CleanerEarnings  : Screen("cleaner/earnings")
-    data object CleanerProfile   : Screen("cleaner/profile")
+    data object CleanerDashboard       : Screen("cleaner/dashboard")
+    data object CleanerRequests        : Screen("cleaner/requests")
+    data object CleanerSchedule        : Screen("cleaner/schedule")
+    data object CleanerEarnings        : Screen("cleaner/earnings")
+    data object CleanerProfile         : Screen("cleaner/profile")
+    data object CleanerServiceManage   : Screen("cleaner/services")
 
     // ── Company tab destinations ───────────────────────────────────────────
     data object CompanyDashboard  : Screen("company/dashboard")
@@ -54,4 +55,5 @@ sealed class Screen(val route: String) {
     data object CompanyTeam       : Screen("company/team")
     data object CompanyEarnings   : Screen("company/earnings")
     data object CompanyProfile    : Screen("company/profile")
+    data object CompanyServiceManage : Screen("company/services")
 }

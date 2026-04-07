@@ -102,12 +102,15 @@ Provider-side features.
 - [x] CompanyBookingsScreen: tabbed (Pending / Active / Completed) across all company cleaners, accept/decline actions
 - [x] BottomTab: companyTabs (Overview / Bookings / Team / Earnings / Profile); tabsForSession / startTabForSession route by cleanerType
 - [x] AppShell: full session-aware routing — customer / cleaner / company NavHosts with per-role top-bar titles
-- [ ] Create ProviderProfileScreen
-- [ ] Build ServiceManagementScreen
-- [ ] Add service creation flow
-- [ ] Build availability/schedule management
+- [x] Create CleanerProfileScreen — avatar, editable name/bio/phone, employment badge, services summary, "Manage" CTA
+- [x] Build ServiceManagementScreen — list services with active toggle (Switch), edit sheet (ModalBottomSheet), add new service with category dropdown
+- [x] Create CleanerProfileViewModel — profile load/save, service CRUD, add/edit sheet state
+- [x] CleanerEarningsScreen — Canvas bar chart (last 7 days), monthly KPI row (revenue / jobs / avg), per-booking history list
+- [x] CleanerEarningsViewModel — aggregates completed bookings into daily/weekly/monthly buckets
+- [x] Seed: expanded p1 completions across last 7 days; p2/p3 employed-cleaner bookings added
+- [x] Service management also wired for Company profile tab (CompanyServiceManage route)
 - [ ] Implement provider ratings display
-- [ ] Create earnings dashboard (replace placeholder)
+- [ ] Create company earnings dashboard (replace placeholder)
 
 ### Tests
 - [ ] Provider profile tests
