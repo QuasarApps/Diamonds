@@ -173,12 +173,28 @@ fun LoginScreen(
         Spacer(Modifier.height(32.dp))
 
         // ── Dev hint – tappable demo accounts ─────────────────────────────
+        // Each entry: (email, label, display name, UserRole, CleanerType)
+        data class DemoAccount(
+            val email: String,
+            val label: String,
+            val name: String,
+            val role: com.example.diamonds.domain.repository.UserRole,
+            val cleanerType: com.example.diamonds.domain.model.CleanerType
+        )
         val demoAccounts = remember {
             listOf(
-                Triple("customer@demo.com",  "Customer",           "Demo Customer"),
-                Triple("cleaner@demo.com",   "Cleaner (indie)",    "Maria Garcia"),
-                Triple("employed@demo.com",  "Cleaner (employed)", "James Okafor"),
-                Triple("company@demo.com",   "Company account",    "Sparkle Pro"),
+                DemoAccount("customer@demo.com", "Customer",           "Demo Customer",
+                    com.example.diamonds.domain.repository.UserRole.CUSTOMER,
+                    com.example.diamonds.domain.model.CleanerType.INDEPENDENT),
+                DemoAccount("cleaner@demo.com",  "Cleaner (indie)",    "Maria Garcia",
+                    com.example.diamonds.domain.repository.UserRole.CLEANER,
+                    com.example.diamonds.domain.model.CleanerType.INDEPENDENT),
+                DemoAccount("employed@demo.com", "Cleaner (employed)", "James Okafor",
+                    com.example.diamonds.domain.repository.UserRole.CLEANER,
+                    com.example.diamonds.domain.model.CleanerType.EMPLOYED),
+                DemoAccount("company@demo.com",  "Company account",    "Sparkle Pro",
+                    com.example.diamonds.domain.repository.UserRole.CLEANER,
+                    com.example.diamonds.domain.model.CleanerType.COMPANY),
             )
         }
         Card(
@@ -195,7 +211,7 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(6.dp))
-                demoAccounts.forEachIndexed { i, (demoEmail, role, name) ->
+                demoAccounts.forEachIndexed { i, demo ->
                     if (i > 0) androidx.compose.material3.HorizontalDivider(
                         modifier = Modifier.padding(vertical = 4.dp),
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -204,8 +220,10 @@ fun LoginScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                viewModel.onEmailChange(demoEmail)
+                                viewModel.onEmailChange(demo.email)
                                 viewModel.onPasswordChange("demo1234")
+                                viewModel.onRoleChange(demo.role)
+                                viewModel.onCleanerTypeChange(demo.cleanerType)
                             }
                             .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -213,14 +231,14 @@ fun LoginScreen(
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(
-                                demoEmail,
+                                demo.email,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            Text(name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(demo.name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Text(role, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(demo.label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 Spacer(Modifier.height(4.dp))

@@ -26,15 +26,15 @@ enum class VerificationStatus {
 }
 
 /**
- * Whether a cleaner works independently or is employed by a cleaning company.
+ * Whether a cleaner works independently, is employed by a company, or IS a company.
  *
  * - [INDEPENDENT]: self-employed, owns their own provider profile and listings.
- * - [EMPLOYED]: works under a cleaning company; their profile is linked to the
- *   company's provider account via [Provider.employerId].
+ * - [EMPLOYED]: works under a cleaning company; profile linked to company via [Provider.employerId].
+ * - [COMPANY]: this account represents a cleaning business that employs other cleaners.
  */
 @Serializable
 enum class CleanerType {
-    INDEPENDENT, EMPLOYED
+    INDEPENDENT, EMPLOYED, COMPANY
 }
 
 /**

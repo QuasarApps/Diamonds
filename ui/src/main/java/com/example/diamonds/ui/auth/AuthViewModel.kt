@@ -61,7 +61,11 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             updateState { it.copy(isLoading = true) }
             clearError()
-            when (val result = authRepository.login(_email.value.trim(), _password.value)) {
+            when (val result = authRepository.login(
+                _email.value.trim(),
+                _password.value,
+                cleanerTypeHint = if (_selectedRole.value == UserRole.CLEANER) _cleanerType.value else null
+            )) {
                 is Result.Success -> updateState { it.copy(isLoading = false, loginSuccess = true) }
                 is Result.Error   -> {
                     updateState { it.copy(isLoading = false) }
@@ -84,11 +88,12 @@ class AuthViewModel @Inject constructor(
             updateState { it.copy(isLoading = true) }
             clearError()
             val result = authRepository.signup(
-                name = _name.value.trim(),
-                email = _email.value.trim(),
-                password = _password.value,
+                name        = _name.value.trim(),
+                email       = _email.value.trim(),
+                password    = _password.value,
                 phoneNumber = _phone.value.trim(),
-                role = _selectedRole.value
+                role        = _selectedRole.value,
+                cleanerType = _cleanerType.value
             )
             when (result) {
                 is Result.Success -> updateState { it.copy(isLoading = false, signupSuccess = true) }

@@ -7,13 +7,19 @@ import kotlinx.coroutines.flow.Flow
  * Repository for authentication operations
  */
 interface IAuthRepository {
-    suspend fun login(email: String, password: String): Result<String> // returns auth token
+    suspend fun login(
+        email: String,
+        password: String,
+        cleanerTypeHint: com.example.diamonds.domain.model.CleanerType? = null
+    ): Result<String> // returns auth token
     suspend fun signup(
         name: String,
         email: String,
         password: String,
         phoneNumber: String,
-        role: UserRole
+        role: UserRole,
+        cleanerType: com.example.diamonds.domain.model.CleanerType =
+            com.example.diamonds.domain.model.CleanerType.INDEPENDENT
     ): Result<String> // returns auth token
 
     suspend fun logout(): Result<Unit>
@@ -137,6 +143,19 @@ data class UserSession(
     val email: String,
     val displayName: String? = null,
     val role: UserRole,
+    /**
+     * Only meaningful when [role] == [UserRole.CLEANER].
+     * Distinguishes a self-employed cleaner from one employed by a company,
+     * and from a company account itself (represented as a special INDEPENDENT
+     * provider whose name implies a business).
+     *
+     * The shell uses this to select the correct dashboard and tab set:
+     *   INDEPENDENT → cleaner tabs
+     *   EMPLOYED    → cleaner tabs (same UX, company name shown in header)
+     *   COMPANY     → company tabs  ← new virtual type stored in session only
+     */
+    val cleanerType: com.example.diamonds.domain.model.CleanerType =
+        com.example.diamonds.domain.model.CleanerType.INDEPENDENT,
     val authToken: String,
     val isAuthenticated: Boolean
 )

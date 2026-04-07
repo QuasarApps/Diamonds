@@ -3,6 +3,7 @@ package com.example.diamonds.ui.shell
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.domain.model.CleanerType
+import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.cleaner.CleanerViewModel
 
 // ── Customer Home Tab ──────────────────────────────────────────────────────────
@@ -66,13 +69,19 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("Upcoming Bookings", fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "No upcoming bookings. Tap above to get started!",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp
-                )
+                Text("Popular Services", fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(8.dp))
+                listOf("🏠 House Clean", "🏢 Office Clean", "🧹 Deep Clean", "🪟 Window Clean").forEach { svc ->
+                    Text(
+                        svc,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onStartBooking)
+                            .padding(vertical = 6.dp)
+                    )
+                }
             }
         }
 
@@ -85,13 +94,16 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
 }
 
 // ── Cleaner Dashboard Tab ──────────────────────────────────────────────────────
+// Used by both INDEPENDENT and EMPLOYED individual cleaners.
 
 @Composable
 fun CleanerDashboardTab(
-    displayName: String,
+    session: UserSession,
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val dashState by viewModel.dashboardState.collectAsState()
+    val displayName = session.displayName
+        ?: session.email.substringBefore("@").replaceFirstChar { it.uppercase() }
 
     LaunchedEffect(Unit) { viewModel.loadDashboard() }
 
@@ -102,14 +114,34 @@ fun CleanerDashboardTab(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
+
         Text("Hello, $displayName!", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+
+        // Show employer badge for employed cleaners
+        if (session.cleanerType == CleanerType.EMPLOYED) {
+            Spacer(Modifier.height(4.dp))
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Text(
+                    "🏢  Employed cleaner",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+
         Spacer(Modifier.height(8.dp))
         Text(
             "Here's your day at a glance.",
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
@@ -134,7 +166,7 @@ fun CleanerDashboardTab(
         Spacer(Modifier.height(12.dp))
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                androidx.compose.foundation.layout.Row(
+                Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {

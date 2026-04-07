@@ -47,4 +47,11 @@ sealed class Screen(val route: String) {
     data object CleanerSchedule  : Screen("cleaner/schedule")
     data object CleanerEarnings  : Screen("cleaner/earnings")
     data object CleanerProfile   : Screen("cleaner/profile")
+
+    // ── Company tab destinations ───────────────────────────────────────────
+    data object CompanyDashboard  : Screen("company/dashboard")
+    data object CompanyBookings   : Screen("company/bookings")
+    data object CompanyTeam       : Screen("company/team")
+    data object CompanyEarnings   : Screen("company/earnings")
+    data object CompanyProfile    : Screen("company/profile")
 }

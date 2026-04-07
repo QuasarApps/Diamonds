@@ -93,6 +93,15 @@ Provider-side features.
 - [x] ProviderSearchScreen: Independent / Employed / Company badge on each card
 - [x] LoginScreen: tappable demo account table (4 accounts, tap auto-fills email + password)
 - [x] MockAuthService: employed@demo.com → p2, company@demo.com → p5 demo shortcuts
+- [x] Add COMPANY to CleanerType enum; persist cleanerType in UserSession + DataStore
+- [x] IAuthRepository.login / signup: accept & persist cleanerType hint
+- [x] LoginScreen: tapping a demo row sets role + cleanerType so routing is immediate
+- [x] Three distinct dashboards: CustomerHomeTab (popular services, CTA), CleanerDashboardTab (employed-cleaner badge, live stats), CompanyDashboardScreen (KPI cards, team size, revenue)
+- [x] CompanyViewModel: fetches all employed-cleaner bookings for aggregate stats
+- [x] CompanyTeamScreen: list of team members with per-cleaner active jobs / pending / week earnings
+- [x] CompanyBookingsScreen: tabbed (Pending / Active / Completed) across all company cleaners, accept/decline actions
+- [x] BottomTab: companyTabs (Overview / Bookings / Team / Earnings / Profile); tabsForSession / startTabForSession route by cleanerType
+- [x] AppShell: full session-aware routing — customer / cleaner / company NavHosts with per-role top-bar titles
 - [ ] Create ProviderProfileScreen
 - [ ] Build ServiceManagementScreen
 - [ ] Add service creation flow
