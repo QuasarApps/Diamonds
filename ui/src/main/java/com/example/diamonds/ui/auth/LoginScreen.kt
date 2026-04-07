@@ -168,5 +168,30 @@ fun LoginScreen(
             Text("Don't have an account?", color = MaterialTheme.colorScheme.onSurfaceVariant)
             TextButton(onClick = onNavigateToSignup) { Text("Sign Up") }
         }
+
+        Spacer(Modifier.height(32.dp))
+
+        // ── Dev hint – demo accounts ───────────────────────────────────────
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                Text(
+                    "🔧  Demo accounts",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Customer:  customer@demo.com\nCleaner:     cleaner@demo.com\n(any password)",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

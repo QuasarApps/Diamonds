@@ -78,16 +78,19 @@ Core booking functionality for clients.
 Provider-side features.
 
 ### Tasks
+- [x] Create CleanerViewModel with booking requests / schedule / dashboard state
+- [x] Build CleanerBookingRequestsScreen (accept / decline PENDING bookings)
+- [x] Build CleanerScheduleScreen (today's + upcoming ACCEPTED/IN_PROGRESS jobs with Start / Complete actions)
+- [x] Live CleanerDashboardTab (pending count, today's job count, weekly earnings)
+- [x] Add "Requests" tab to cleaner bottom nav
+- [x] Seed stub with realistic cleaner-side demo bookings (requests, jobs, past completions)
+- [x] Add demo cleaner account (cleaner@demo.com → p1) with matching hint on Login screen
 - [ ] Create ProviderProfileScreen
 - [ ] Build ServiceManagementScreen
 - [ ] Add service creation flow
-- [ ] Create BookingRequestsScreen (for providers)
-- [ ] Build booking acceptance flow
-- [ ] Create job tracking screen
-- [ ] Build job completion flow
-- [ ] Add availability/schedule management
+- [ ] Build availability/schedule management
 - [ ] Implement provider ratings display
-- [ ] Create earnings dashboard
+- [ ] Create earnings dashboard (replace placeholder)
 
 ### Tests
 - [ ] Provider profile tests
