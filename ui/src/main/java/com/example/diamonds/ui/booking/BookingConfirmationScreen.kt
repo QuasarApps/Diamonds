@@ -37,6 +37,7 @@ fun BookingConfirmationScreen(
     bookingId: String,
     onViewBookings: () -> Unit,
     onBookAnother: () -> Unit,
+    onPayNow: (bookingId: String) -> Unit = {},
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsState()
@@ -108,6 +109,15 @@ fun BookingConfirmationScreen(
         }
 
         Spacer(Modifier.height(32.dp))
+
+        Button(
+            onClick  = { onPayNow(bookingId) },
+            modifier = Modifier.fillMaxWidth().height(52.dp)
+        ) {
+            Text("💳  Pay Now", fontSize = 16.sp)
+        }
+
+        Spacer(Modifier.height(8.dp))
 
         Button(
             onClick = onViewBookings,

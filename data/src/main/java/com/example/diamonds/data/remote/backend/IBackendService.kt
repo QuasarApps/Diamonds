@@ -51,6 +51,7 @@ interface IBackendService {
     // Payments
     suspend fun createPayment(payment: CreatePaymentRequest): Result<PaymentDto>
     suspend fun getPayment(paymentId: String): Result<PaymentDto>
+    suspend fun getPaymentsForClient(clientId: String): Result<List<PaymentDto>>
 }
 
 // DTO classes for API communication (separate from domain models)

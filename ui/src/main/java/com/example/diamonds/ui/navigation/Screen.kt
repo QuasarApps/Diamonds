@@ -49,6 +49,13 @@ sealed class Screen(val route: String) {
     data class  ProviderRatings(val providerId: String = "{providerId}") : Screen("customer/ratings/{providerId}") {
         fun route(id: String) = "customer/ratings/$id"
     }
+    data class  Payment(val bookingId: String = "{bookingId}") : Screen("customer/pay/{bookingId}") {
+        fun route(id: String) = "customer/pay/$id"
+    }
+    data class  PaymentSuccess(val paymentId: String = "{paymentId}") : Screen("customer/pay/success/{paymentId}") {
+        fun route(id: String) = "customer/pay/success/$id"
+    }
+    data object PaymentHistory : Screen("customer/payments")
 
     // ── Cleaner tab destinations ───────────────────────────────────────────
     data object CleanerDashboard       : Screen("cleaner/dashboard")

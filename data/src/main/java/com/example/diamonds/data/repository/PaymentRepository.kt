@@ -83,18 +83,20 @@ class PaymentRepository(
         if (cached.isNotEmpty()) {
             return Result.Success(cached.map { it.toDomain() })
         }
-
-        // Cache empty, fetch if online
         if (!connectivityObserver.isOnline()) {
             return Result.Error(OfflineException("Payments not available offline"))
         }
-
         return try {
-            val result = backendService.getPayment("") // TODO: Fix this - needs different backend method
-            Result.Error(Exception("Not fully implemented"))
-        } catch (e: Exception) {
-            Result.Error(e)
-        }
+            when (val r = backendService.getPaymentsForClient(clientId)) {
+                is Result.Success -> {
+                    val payments = r.data.map { it.toDomain().copy(syncStatus = SyncStatus.SYNCED) }
+                    payments.forEach { paymentDao.upsert(it.toEntity()) }
+                    Result.Success(payments)
+                }
+                is Result.Error   -> r
+                is Result.Loading -> Result.Loading
+            }
+        } catch (e: Exception) { Result.Error(e) }
     }
 
     override suspend fun getPaymentsForProvider(providerId: String): Result<List<Payment>> {

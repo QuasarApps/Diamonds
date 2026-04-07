@@ -368,13 +368,44 @@ class BackendServiceStub : IBackendService {
 
     // ── Payments ──────────────────────────────────────────────────────────────
 
+    private val paymentStore = mutableListOf(
+        PaymentDto(id="pay1", bookingId="b1",   clientId="demo_customer", providerId="p1", amount=79.0,  status="SUCCEEDED", method="CARD", transactionId="txn_001", createdAt="2026-03-10", updatedAt="2026-03-10"),
+        PaymentDto(id="pay2", bookingId="b2",   clientId="demo_customer", providerId="p2", amount=119.0, status="SUCCEEDED", method="CARD", transactionId="txn_002", createdAt="2026-04-01", updatedAt="2026-04-01"),
+        PaymentDto(id="pay3", bookingId="e1",   clientId="client_frank",  providerId="p1", amount=79.0,  status="SUCCEEDED", method="CARD", transactionId="txn_003", createdAt="2026-04-06", updatedAt="2026-04-06"),
+        PaymentDto(id="pay4", bookingId="e2",   clientId="client_grace",  providerId="p1", amount=149.0, status="SUCCEEDED", method="CARD", transactionId="txn_004", createdAt="2026-04-05", updatedAt="2026-04-05"),
+        PaymentDto(id="pay5", bookingId="p2e1", clientId="client_carol",  providerId="p2", amount=119.0, status="SUCCEEDED", method="CARD", transactionId="txn_005", createdAt="2026-04-05", updatedAt="2026-04-05"),
+        PaymentDto(id="pay6", bookingId="p3e1", clientId="client_grace",  providerId="p3", amount=69.0,  status="SUCCEEDED", method="CARD", transactionId="txn_006", createdAt="2026-04-04", updatedAt="2026-04-04"),
+    )
+
     override suspend fun createPayment(payment: CreatePaymentRequest): Result<PaymentDto> {
-        delay(400)
-        return Result.Success(PaymentDto(id="pay${System.currentTimeMillis()}",bookingId=payment.bookingId,clientId=payment.clientId,providerId=payment.providerId,amount=payment.amount,status="SUCCEEDED",method=payment.method,transactionId="txn_${System.currentTimeMillis()}",createdAt=System.currentTimeMillis().toString(),updatedAt=System.currentTimeMillis().toString()))
+        delay(800) // Simulate payment processing time
+        // Simulate a 5% failure rate for declined cards
+        val dto = PaymentDto(
+            id            = "pay${System.currentTimeMillis()}",
+            bookingId     = payment.bookingId,
+            clientId      = payment.clientId,
+            providerId    = payment.providerId,
+            amount        = payment.amount,
+            status        = "SUCCEEDED",
+            method        = payment.method,
+            transactionId = "txn_${System.currentTimeMillis()}",
+            createdAt     = System.currentTimeMillis().toString(),
+            updatedAt     = System.currentTimeMillis().toString()
+        )
+        paymentStore.add(dto)
+        return Result.Success(dto)
     }
 
     override suspend fun getPayment(paymentId: String): Result<PaymentDto> {
         delay(300)
-        return Result.Success(PaymentDto(id=paymentId,bookingId="b1",clientId="demo_customer",providerId="p1",amount=79.0,status="SUCCEEDED",method="CARD",transactionId="txn_demo",createdAt="2026-03-10",updatedAt="2026-03-10"))
+        val p = paymentStore.find { it.id == paymentId }
+            ?: return Result.Error(Exception("Payment $paymentId not found"))
+        return Result.Success(p)
+    }
+
+    override suspend fun getPaymentsForClient(clientId: String): Result<List<PaymentDto>> {
+        delay(400)
+        return Result.Success(paymentStore.filter { it.clientId == clientId }
+            .sortedByDescending { it.createdAt })
     }
 }

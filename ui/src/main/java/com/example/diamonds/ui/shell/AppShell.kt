@@ -43,10 +43,13 @@ import com.example.diamonds.ui.company.CompanyBookingsScreen
 import com.example.diamonds.ui.company.CompanyDashboardScreen
 import com.example.diamonds.ui.company.CompanyEarningsScreen
 import com.example.diamonds.ui.company.CompanyTeamScreen
+import com.example.diamonds.ui.customer.CustomerProfileScreen
+import com.example.diamonds.ui.payment.PaymentHistoryScreen
+import com.example.diamonds.ui.payment.PaymentScreen
+import com.example.diamonds.ui.payment.PaymentSuccessScreen
 import com.example.diamonds.ui.navigation.Screen
 import com.example.diamonds.ui.navigation.startTabForSession
 import com.example.diamonds.ui.navigation.tabsForSession
-import com.example.diamonds.ui.placeholder.PlaceholderScreen
 
 /** Routes where the bottom bar should be hidden (deep booking flow). */
 private val routesWithoutBottomBar = setOf(
@@ -57,6 +60,9 @@ private val routesWithoutBottomBar = setOf(
     Screen.BookingDetail().route,
     Screen.ReviewBooking().route,
     Screen.ProviderRatings().route,
+    Screen.Payment().route,
+    Screen.PaymentSuccess().route,
+    Screen.PaymentHistory.route,
     Screen.CleanerServiceManage.route,
     Screen.CompanyServiceManage.route
 )
@@ -73,6 +79,10 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("customer/booking")  -> "Booking Details"
         route.startsWith("customer/review")   -> "Leave a Review"
         route.startsWith("customer/ratings")  -> "Ratings & Reviews"
+        route.startsWith("customer/pay/success") -> "Payment Successful"
+        route.startsWith("customer/pay")      -> "Secure Payment"
+        route.startsWith("customer/payments") -> "Payment History"
+        route.startsWith("customer/profile")  -> "My Profile"
         route.startsWith("cleaner/requests")  -> "Booking Requests"
         route.startsWith("cleaner/schedule")  -> "My Schedule"
         route.startsWith("cleaner/earnings")  -> "Earnings"
@@ -171,7 +181,16 @@ fun AppShell(
                 )
             }
             composable(Screen.CustomerProfile.route) {
-                PlaceholderScreen("Profile\n\nManage your account settings.")
+                CustomerProfileScreen(
+                    session          = s,
+                    onPaymentHistory = { innerNav.navigate(Screen.PaymentHistory.route) },
+                    onMyBookings     = {
+                        innerNav.navigate(Screen.CustomerBookings.route) {
+                            popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
+                        }
+                    },
+                    onSignOut = { viewModel.logout(onLogout) }
+                )
             }
 
             // ── Customer booking flow ──────────────────────────────────────
@@ -205,6 +224,7 @@ fun AppShell(
                 val bid = entry.arguments?.getString("bookingId") ?: return@composable
                 BookingConfirmationScreen(
                     bookingId      = bid,
+                    onPayNow       = { id -> innerNav.navigate(Screen.Payment().route(id)) },
                     onViewBookings = {
                         innerNav.navigate(Screen.CustomerBookings.route) {
                             popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
@@ -239,6 +259,41 @@ fun AppShell(
             composable(Screen.ProviderRatings().route) { entry ->
                 val pid = entry.arguments?.getString("providerId") ?: return@composable
                 ProviderRatingsScreen(providerId = pid)
+            }
+            composable(Screen.Payment().route) { entry ->
+                val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                PaymentScreen(
+                    bookingId        = bid,
+                    onPaymentSuccess = { payId ->
+                        innerNav.navigate(Screen.PaymentSuccess().route(payId)) {
+                            popUpTo(Screen.Payment().route) { inclusive = true }
+                        }
+                    },
+                    onSkip = {
+                        innerNav.navigate(Screen.CustomerBookings.route) {
+                            popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
+                        }
+                    }
+                )
+            }
+            composable(Screen.PaymentSuccess().route) { entry ->
+                val payId = entry.arguments?.getString("paymentId") ?: return@composable
+                PaymentSuccessScreen(
+                    paymentId    = payId,
+                    onViewBookings = {
+                        innerNav.navigate(Screen.CustomerBookings.route) {
+                            popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
+                        }
+                    },
+                    onDone = {
+                        innerNav.navigate(Screen.CustomerHome.route) {
+                            popUpTo(innerNav.graph.findStartDestination().id) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable(Screen.PaymentHistory.route) {
+                PaymentHistoryScreen()
             }
 
             // ── Independent / Employed Cleaner screens ─────────────────────

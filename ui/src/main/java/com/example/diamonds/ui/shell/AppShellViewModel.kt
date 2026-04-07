@@ -35,4 +35,9 @@ class AppShellViewModel @Inject constructor(
             onLoggedOut()
         }
     }
+
+    /** Alias for use in profile screens where navigation is handled by the caller. */
+    fun signOut() {
+        viewModelScope.launch { authRepository.logout() }
+    }
 }
