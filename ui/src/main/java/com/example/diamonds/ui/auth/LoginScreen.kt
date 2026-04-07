@@ -1,4 +1,5 @@
 package com.example.diamonds.ui.auth
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -171,7 +172,15 @@ fun LoginScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        // ── Dev hint – demo accounts ───────────────────────────────────────
+        // ── Dev hint – tappable demo accounts ─────────────────────────────
+        val demoAccounts = remember {
+            listOf(
+                Triple("customer@demo.com",  "Customer",           "Demo Customer"),
+                Triple("cleaner@demo.com",   "Cleaner (indie)",    "Maria Garcia"),
+                Triple("employed@demo.com",  "Cleaner (employed)", "James Okafor"),
+                Triple("company@demo.com",   "Company account",    "Sparkle Pro"),
+            )
+        }
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
@@ -180,16 +189,45 @@ fun LoginScreen(
         ) {
             Column(Modifier.padding(12.dp)) {
                 Text(
-                    "🔧  Demo accounts",
+                    "🔧  Demo accounts  (tap to fill)",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Spacer(Modifier.height(6.dp))
+                demoAccounts.forEachIndexed { i, (demoEmail, role, name) ->
+                    if (i > 0) androidx.compose.material3.HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.onEmailChange(demoEmail)
+                                viewModel.onPasswordChange("demo1234")
+                            }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                demoEmail,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(name, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text(role, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Customer:  customer@demo.com\nCleaner:     cleaner@demo.com\n(any password)",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "Password is pre-filled as \"demo1234\"",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
         }

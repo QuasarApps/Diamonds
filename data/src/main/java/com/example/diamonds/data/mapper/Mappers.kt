@@ -34,6 +34,9 @@ fun ProviderEntity.toDomain(): Provider = Provider(
     reviewCount = reviewCount,
     verificationStatus = VerificationStatus.valueOf(verificationStatus),
     serviceRadius = serviceRadius,
+    cleanerType = try { CleanerType.valueOf(cleanerType) } catch (_: Exception) { CleanerType.INDEPENDENT },
+    employerId = employerId,
+    employerName = employerName,
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -138,6 +141,9 @@ fun Provider.toEntity(): ProviderEntity = ProviderEntity(
     reviewCount = reviewCount,
     verificationStatus = verificationStatus.name,
     serviceRadius = serviceRadius,
+    cleanerType = cleanerType.name,
+    employerId = employerId,
+    employerName = employerName,
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -198,6 +204,9 @@ fun ProviderDto.toDomain(): Provider = Provider(
     reviewCount = reviewCount,
     verificationStatus = VerificationStatus.valueOf(verificationStatus),
     serviceRadius = serviceRadius,
+    cleanerType = try { CleanerType.valueOf(cleanerType) } catch (_: Exception) { CleanerType.INDEPENDENT },
+    employerId = employerId,
+    employerName = employerName,
     createdAt = createdAt,
     updatedAt = updatedAt
 )

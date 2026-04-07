@@ -7,15 +7,19 @@ import kotlinx.coroutines.delay
  * Development / testing auth service that always succeeds immediately.
  *
  * Use this implementation to work on the UI without a real Firebase project.
- * Swap it out for [FirebaseAuthService] in [AuthServiceModule] when ready.
+ * Swap it out for [FirebaseAuthService] when ready.
  *
  * Credentials accepted:
  *   - Any well-formed email + password of ≥ 6 chars succeeds.
  *   - Email "fail@test.com" always returns an error (handy for testing error states).
  *
- * Demo shortcut accounts:
- *   - "cleaner@demo.com" / any password → signs in as provider p1 (Maria Garcia)
- *   - "customer@demo.com" / any password → signs in as demo_customer
+ * Demo shortcut accounts (any password):
+ *   | Email                  | Role    | UID | Notes                          |
+ *   |------------------------|---------|-----|--------------------------------|
+ *   | customer@demo.com      | CUSTOMER| demo_customer | Standard customer   |
+ *   | cleaner@demo.com       | CLEANER | p1  | Independent cleaner (Maria)    |
+ *   | employed@demo.com      | CLEANER | p2  | Employed by Sparkle Pro (James)|
+ *   | company@demo.com       | CLEANER | p5  | Sparkle Pro Cleaning Co.       |
  */
 class MockAuthService : IAuthService {
 
@@ -27,15 +31,13 @@ class MockAuthService : IAuthService {
         }
 
         // Demo shortcut accounts with predictable UIDs that match seed data
-        val uid = when (email.lowercase()) {
-            "cleaner@demo.com"  -> "p1"
-            "customer@demo.com" -> "demo_customer"
-            else                -> "mock_uid_${email.hashCode()}"
-        }
-        val displayName = when (email.lowercase()) {
-            "cleaner@demo.com"  -> "Maria Garcia"
-            "customer@demo.com" -> "Demo Customer"
-            else                -> email.substringBefore("@").replaceFirstChar { it.uppercase() }
+        val (uid, displayName) = when (email.lowercase()) {
+            "cleaner@demo.com"  -> "p1" to "Maria Garcia"
+            "customer@demo.com" -> "demo_customer" to "Demo Customer"
+            "employed@demo.com" -> "p2" to "James Okafor"
+            "company@demo.com"  -> "p5" to "Sparkle Pro Cleaning Co."
+            else                -> "mock_uid_${email.hashCode()}" to
+                    email.substringBefore("@").replaceFirstChar { it.uppercase() }
         }
 
         return Result.Success(

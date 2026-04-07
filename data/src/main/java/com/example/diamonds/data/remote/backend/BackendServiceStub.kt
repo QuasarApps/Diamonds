@@ -14,29 +14,45 @@ class BackendServiceStub : IBackendService {
     // ── Seed data ────────────────────────────────────────────────────────────
 
     private val seedProviders = listOf(
+        // ── Independent cleaners ──────────────────────────────────────────
         ProviderDto(
             id = "p1", name = "Maria Garcia", email = "maria@clean.com",
             phoneNumber = "+1 555-0101", bio = "10 years experience, specialising in deep cleans and post-construction.",
             rating = 4.9f, reviewCount = 143, verificationStatus = "APPROVED",
-            serviceRadius = 15, createdAt = "2023-01-10", updatedAt = "2026-01-01"
-        ),
-        ProviderDto(
-            id = "p2", name = "James Okafor", email = "james@clean.com",
-            phoneNumber = "+1 555-0202", bio = "Fast, reliable, eco-friendly products only.",
-            rating = 4.7f, reviewCount = 89, verificationStatus = "APPROVED",
-            serviceRadius = 10, createdAt = "2023-03-15", updatedAt = "2025-12-01"
-        ),
-        ProviderDto(
-            id = "p3", name = "Sofia Petrov", email = "sofia@clean.com",
-            phoneNumber = "+1 555-0303", bio = "Office and commercial specialist. Flexible evening slots.",
-            rating = 4.8f, reviewCount = 212, verificationStatus = "APPROVED",
-            serviceRadius = 20, createdAt = "2022-11-05", updatedAt = "2026-02-14"
+            serviceRadius = 15, cleanerType = "INDEPENDENT",
+            createdAt = "2023-01-10", updatedAt = "2026-01-01"
         ),
         ProviderDto(
             id = "p4", name = "Daniel Choi", email = "daniel@clean.com",
             phoneNumber = "+1 555-0404", bio = "Carpet and upholstery expert. Steam cleaning available.",
             rating = 4.6f, reviewCount = 57, verificationStatus = "APPROVED",
-            serviceRadius = 12, createdAt = "2024-06-20", updatedAt = "2026-03-01"
+            serviceRadius = 12, cleanerType = "INDEPENDENT",
+            createdAt = "2024-06-20", updatedAt = "2026-03-01"
+        ),
+        // ── Cleaning company ──────────────────────────────────────────────
+        ProviderDto(
+            id = "p5", name = "Sparkle Pro Cleaning Co.", email = "hello@sparklepro.com",
+            phoneNumber = "+1 555-0500", bio = "Fully insured commercial & residential cleaning company. Vetted team of 12 cleaners.",
+            rating = 4.8f, reviewCount = 304, verificationStatus = "APPROVED",
+            serviceRadius = 25, cleanerType = "INDEPENDENT", // company itself has no employer
+            createdAt = "2021-06-01", updatedAt = "2026-03-15"
+        ),
+        // ── Employed cleaners (work for Sparkle Pro) ──────────────────────
+        ProviderDto(
+            id = "p2", name = "James Okafor", email = "james@sparklepro.com",
+            phoneNumber = "+1 555-0202", bio = "Fast, reliable, eco-friendly products only.",
+            rating = 4.7f, reviewCount = 89, verificationStatus = "APPROVED",
+            serviceRadius = 10, cleanerType = "EMPLOYED",
+            employerId = "p5", employerName = "Sparkle Pro Cleaning Co.",
+            createdAt = "2023-03-15", updatedAt = "2025-12-01"
+        ),
+        ProviderDto(
+            id = "p3", name = "Sofia Petrov", email = "sofia@sparklepro.com",
+            phoneNumber = "+1 555-0303", bio = "Office and commercial specialist. Flexible evening slots.",
+            rating = 4.8f, reviewCount = 212, verificationStatus = "APPROVED",
+            serviceRadius = 20, cleanerType = "EMPLOYED",
+            employerId = "p5", employerName = "Sparkle Pro Cleaning Co.",
+            createdAt = "2022-11-05", updatedAt = "2026-02-14"
         )
     )
 
@@ -58,6 +74,13 @@ class BackendServiceStub : IBackendService {
         "p4" to listOf(
             ServiceDto("s4-1","p4","Carpet Steam Clean (1 room)","Professional steam clean, one room",65.0,60,"CARPET_CLEANING",isActive=true, createdAt="2024-06-20",updatedAt="2026-03-01"),
             ServiceDto("s4-2","p4","Carpet Steam Clean (whole home)","Full home carpet steam treatment",220.0,240,"CARPET_CLEANING",isActive=true, createdAt="2024-06-20",updatedAt="2026-03-01")
+        ),
+        // Sparkle Pro company-level services (booked directly; dispatched to employed cleaners)
+        "p5" to listOf(
+            ServiceDto("s5-1","p5","Residential Deep Clean","Professional whole-home deep clean by our vetted team",169.0,300,"DEEP_CLEANING",isActive=true, createdAt="2021-06-01",updatedAt="2026-03-15"),
+            ServiceDto("s5-2","p5","Regular House Clean","Weekly or fortnightly maintenance clean",99.0,150,"HOUSE_CLEANING",isActive=true, createdAt="2021-06-01",updatedAt="2026-03-15"),
+            ServiceDto("s5-3","p5","Commercial Office Clean","Daily office cleaning contract from 500 sq ft",149.0,180,"OFFICE_CLEANING",isActive=true, createdAt="2021-06-01",updatedAt="2026-03-15"),
+            ServiceDto("s5-4","p5","Move-In / Move-Out Clean","Full property clean for tenancy handovers",219.0,360,"HOUSE_CLEANING",isActive=true, createdAt="2021-06-01",updatedAt="2026-03-15")
         )
     )
 

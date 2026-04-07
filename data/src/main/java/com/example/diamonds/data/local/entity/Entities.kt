@@ -29,6 +29,11 @@ data class ProviderEntity(
     val reviewCount: Int = 0,
     val verificationStatus: String, // VerificationStatus enum
     val serviceRadius: Int = 10,
+    /** "INDEPENDENT" or "EMPLOYED" */
+    val cleanerType: String = "INDEPENDENT",
+    /** Non-null when cleanerType == "EMPLOYED" */
+    val employerId: String? = null,
+    val employerName: String? = null,
     val createdAt: String,
     val updatedAt: String,
     val syncedAt: String? = null

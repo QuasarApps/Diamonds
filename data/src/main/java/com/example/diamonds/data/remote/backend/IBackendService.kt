@@ -75,6 +75,11 @@ data class ProviderDto(
     val reviewCount: Int = 0,
     val verificationStatus: String,
     val serviceRadius: Int = 10,
+    /** "INDEPENDENT" or "EMPLOYED" */
+    val cleanerType: String = "INDEPENDENT",
+    /** Non-null for employed cleaners */
+    val employerId: String? = null,
+    val employerName: String? = null,
     val createdAt: String,
     val updatedAt: String
 )

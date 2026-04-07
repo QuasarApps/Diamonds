@@ -18,6 +18,26 @@ data class Client(
 )
 
 /**
+ * Verification status for providers
+ */
+@Serializable
+enum class VerificationStatus {
+    PENDING, APPROVED, REJECTED, SUSPENDED
+}
+
+/**
+ * Whether a cleaner works independently or is employed by a cleaning company.
+ *
+ * - [INDEPENDENT]: self-employed, owns their own provider profile and listings.
+ * - [EMPLOYED]: works under a cleaning company; their profile is linked to the
+ *   company's provider account via [Provider.employerId].
+ */
+@Serializable
+enum class CleanerType {
+    INDEPENDENT, EMPLOYED
+}
+
+/**
  * Represents a provider (person offering cleaning services)
  */
 @Serializable
@@ -32,17 +52,18 @@ data class Provider(
     val reviewCount: Int = 0,
     val verificationStatus: VerificationStatus = VerificationStatus.PENDING,
     val serviceRadius: Int = 10, // km
+    /** Whether this cleaner is independent or employed by a company. */
+    val cleanerType: CleanerType = CleanerType.INDEPENDENT,
+    /**
+     * For [CleanerType.EMPLOYED] cleaners, the ID of the company [Provider]
+     * that employs them. Null for [CleanerType.INDEPENDENT] cleaners.
+     */
+    val employerId: String? = null,
+    /** Display name of the employing company (denormalised for easy display). */
+    val employerName: String? = null,
     val createdAt: String,
     val updatedAt: String
 )
-
-/**
- * Verification status for providers
- */
-@Serializable
-enum class VerificationStatus {
-    PENDING, APPROVED, REJECTED, SUSPENDED
-}
 
 /**
  * Represents a cleaning service offered by a provider

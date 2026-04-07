@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.repository.UserRole
+import com.example.diamonds.domain.model.CleanerType
 
 @Composable
 fun SignupScreen(
@@ -56,6 +57,7 @@ fun SignupScreen(
     val password by viewModel.password.collectAsState()
     val confirmPassword by viewModel.confirmPassword.collectAsState()
     val selectedRole by viewModel.selectedRole.collectAsState()
+    val cleanerType by viewModel.cleanerType.collectAsState()
     val error by viewModel.error.collectAsState()
     LaunchedEffect(uiState.signupSuccess) {
         if (uiState.signupSuccess) {
@@ -117,6 +119,54 @@ fun SignupScreen(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        // -- Cleaner type sub-selector (only shown when Cleaner is selected) --
+        if (selectedRole == UserRole.CLEANER) {
+            Spacer(Modifier.height(16.dp))
+            Text("Work type", style = MaterialTheme.typography.labelLarge, modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(6.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FilterChip(
+                    selected = cleanerType == CleanerType.INDEPENDENT,
+                    onClick = { viewModel.onCleanerTypeChange(CleanerType.INDEPENDENT) },
+                    label = {
+                        Column {
+                            Text("Independent", fontWeight = FontWeight.SemiBold)
+                            Text("Self-employed", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                FilterChip(
+                    selected = cleanerType == CleanerType.EMPLOYED,
+                    onClick = { viewModel.onCleanerTypeChange(CleanerType.EMPLOYED) },
+                    label = {
+                        Column {
+                            Text("Employed", fontWeight = FontWeight.SemiBold)
+                            Text("Work for a company", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            if (cleanerType == CleanerType.EMPLOYED) {
+                Spacer(Modifier.height(8.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                    text = "ℹ️  Your employer will link you to their company account after you sign up.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+        }
+
         Spacer(Modifier.height(24.dp))
         // -- Form fields -----------------------------------------------------
         OutlinedTextField(
@@ -194,7 +244,11 @@ fun SignupScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                val label = if (selectedRole == UserRole.CLEANER) "Join as Cleaner" else "Create Account"
+                val label = when {
+                    selectedRole == UserRole.CLEANER && cleanerType == CleanerType.EMPLOYED -> "Join as Employed Cleaner"
+                    selectedRole == UserRole.CLEANER -> "Join as Independent Cleaner"
+                    else -> "Create Account"
+                }
                 Text(label, fontSize = 16.sp)
             }
         }

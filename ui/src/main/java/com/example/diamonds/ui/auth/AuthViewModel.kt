@@ -1,6 +1,7 @@
 package com.example.diamonds.ui.auth
 import androidx.lifecycle.viewModelScope
 import com.example.diamonds.data.connectivity.ConnectivityObserver
+import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.UserRole
@@ -38,6 +39,10 @@ class AuthViewModel @Inject constructor(
     val phone: StateFlow<String> = _phone.asStateFlow()
     private val _selectedRole = MutableStateFlow(UserRole.CUSTOMER)
     val selectedRole: StateFlow<UserRole> = _selectedRole.asStateFlow()
+
+    private val _cleanerType = MutableStateFlow(CleanerType.INDEPENDENT)
+    val cleanerType: StateFlow<CleanerType> = _cleanerType.asStateFlow()
+
     // -- Form input handlers -------------------------------------------------
     fun onEmailChange(value: String)           { _email.value = value; clearFieldError(AuthField.EMAIL) }
     fun onPasswordChange(value: String)        { _password.value = value; clearFieldError(AuthField.PASSWORD) }
@@ -45,6 +50,7 @@ class AuthViewModel @Inject constructor(
     fun onNameChange(value: String)            { _name.value = value; clearFieldError(AuthField.NAME) }
     fun onPhoneChange(value: String)           { _phone.value = value; clearFieldError(AuthField.PHONE) }
     fun onRoleChange(role: UserRole)           { _selectedRole.value = role }
+    fun onCleanerTypeChange(type: CleanerType) { _cleanerType.value = type }
     // -- Auth actions --------------------------------------------------------
     fun login() {
         val errors = buildMap {

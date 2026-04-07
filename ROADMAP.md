@@ -85,6 +85,14 @@ Provider-side features.
 - [x] Add "Requests" tab to cleaner bottom nav
 - [x] Seed stub with realistic cleaner-side demo bookings (requests, jobs, past completions)
 - [x] Add demo cleaner account (cleaner@demo.com → p1) with matching hint on Login screen
+- [x] Add CleanerType enum (INDEPENDENT / EMPLOYED) to domain model and Provider
+- [x] Thread cleanerType / employerId / employerName through entity, DTO, and mappers
+- [x] Room migration v1→v2 for new provider columns
+- [x] Seed stub: independent (p1, p4), company (p5 – Sparkle Pro), employed cleaners (p2, p3)
+- [x] SignupScreen: INDEPENDENT / EMPLOYED sub-selector + info card when Cleaner role selected
+- [x] ProviderSearchScreen: Independent / Employed / Company badge on each card
+- [x] LoginScreen: tappable demo account table (4 accounts, tap auto-fills email + password)
+- [x] MockAuthService: employed@demo.com → p2, company@demo.com → p5 demo shortcuts
 - [ ] Create ProviderProfileScreen
 - [ ] Build ServiceManagementScreen
 - [ ] Add service creation flow

@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ServiceCategory
 
@@ -139,6 +140,9 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
                     Text("⭐ ${provider.rating}", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                     Text("  ·  ${provider.reviewCount} reviews", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                Spacer(Modifier.height(4.dp))
+                // Cleaner type badge
+                CleanerTypeBadge(provider)
                 provider.bio?.let { bio ->
                     Spacer(Modifier.height(4.dp))
                     Text(
@@ -150,5 +154,41 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+/**
+ * Small pill showing whether this provider is an independent cleaner,
+ * employed by a company, or is a cleaning company itself.
+ *
+ * The heuristic for "company" (vs independent) is simply checking for
+ * [CleanerType.INDEPENDENT] + a non-null [Provider.employerName] absence
+ * and whether the bio implies a team. In production this would be a first-
+ * class field (e.g. ProviderKind.COMPANY).
+ */
+@Composable
+private fun CleanerTypeBadge(provider: Provider) {
+    // A company is an INDEPENDENT entry that employs others.
+    // We detect it by the absence of an employer + a company-style name.
+    // In a real backend this would be a proper ProviderKind enum.
+    val isCompany = provider.cleanerType == CleanerType.INDEPENDENT
+            && (provider.name.contains("Co.", ignoreCase = true)
+                || provider.name.contains("Company", ignoreCase = true)
+                || provider.name.contains("Ltd", ignoreCase = true)
+                || provider.name.contains("Services", ignoreCase = true))
+
+    val (emoji, label, color) = when {
+        isCompany ->
+            Triple("🏢", "Company", MaterialTheme.colorScheme.tertiary)
+        provider.cleanerType == CleanerType.EMPLOYED ->
+            Triple("🏢", "Via ${provider.employerName ?: "a company"}", MaterialTheme.colorScheme.secondary)
+        else ->
+            Triple("🧑‍💼", "Independent", MaterialTheme.colorScheme.primary)
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(emoji, fontSize = 11.sp)
+        Spacer(Modifier.width(3.dp))
+        Text(label, fontSize = 11.sp, color = color, fontWeight = FontWeight.Medium)
     }
 }
