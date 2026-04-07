@@ -317,14 +317,53 @@ class BackendServiceStub : IBackendService {
 
     // ── Reviews ───────────────────────────────────────────────────────────────
 
+    private val seedReviews = listOf(
+        // ── p1 Maria Garcia ───────────────────────────────────────────────
+        ReviewDto(id="rv1",  bookingId="e1", clientId="client_frank",  providerId="p1", rating=5, comment="Absolutely spotless — Maria is a true professional. Will book again!", createdAt="2026-04-06", updatedAt="2026-04-06"),
+        ReviewDto(id="rv2",  bookingId="e2", clientId="client_grace",  providerId="p1", rating=5, comment="Deep clean was thorough and she brought her own eco products. Highly recommend.", createdAt="2026-04-05", updatedAt="2026-04-05"),
+        ReviewDto(id="rv3",  bookingId="e3", clientId="client_alice",  providerId="p1", rating=5, comment="Arrived on time, very efficient. The apartment has never looked this good.", createdAt="2026-04-03", updatedAt="2026-04-03"),
+        ReviewDto(id="rv4",  bookingId="e4", clientId="client_bob",    providerId="p1", rating=4, comment="Great post-construction clean. Missed a small patch behind the radiator but otherwise perfect.", createdAt="2026-04-02", updatedAt="2026-04-02"),
+        ReviewDto(id="rv5",  bookingId="e5", clientId="client_carol",  providerId="p1", rating=5, comment="Incredibly detailed. Maria noticed things I would have missed completely. 5 stars.", createdAt="2026-04-01", updatedAt="2026-04-01"),
+        ReviewDto(id="rv6",  bookingId="e6", clientId="client_dave",   providerId="p1", rating=5, comment="Always reliable. This is the third time I've booked Maria and she never disappoints.", createdAt="2026-03-28", updatedAt="2026-03-28"),
+        ReviewDto(id="rv7",  bookingId="e7", clientId="client_eve",    providerId="p1", rating=4, comment="Very good service, kitchen was immaculate. Slight delay at the start but she made up the time.", createdAt="2026-03-21", updatedAt="2026-03-21"),
+        // ── p2 James Okafor ───────────────────────────────────────────────
+        ReviewDto(id="rv8",  bookingId="p2e1", clientId="client_carol", providerId="p2", rating=5, comment="James was brilliant — fast, friendly, and left the house smelling fresh. Eco products are a bonus.", createdAt="2026-04-05", updatedAt="2026-04-05"),
+        ReviewDto(id="rv9",  bookingId="p2e2", clientId="client_dave",  providerId="p2", rating=4, comment="Quick express clean, did exactly what was asked. Good value for money.", createdAt="2026-04-03", updatedAt="2026-04-03"),
+        // ── p3 Sofia Petrov ───────────────────────────────────────────────
+        ReviewDto(id="rv10", bookingId="p3e1", clientId="client_grace",  providerId="p3", rating=5, comment="Office looks incredible. Sofia and her team were in and out in 90 minutes without any disruption.", createdAt="2026-04-04", updatedAt="2026-04-04"),
+        ReviewDto(id="rv11", bookingId="p3e2", clientId="client_alice",  providerId="p3", rating=5, comment="Consistent high quality every week. Would not use anyone else for our office.", createdAt="2026-04-01", updatedAt="2026-04-01"),
+        // ── p4 Daniel Choi ────────────────────────────────────────────────
+        ReviewDto(id="rv12", bookingId="b1",   clientId="demo_customer", providerId="p4", rating=4, comment="Carpet looks brand new after the steam clean. Took a bit longer than quoted but worth it.", createdAt="2026-03-10", updatedAt="2026-03-10"),
+    )
+
+    // Mutable so created reviews can be appended
+    private val reviewStore = seedReviews.toMutableList()
+
     override suspend fun createReview(review: CreateReviewRequest): Result<ReviewDto> {
         delay(400)
-        return Result.Success(ReviewDto(id="r${System.currentTimeMillis()}",bookingId=review.bookingId,clientId=review.clientId,providerId=review.providerId,rating=review.rating,comment=review.comment,imageUrls=review.imageUrls,createdAt=System.currentTimeMillis().toString(),updatedAt=System.currentTimeMillis().toString()))
+        val dto = ReviewDto(
+            id        = "rv${System.currentTimeMillis()}",
+            bookingId = review.bookingId,
+            clientId  = review.clientId,
+            providerId = review.providerId,
+            rating    = review.rating,
+            comment   = review.comment,
+            imageUrls = review.imageUrls,
+            createdAt = System.currentTimeMillis().toString(),
+            updatedAt = System.currentTimeMillis().toString()
+        )
+        reviewStore.add(dto)
+        return Result.Success(dto)
     }
 
     override suspend fun getReviewsForProvider(providerId: String): Result<List<ReviewDto>> {
         delay(300)
-        return Result.Success(emptyList())
+        return Result.Success(reviewStore.filter { it.providerId == providerId })
+    }
+
+    override suspend fun getReviewsForBooking(bookingId: String): Result<ReviewDto?> {
+        delay(200)
+        return Result.Success(reviewStore.find { it.bookingId == bookingId })
     }
 
     // ── Payments ──────────────────────────────────────────────────────────────

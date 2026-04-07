@@ -30,7 +30,9 @@ import com.example.diamonds.ui.booking.BookingConfirmationScreen
 import com.example.diamonds.ui.booking.BookingDetailScreen
 import com.example.diamonds.ui.booking.BookingFormScreen
 import com.example.diamonds.ui.booking.BookingsListScreen
+import com.example.diamonds.ui.booking.ProviderRatingsScreen
 import com.example.diamonds.ui.booking.ProviderSearchScreen
+import com.example.diamonds.ui.booking.ReviewScreen
 import com.example.diamonds.ui.booking.ServiceListScreen
 import com.example.diamonds.ui.cleaner.CleanerBookingRequestsScreen
 import com.example.diamonds.ui.cleaner.CleanerEarningsScreen
@@ -39,6 +41,7 @@ import com.example.diamonds.ui.cleaner.CleanerScheduleScreen
 import com.example.diamonds.ui.cleaner.ServiceManagementScreen
 import com.example.diamonds.ui.company.CompanyBookingsScreen
 import com.example.diamonds.ui.company.CompanyDashboardScreen
+import com.example.diamonds.ui.company.CompanyEarningsScreen
 import com.example.diamonds.ui.company.CompanyTeamScreen
 import com.example.diamonds.ui.navigation.Screen
 import com.example.diamonds.ui.navigation.startTabForSession
@@ -52,6 +55,8 @@ private val routesWithoutBottomBar = setOf(
     Screen.BookingForm().route,
     Screen.BookingConfirmation().route,
     Screen.BookingDetail().route,
+    Screen.ReviewBooking().route,
+    Screen.ProviderRatings().route,
     Screen.CleanerServiceManage.route,
     Screen.CompanyServiceManage.route
 )
@@ -66,6 +71,8 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("customer/book")     -> "Book Service"
         route.startsWith("customer/confirm")  -> "Booking Confirmed"
         route.startsWith("customer/booking")  -> "Booking Details"
+        route.startsWith("customer/review")   -> "Leave a Review"
+        route.startsWith("customer/ratings")  -> "Ratings & Reviews"
         route.startsWith("cleaner/requests")  -> "Booking Requests"
         route.startsWith("cleaner/schedule")  -> "My Schedule"
         route.startsWith("cleaner/earnings")  -> "Earnings"
@@ -170,7 +177,8 @@ fun AppShell(
             // ── Customer booking flow ──────────────────────────────────────
             composable(Screen.ProviderSearch.route) {
                 ProviderSearchScreen(
-                    onProviderSelected = { pid -> innerNav.navigate(Screen.ServiceList().route(pid)) }
+                    onProviderSelected = { pid -> innerNav.navigate(Screen.ServiceList().route(pid)) },
+                    onViewRatings      = { pid -> innerNav.navigate(Screen.ProviderRatings().route(pid)) }
                 )
             }
             composable(Screen.ServiceList().route) { entry ->
@@ -212,9 +220,25 @@ fun AppShell(
             composable(Screen.BookingDetail().route) { entry ->
                 val bid = entry.arguments?.getString("bookingId") ?: return@composable
                 BookingDetailScreen(
-                    bookingId   = bid,
-                    onCancelled = { innerNav.popBackStack() }
+                    bookingId      = bid,
+                    onCancelled    = { innerNav.popBackStack() },
+                    onLeaveReview  = { bookingId, providerId ->
+                        innerNav.navigate(Screen.ReviewBooking().route(bookingId, providerId))
+                    }
                 )
+            }
+            composable(Screen.ReviewBooking().route) { entry ->
+                val bid = entry.arguments?.getString("bookingId")  ?: return@composable
+                val pid = entry.arguments?.getString("providerId") ?: return@composable
+                ReviewScreen(
+                    bookingId         = bid,
+                    providerId        = pid,
+                    onReviewSubmitted = { innerNav.popBackStack() }
+                )
+            }
+            composable(Screen.ProviderRatings().route) { entry ->
+                val pid = entry.arguments?.getString("providerId") ?: return@composable
+                ProviderRatingsScreen(providerId = pid)
             }
 
             // ── Independent / Employed Cleaner screens ─────────────────────
@@ -251,7 +275,7 @@ fun AppShell(
                 CompanyTeamScreen()
             }
             composable(Screen.CompanyEarnings.route) {
-                PlaceholderScreen("Revenue\n\nTrack company earnings and payouts.")
+                CompanyEarningsScreen()
             }
             composable(Screen.CompanyProfile.route) {
                 CleanerProfileScreen(

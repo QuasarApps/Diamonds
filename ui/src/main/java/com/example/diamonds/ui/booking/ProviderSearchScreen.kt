@@ -51,6 +51,7 @@ private val categories = listOf(
 @Composable
 fun ProviderSearchScreen(
     onProviderSelected: (String) -> Unit,
+    onViewRatings: (String) -> Unit = {},
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.searchState.collectAsState()
@@ -105,14 +106,18 @@ fun ProviderSearchScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(state.providers, key = { it.id }) { provider ->
-                ProviderCard(provider = provider, onClick = { onProviderSelected(provider.id) })
+                ProviderCard(
+                    provider     = provider,
+                    onClick      = { onProviderSelected(provider.id) },
+                    onViewRatings = { onViewRatings(provider.id) }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
+private fun ProviderCard(provider: Provider, onClick: () -> Unit, onViewRatings: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -136,21 +141,19 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(provider.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClick = onViewRatings)
+                ) {
                     Text("⭐ ${provider.rating}", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                     Text("  ·  ${provider.reviewCount} reviews", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("  ›", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.height(4.dp))
-                // Cleaner type badge
                 CleanerTypeBadge(provider)
                 provider.bio?.let { bio ->
                     Spacer(Modifier.height(4.dp))
-                    Text(
-                        bio,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2
-                    )
+                    Text(bio, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                 }
             }
         }

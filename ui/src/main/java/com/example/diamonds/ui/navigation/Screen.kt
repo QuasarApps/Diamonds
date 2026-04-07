@@ -40,6 +40,15 @@ sealed class Screen(val route: String) {
     data class  BookingDetail(val bookingId: String = "{bookingId}") : Screen("customer/booking/{bookingId}") {
         fun route(id: String) = "customer/booking/$id"
     }
+    data class  ReviewBooking(
+        val bookingId: String  = "{bookingId}",
+        val providerId: String = "{providerId}"
+    ) : Screen("customer/review/{bookingId}/{providerId}") {
+        fun route(bid: String, pid: String) = "customer/review/$bid/$pid"
+    }
+    data class  ProviderRatings(val providerId: String = "{providerId}") : Screen("customer/ratings/{providerId}") {
+        fun route(id: String) = "customer/ratings/$id"
+    }
 
     // ── Cleaner tab destinations ───────────────────────────────────────────
     data object CleanerDashboard       : Screen("cleaner/dashboard")

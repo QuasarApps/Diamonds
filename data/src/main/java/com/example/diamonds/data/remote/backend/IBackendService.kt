@@ -46,6 +46,7 @@ interface IBackendService {
     // Reviews
     suspend fun createReview(review: CreateReviewRequest): Result<ReviewDto>
     suspend fun getReviewsForProvider(providerId: String): Result<List<ReviewDto>>
+    suspend fun getReviewsForBooking(bookingId: String): Result<ReviewDto?>
 
     // Payments
     suspend fun createPayment(payment: CreatePaymentRequest): Result<PaymentDto>

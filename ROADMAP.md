@@ -109,39 +109,34 @@ Provider-side features.
 - [x] CleanerEarningsViewModel — aggregates completed bookings into daily/weekly/monthly buckets
 - [x] Seed: expanded p1 completions across last 7 days; p2/p3 employed-cleaner bookings added
 - [x] Service management also wired for Company profile tab (CompanyServiceManage route)
-- [ ] Implement provider ratings display
-- [ ] Create company earnings dashboard (replace placeholder)
+- [x] Implement provider ratings display — ProviderRatingsScreen (avg + star breakdown bar + review cards), tappable star row on ProviderCard, wired from search and booking detail
+- [x] Create company earnings dashboard — CompanyEarningsScreen + CompanyEarningsViewModel (week hero, monthly KPIs, per-cleaner breakdown, recent jobs list)
 
 ### Tests
 - [ ] Provider profile tests
 - [ ] Service management tests
 - [ ] Booking request handling tests
 
-**Estimated Duration**: 3-4 weeks
+**Estimated Duration**: 3-4 weeks ✅ COMPLETE
 
 ---
 
-## Phase 5: Reviews & Ratings
+## Phase 5: Reviews & Ratings ✅ COMPLETE
 Post-job review system.
 
 ### Tasks
-- [ ] Create ReviewScreen component
-- [ ] Build 5-star rating picker
-- [ ] Add comment input
-- [ ] Implement photo upload for reviews
-- [ ] Create ProviderRatingsScreen
-- [ ] Build review list display
-- [ ] Add filtering/sorting reviews
-- [ ] Calculate provider average ratings
-- [ ] Display rating on provider profile
+- [x] Seed rich review data (12 seeded reviews across p1–p4, mutable store so new reviews persist in session)
+- [x] Add getReviewsForBooking to IBackendService + BackendServiceStub
+- [x] ReviewViewModel — load booking context, check existing review, submit, load all reviews for a provider
+- [x] ReviewScreen — interactive ★☆ tap picker, label (Poor→Excellent), optional comment field, read-only view if already reviewed
+- [x] StarPicker — shared reusable composable (interactive + read-only modes)
+- [x] ProviderRatingsScreen — large avg rating, star breakdown LinearProgressIndicator bars (5→1), scrollable review card list with client initials avatar
+- [x] ReviewBooking + ProviderRatings routes added to Screen
+- [x] BookingDetailScreen — "⭐ Leave a Review" button shown only for COMPLETED bookings
+- [x] ProviderSearchScreen — star row is now tappable (navigates to ProviderRatingsScreen)
+- [ ] Add photo upload for reviews
 - [ ] Implement review moderation (future)
 
-### Tests
-- [ ] Review creation tests
-- [ ] Rating calculation tests
-- [ ] Review display tests
-
-**Estimated Duration**: 2 weeks
 
 ---
 

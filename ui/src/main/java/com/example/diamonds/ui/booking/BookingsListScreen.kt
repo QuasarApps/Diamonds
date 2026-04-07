@@ -123,6 +123,7 @@ private fun BookingSummaryCard(item: BookingWithDetails, onClick: () -> Unit) {
 fun BookingDetailScreen(
     bookingId: String,
     onCancelled: () -> Unit,
+    onLeaveReview: (bookingId: String, providerId: String) -> Unit = { _, _ -> },
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsState()
@@ -224,6 +225,13 @@ fun BookingDetailScreen(
                 if (state.isLoading) CircularProgressIndicator(modifier = Modifier.width(20.dp), strokeWidth = 2.dp)
                 else Text("Cancel This Booking", fontSize = 15.sp)
             }
+        }
+
+        if (booking.status == BookingStatus.COMPLETED && state.provider != null) {
+            Button(
+                onClick  = { onLeaveReview(bookingId, booking.providerId) },
+                modifier = Modifier.fillMaxWidth().height(52.dp)
+            ) { Text("⭐  Leave a Review", fontSize = 15.sp) }
         }
     }
 }
