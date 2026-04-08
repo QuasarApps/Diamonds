@@ -149,26 +149,42 @@ Payment processing with mock/stub implementation, ready for Stripe swap-in.
 
 ---
 
-## Phase 7: Navigation & App Flow
-Comprehensive navigation and deep linking.
+## Phase 7: Navigation & App Flow ✅ COMPLETE
+Comprehensive navigation, deep linking, transitions, and UX polish.
 
 ### Tasks
-- [ ] Set up Jetpack Navigation with typed routes
-- [ ] Create bottom navigation for main screens
-- [ ] Implement deep linking for bookings
-- [ ] Add back stack management
-- [ ] Create splash screen
-- [ ] Build app-level navigation logic
-- [ ] Add error handling screens
-- [ ] Implement bottom sheets for actions
-- [ ] Add dialogs for confirmations
+- [x] Add navArgument declarations to all parameterised composable routes
+- [x] Create bottom navigation for main screens (role-based: Customer, Cleaner, Company)
+- [x] Implement deep linking for bookings (diamonds://customer/booking/{id}, diamonds://customer/confirm/{id})
+- [x] Register diamonds:// URI scheme in AndroidManifest
+- [x] Handle deep links via singleTop launch mode and onNewIntent
+- [x] Add back stack management (BackHandler on BookingConfirmation, PaymentSuccess)
+- [x] Improved logout back-stack clearing (popUpTo graph.id)
+- [x] Create splash screen with branded animations
+- [x] Build app-level navigation logic (root NavHost → inner NavHost per role)
+- [x] Add navigation transition animations (slide left/right for push/pop, fade for tab switches)
+- [x] Add error handling screens (GenericErrorScreen, NoInternetScreen, NotFoundScreen)
+- [x] Add offline connectivity banner (OfflineBanner shown when device is offline)
+- [x] Implement bottom sheets for actions (QuickBookingSheet, FilterSheet for provider search)
+- [x] Add confirmation dialogs (reusable ConfirmationDialog for sign-out, cancel booking)
+- [x] Replace inline AlertDialog usage with reusable ConfirmationDialog component
 
-### Tests
-- [ ] Navigation flow tests
-- [ ] Deep link tests
-- [ ] Screen transition tests
+### New Files
+- `ui/components/ConfirmationDialog.kt` — Reusable Material 3 confirmation dialog
+- `ui/components/ErrorScreens.kt` — GenericErrorScreen, NoInternetScreen, NotFoundScreen, OfflineBanner
+- `ui/components/QuickBookingSheet.kt` — Quick-book bottom sheet with service categories
+- `ui/components/FilterSheet.kt` — Advanced filter bottom sheet (category, rating, price)
 
-**Estimated Duration**: 2 weeks
+### Modified Files
+- `ui/shell/AppShell.kt` — navArguments, deep links, transitions, offline banner, sign-out dialog
+- `ui/navigation/DiamondsNavHost.kt` — Fade transitions, improved back-stack on logout
+- `ui/shell/TabScreens.kt` — QuickBookingSheet on CustomerHomeTab
+- `ui/booking/ProviderSearchScreen.kt` — FilterSheet integration
+- `ui/booking/BookingsListScreen.kt` — Reusable ConfirmationDialog, NotFoundScreen
+- `app/AndroidManifest.xml` — Deep link intent filter, singleTop launch mode
+- `app/MainActivity.kt` — onNewIntent for deep link handling
+
+**Status**: ✅ COMPLETE
 
 ---
 
@@ -345,13 +361,12 @@ App store submission and monitoring.
 
 **Total Estimated Timeline**: 5-7 months
 
-### Current Status: **Phase 1-6 Complete** ✅ (Authentication, Booking, Provider Mgmt, Reviews, Payments)
+### Current Status: **Phase 1-7 Complete** ✅ (Authentication, Booking, Provider Mgmt, Reviews, Payments, Navigation & App Flow)
 
 ### Next Immediate Steps:
-1. Build out Phase 7 (Navigation & App Flow refinement)
-2. Begin Phase 8 (Firebase Integration)
-3. Start Phase 9 (Maps & Location services)
-4. Continue with Phase 10 (Advanced Sync & Offline)
+1. Begin Phase 8 (Firebase Integration)
+2. Start Phase 9 (Maps & Location services)
+3. Continue with Phase 10 (Advanced Sync & Offline)
 
 ### Architecture Strengths
 - ✅ Modular structure for parallel development

@@ -98,11 +98,71 @@ Diamonds/
 │       ├── theme/
 │       │   └── Theme.kt                # Material 3 theme
 │       │
-│       ├── screens/
-│       │   └── [TODO: Auth, Booking, Profile, etc.]
+│       ├── navigation/
+│       │   ├── Screen.kt               # Sealed class of all routes
+│       │   ├── DiamondsNavHost.kt      # Root NavHost (splash → auth → shell)
+│       │   └── BottomTab.kt            # Tab definitions per role
 │       │
-│       └── components/
-│           └── [TODO: Reusable UI components]
+│       ├── shell/
+│       │   ├── AppShell.kt             # Inner NavHost with bottom tabs, deep links, transitions
+│       │   ├── AppShellViewModel.kt    # Session state for the shell
+│       │   └── TabScreens.kt           # CustomerHomeTab, CleanerDashboardTab
+│       │
+│       ├── splash/
+│       │   ├── SplashScreen.kt         # Animated splash screen
+│       │   └── SplashViewModel.kt      # Auth check → route
+│       │
+│       ├── auth/
+│       │   ├── AuthViewModel.kt        # Login/Signup state
+│       │   ├── LoginScreen.kt          # Login with demo accounts
+│       │   └── SignupScreen.kt         # Signup with role selection
+│       │
+│       ├── booking/
+│       │   ├── BookingViewModel.kt     # Search, form, list, detail state
+│       │   ├── BookingsListScreen.kt   # Booking list + detail screen
+│       │   ├── BookingFormScreen.kt    # Create booking form
+│       │   ├── BookingConfirmationScreen.kt # Post-booking confirmation
+│       │   ├── ProviderSearchScreen.kt # Provider search with filter sheet
+│       │   ├── ProviderRatingsScreen.kt # Provider ratings display
+│       │   ├── ReviewScreen.kt         # Leave a review
+│       │   ├── ReviewViewModel.kt      # Review state management
+│       │   └── ServiceListScreen.kt    # Services for a provider
+│       │
+│       ├── cleaner/
+│       │   ├── CleanerViewModel.kt     # Dashboard state
+│       │   ├── CleanerProfileViewModel.kt # Profile + service management
+│       │   ├── CleanerBookingRequestsScreen.kt
+│       │   ├── CleanerEarningsScreen.kt
+│       │   ├── CleanerEarningsViewModel.kt
+│       │   ├── CleanerProfileScreen.kt
+│       │   ├── CleanerScheduleScreen.kt
+│       │   └── ServiceManagementScreen.kt
+│       │
+│       ├── company/
+│       │   ├── CompanyViewModel.kt     # Company aggregate state
+│       │   ├── CompanyEarningsViewModel.kt
+│       │   ├── CompanyBookingsScreen.kt
+│       │   ├── CompanyDashboardScreen.kt
+│       │   ├── CompanyEarningsScreen.kt
+│       │   └── CompanyTeamScreen.kt
+│       │
+│       ├── customer/
+│       │   └── CustomerProfileScreen.kt
+│       │
+│       ├── payment/
+│       │   ├── PaymentViewModel.kt     # Card validation, payment state
+│       │   ├── PaymentScreen.kt        # Payment form with card visual
+│       │   ├── PaymentSuccessScreen.kt # Receipt-style success
+│       │   └── PaymentHistoryScreen.kt # Transaction history
+│       │
+│       ├── components/                 # ✅ Phase 7: Reusable UI components
+│       │   ├── ConfirmationDialog.kt   # Reusable Material 3 confirmation dialog
+│       │   ├── ErrorScreens.kt         # GenericError, NoInternet, NotFound, OfflineBanner
+│       │   ├── QuickBookingSheet.kt    # Quick-book bottom sheet
+│       │   └── FilterSheet.kt          # Advanced filter bottom sheet
+│       │
+│       └── placeholder/
+│           └── PlaceholderScreen.kt
 │
 │   ├── src/test/java/com/example/diamonds/ui/
 │       └── base/

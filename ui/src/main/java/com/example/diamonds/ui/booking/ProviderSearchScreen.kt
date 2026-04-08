@@ -20,12 +20,16 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +39,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.ui.components.FilterCriteria
+import com.example.diamonds.ui.components.FilterSheet
 
 private val categories = listOf(
     null to "All",
@@ -57,21 +63,44 @@ fun ProviderSearchScreen(
     val state by viewModel.searchState.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    var showFilterSheet by remember { mutableStateOf(false) }
+    var filters by remember { mutableStateOf(FilterCriteria()) }
+
     LaunchedEffect(Unit) { viewModel.loadProviders() }
+
+    if (showFilterSheet) {
+        FilterSheet(
+            currentFilters = filters,
+            onApply = { newFilters ->
+                filters = newFilters
+                viewModel.selectCategory(newFilters.category)
+            },
+            onDismiss = { showFilterSheet = false }
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // Category filter chips
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Category filter chips + advanced filter button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items(categories) { (cat, label) ->
-                FilterChip(
-                    selected = state.selectedCategory == cat,
-                    onClick  = { viewModel.selectCategory(cat) },
-                    label    = { Text(label) }
-                )
+            LazyRow(
+                contentPadding = PaddingValues(start = 16.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(categories) { (cat, label) ->
+                    FilterChip(
+                        selected = state.selectedCategory == cat,
+                        onClick  = { viewModel.selectCategory(cat) },
+                        label    = { Text(label) }
+                    )
+                }
+            }
+            IconButton(onClick = { showFilterSheet = true }) {
+                Text("⚙️", fontSize = 20.sp)
             }
         }
 

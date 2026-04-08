@@ -1,5 +1,8 @@
 package com.example.diamonds.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -8,6 +11,9 @@ import com.example.diamonds.ui.auth.LoginScreen
 import com.example.diamonds.ui.auth.SignupScreen
 import com.example.diamonds.ui.shell.AppShell
 import com.example.diamonds.ui.splash.SplashScreen
+
+/** Transition duration for the root nav graph (ms). */
+private const val ROOT_ANIM_DURATION = 400
 
 /**
  * Root navigation graph.
@@ -26,7 +32,11 @@ fun DiamondsNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route
+        startDestination = Screen.Splash.route,
+        enterTransition  = { fadeIn(tween(ROOT_ANIM_DURATION)) },
+        exitTransition   = { fadeOut(tween(ROOT_ANIM_DURATION)) },
+        popEnterTransition = { fadeIn(tween(ROOT_ANIM_DURATION)) },
+        popExitTransition  = { fadeOut(tween(ROOT_ANIM_DURATION)) }
     ) {
         // ── Splash ─────────────────────────────────────────────────────────
         composable(Screen.Splash.route) {
@@ -67,7 +77,8 @@ fun DiamondsNavHost() {
             AppShell(
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
+                        // Clear the entire back stack including the shell
+                        popUpTo(navController.graph.id) { inclusive = true }
                     }
                 }
             )

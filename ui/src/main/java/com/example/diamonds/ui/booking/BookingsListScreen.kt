@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -39,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.components.ConfirmationDialog
+import com.example.diamonds.ui.components.NotFoundScreen
 
 // ── Bookings List ─────────────────────────────────────────────────────────────
 
@@ -136,18 +137,14 @@ fun BookingDetailScreen(
     }
 
     if (showCancelDialog) {
-        AlertDialog(
-            onDismissRequest = { showCancelDialog = false },
-            title = { Text("Cancel Booking?") },
-            text  = { Text("This action cannot be undone. The cleaner will be notified.") },
-            confirmButton = {
-                TextButton(onClick = { showCancelDialog = false; viewModel.cancelBooking(bookingId) }) {
-                    Text("Cancel Booking", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showCancelDialog = false }) { Text("Keep") }
-            }
+        ConfirmationDialog(
+            title        = "Cancel Booking?",
+            message      = "This action cannot be undone. The cleaner will be notified.",
+            confirmLabel = "Cancel Booking",
+            dismissLabel = "Keep",
+            isDestructive = true,
+            onConfirm    = { showCancelDialog = false; viewModel.cancelBooking(bookingId) },
+            onDismiss    = { showCancelDialog = false }
         )
     }
 
@@ -159,9 +156,10 @@ fun BookingDetailScreen(
     }
 
     val booking = state.booking ?: run {
-        Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(error ?: "Booking not found", color = MaterialTheme.colorScheme.error)
-        }
+        NotFoundScreen(
+            message = error ?: "This booking could not be found.",
+            onGoBack = onCancelled
+        )
         return
     }
 

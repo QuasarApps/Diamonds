@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -28,11 +31,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.cleaner.CleanerViewModel
+import com.example.diamonds.ui.components.QuickBookingSheet
 
 // ── Customer Home Tab ──────────────────────────────────────────────────────────
 
 @Composable
 fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
+    var showQuickSheet by remember { mutableStateOf(false) }
+
+    if (showQuickSheet) {
+        QuickBookingSheet(
+            onDismiss           = { showQuickSheet = false },
+            onCategorySelected  = { onStartBooking() }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,6 +74,20 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
                     "Browse cleaners near you and book a service in minutes.",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontSize = 14.sp
+                )
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Card(modifier = Modifier.fillMaxWidth().clickable { showQuickSheet = true }) {
+            Column(Modifier.padding(16.dp)) {
+                Text("⚡  Quick Book", fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Pick a service category and jump straight in.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

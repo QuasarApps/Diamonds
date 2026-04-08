@@ -1,5 +1,6 @@
 package com.example.diamonds
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,5 +24,15 @@ class MainActivity : ComponentActivity() {
                 DiamondsNavHost()
             }
         }
+    }
+
+    /**
+     * Handle deep links that arrive when the activity is already running
+     * (singleTop launch mode). Forward the new intent so Navigation Compose
+     * can resolve it.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 }
