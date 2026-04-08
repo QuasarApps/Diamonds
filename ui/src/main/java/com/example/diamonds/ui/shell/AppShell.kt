@@ -523,7 +523,18 @@ fun AppShell(
                     popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
                     popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
                 ) {
-                    CleanerDashboardTab(session = s)
+                    CleanerDashboardTab(
+                        session = s,
+                        onNavigateToRequests = {
+                            innerNav.navigate(Screen.CleanerRequests.route) {
+                                popUpTo(innerNav.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
                 }
                 composable(
                     Screen.CleanerRequests.route,

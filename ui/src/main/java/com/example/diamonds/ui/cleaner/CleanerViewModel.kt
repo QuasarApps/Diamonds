@@ -87,18 +87,26 @@ class CleanerViewModel @Inject constructor(
                 return@launch
             }
 
-            when (val r = bookingRepository.getProviderBookings(pid)) {
-                is Result.Success -> {
-                    val pending = r.data.filter { it.status == BookingStatus.PENDING }
-                    _requestsState.value = CleanerRequestsUiState(
-                        requests = pending.map { it.enrich() }
-                    )
+            try {
+                when (val r = bookingRepository.getProviderBookings(pid)) {
+                    is Result.Success -> {
+                        val pending = r.data.filter { it.status == BookingStatus.PENDING }
+                        _requestsState.value = CleanerRequestsUiState(
+                            requests = pending.map { it.enrichSafe() }
+                        )
+                        clearError()
+                    }
+
+                    is Result.Error -> {
+                        _requestsState.value = CleanerRequestsUiState()
+                        setError(r.exception.message ?: "Could not load requests")
+                    }
+
+                    is Result.Loading -> Unit
                 }
-                is Result.Error -> {
-                    _requestsState.value = CleanerRequestsUiState()
-                    setError(r.exception.message ?: "Could not load requests")
-                }
-                is Result.Loading -> Unit
+            } catch (e: Exception) {
+                _requestsState.value = CleanerRequestsUiState()
+                setError(e.message ?: "Could not load requests")
             }
         }
     }
@@ -116,26 +124,33 @@ class CleanerViewModel @Inject constructor(
                 return@launch
             }
 
-            when (val r = bookingRepository.getProviderBookings(pid)) {
-                is Result.Success -> {
-                    val active = r.data.filter {
-                        it.status == BookingStatus.ACCEPTED || it.status == BookingStatus.IN_PROGRESS
-                    }
-                    val today = todayDateString()
-                    val todayJobs    = active.filter { it.scheduledDate == today }
-                    val upcomingJobs = active.filter { it.scheduledDate >  today }
-                        .sortedWith(compareBy({ it.scheduledDate }, { it.scheduledTime }))
+            try {
+                when (val r = bookingRepository.getProviderBookings(pid)) {
+                    is Result.Success -> {
+                        val active = r.data.filter {
+                            it.status == BookingStatus.ACCEPTED || it.status == BookingStatus.IN_PROGRESS
+                        }
+                        val today = todayDateString()
+                        val todayJobs = active.filter { it.scheduledDate == today }
+                        val upcomingJobs = active.filter { it.scheduledDate > today }
+                            .sortedWith(compareBy({ it.scheduledDate }, { it.scheduledTime }))
 
-                    _scheduleState.value = CleanerScheduleUiState(
-                        todayJobs    = todayJobs.map   { it.enrich() },
-                        upcomingJobs = upcomingJobs.map{ it.enrich() }
-                    )
+                        _scheduleState.value = CleanerScheduleUiState(
+                            todayJobs = todayJobs.map { it.enrichSafe() },
+                            upcomingJobs = upcomingJobs.map { it.enrichSafe() }
+                        )
+                    }
+
+                    is Result.Error -> {
+                        _scheduleState.value = CleanerScheduleUiState()
+                        setError(r.exception.message ?: "Could not load schedule")
+                    }
+
+                    is Result.Loading -> Unit
                 }
-                is Result.Error -> {
-                    _scheduleState.value = CleanerScheduleUiState()
-                    setError(r.exception.message ?: "Could not load schedule")
-                }
-                is Result.Loading -> Unit
+            } catch (e: Exception) {
+                _scheduleState.value = CleanerScheduleUiState()
+                setError(e.message ?: "Could not load schedule")
             }
         }
     }
@@ -152,31 +167,37 @@ class CleanerViewModel @Inject constructor(
                 return@launch
             }
 
-            when (val r = bookingRepository.getProviderBookings(pid)) {
-                is Result.Success -> {
-                    val all = r.data
-                    val today = todayDateString()
-                    val pendingCount = all.count { it.status == BookingStatus.PENDING }
-                    val todayCount   = all.count {
-                        it.scheduledDate == today &&
-                            (it.status == BookingStatus.ACCEPTED || it.status == BookingStatus.IN_PROGRESS)
-                    }
-                    // Earnings this week = completed bookings in last 7 days
-                    val weekStart = weekStartDateString()
-                    val weekEarnings = all
-                        .filter { it.status == BookingStatus.COMPLETED && it.scheduledDate >= weekStart }
-                        .sumOf { it.totalPrice }
+            try {
+                when (val r = bookingRepository.getProviderBookings(pid)) {
+                    is Result.Success -> {
+                        val all = r.data
+                        val today = todayDateString()
+                        val pendingCount = all.count { it.status == BookingStatus.PENDING }
+                        val todayCount = all.count {
+                            it.scheduledDate == today &&
+                                    (it.status == BookingStatus.ACCEPTED || it.status == BookingStatus.IN_PROGRESS)
+                        }
+                        // Earnings this week = completed bookings in last 7 days
+                        val weekStart = weekStartDateString()
+                        val weekEarnings = all
+                            .filter { it.status == BookingStatus.COMPLETED && it.scheduledDate >= weekStart }
+                            .sumOf { it.totalPrice }
 
-                    _dashboardState.value = CleanerDashboardUiState(
-                        pendingCount = pendingCount,
-                        todayCount   = todayCount,
-                        weekEarnings = weekEarnings
-                    )
+                        _dashboardState.value = CleanerDashboardUiState(
+                            pendingCount = pendingCount,
+                            todayCount = todayCount,
+                            weekEarnings = weekEarnings
+                        )
+                    }
+
+                    is Result.Error -> {
+                        _dashboardState.value = CleanerDashboardUiState()
+                    }
+
+                    is Result.Loading -> Unit
                 }
-                is Result.Error -> {
-                    _dashboardState.value = CleanerDashboardUiState()
-                }
-                is Result.Loading -> Unit
+            } catch (_: Exception) {
+                _dashboardState.value = CleanerDashboardUiState()
             }
         }
     }
@@ -191,20 +212,43 @@ class CleanerViewModel @Inject constructor(
     private fun updateStatus(bookingId: String, newStatus: BookingStatus) {
         viewModelScope.launch {
             clearError()
-            when (val r = bookingRepository.updateBookingStatus(bookingId, newStatus)) {
-                is Result.Success -> {
-                    // Refresh all three state slices
-                    loadRequests()
-                    loadSchedule()
-                    loadDashboard()
+            try {
+                when (val r = bookingRepository.updateBookingStatus(bookingId, newStatus)) {
+                    is Result.Success -> {
+                        // Refresh whichever list is currently displayed.
+                        // Each tab screen has its own ViewModel instance (hiltViewModel
+                        // is scoped per NavBackStackEntry), so we refresh the three
+                        // slices that THIS instance owns. The other tabs will reload
+                        // on their own when the user navigates to them.
+                        loadRequests()
+                        loadSchedule()
+                        loadDashboard()
+                    }
+
+                    is Result.Error -> setError(r.exception.message ?: "Action failed")
+                    is Result.Loading -> Unit
                 }
-                is Result.Error -> setError(r.exception.message ?: "Action failed")
-                is Result.Loading -> Unit
+            } catch (e: Exception) {
+                setError(e.message ?: "Action failed")
             }
         }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Enrich a [Booking] with resolved client name + service info. Never throws. */
+    private suspend fun Booking.enrichSafe(): CleanerBookingItem {
+        return try {
+            enrich()
+        } catch (_: Exception) {
+            CleanerBookingItem(
+                booking = this,
+                clientName = clientId,
+                serviceName = serviceId,
+                servicePrice = totalPrice
+            )
+        }
+    }
 
     /** Enrich a [Booking] with resolved client name + service info. */
     private suspend fun Booking.enrich(): CleanerBookingItem {

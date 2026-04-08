@@ -306,10 +306,25 @@ class BackendServiceStub : IBackendService {
     override suspend fun updateBookingStatus(bookingId: String, status: String): Result<BookingDto> {
         delay(400)
         val idx = bookingStore.indexOfFirst { it.id == bookingId }
-        if (idx < 0) return Result.Error(Exception("Booking not found"))
-        val updated = bookingStore[idx].copy(status = status, updatedAt = System.currentTimeMillis().toString())
-        bookingStore[idx] = updated
-        return Result.Success(updated)
+        return if (idx >= 0) {
+            val updated = bookingStore[idx].copy(
+                status = status,
+                updatedAt = System.currentTimeMillis().toString()
+            )
+            bookingStore[idx] = updated
+            Result.Success(updated)
+        } else {
+            // Booking came from a previous session (persisted in Room but not in this
+            // in-memory store). Synthesise a minimal DTO so the update succeeds.
+            val synthetic = BookingDto(
+                id = bookingId, clientId = "", providerId = "", serviceId = "",
+                status = status, scheduledDate = "", scheduledTime = "",
+                estimatedDuration = 0, totalPrice = 0.0, address = "",
+                createdAt = "", updatedAt = System.currentTimeMillis().toString()
+            )
+            bookingStore.add(synthetic)
+            Result.Success(synthetic)
+        }
     }
 
     override suspend fun cancelBooking(bookingId: String): Result<BookingDto> =

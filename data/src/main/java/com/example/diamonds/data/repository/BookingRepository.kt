@@ -96,59 +96,63 @@ class BookingRepository(
     }
 
     override suspend fun getClientBookings(clientId: String): Result<List<Booking>> {
-        // READ operation: return cached bookings immediately
-        val cached = bookingDao.getForClient(clientId)
-        if (cached.isNotEmpty()) {
-            return Result.Success(cached.map { it.toDomain() })
-        }
+        // Try backend first to get fresh data; fall back to cache if offline
+        if (connectivityObserver.isOnline()) {
+            return try {
+                val result = backendService.getClientBookings(clientId)
+                when (result) {
+                    is Result.Success -> {
+                        val bookings =
+                            result.data.map { it.toDomain().copy(syncStatus = SyncStatus.SYNCED) }
+                        bookings.forEach { bookingDao.upsert(it.toEntity()) }
+                        Result.Success(bookings)
+                    }
 
-        // Cache empty, fetch from backend if online
-        if (!connectivityObserver.isOnline()) {
-            return Result.Error(OfflineException("Bookings not available offline"))
-        }
-
-        return try {
-            val result = backendService.getClientBookings(clientId)
-            when (result) {
-                is Result.Success -> {
-                    val bookings = result.data.map { it.toDomain().copy(syncStatus = SyncStatus.SYNCED) }
-                    bookings.forEach { bookingDao.upsert(it.toEntity()) }
-                    Result.Success(bookings)
+                    is Result.Error -> result
+                    is Result.Loading -> Result.Loading
                 }
-                is Result.Error -> result
-                is Result.Loading -> Result.Loading
+            } catch (e: Exception) {
+                // Network failed – fall back to cache
+                val cached = bookingDao.getForClient(clientId)
+                if (cached.isNotEmpty()) Result.Success(cached.map { it.toDomain() })
+                else Result.Error(e)
             }
-        } catch (e: Exception) {
-            Result.Error(e)
         }
+
+        // Offline – serve from cache
+        val cached = bookingDao.getForClient(clientId)
+        return if (cached.isNotEmpty()) Result.Success(cached.map { it.toDomain() })
+        else Result.Error(OfflineException("Bookings not available offline"))
     }
 
     override suspend fun getProviderBookings(providerId: String): Result<List<Booking>> {
-        // READ operation: return cached bookings immediately
-        val cached = bookingDao.getForProvider(providerId)
-        if (cached.isNotEmpty()) {
-            return Result.Success(cached.map { it.toDomain() })
-        }
+        // Try backend first to get fresh data; fall back to cache if offline
+        if (connectivityObserver.isOnline()) {
+            return try {
+                val result = backendService.getProviderBookings(providerId)
+                when (result) {
+                    is Result.Success -> {
+                        val bookings =
+                            result.data.map { it.toDomain().copy(syncStatus = SyncStatus.SYNCED) }
+                        bookings.forEach { bookingDao.upsert(it.toEntity()) }
+                        Result.Success(bookings)
+                    }
 
-        // Cache empty, fetch from backend if online
-        if (!connectivityObserver.isOnline()) {
-            return Result.Error(OfflineException("Bookings not available offline"))
-        }
-
-        return try {
-            val result = backendService.getProviderBookings(providerId)
-            when (result) {
-                is Result.Success -> {
-                    val bookings = result.data.map { it.toDomain().copy(syncStatus = SyncStatus.SYNCED) }
-                    bookings.forEach { bookingDao.upsert(it.toEntity()) }
-                    Result.Success(bookings)
+                    is Result.Error -> result
+                    is Result.Loading -> Result.Loading
                 }
-                is Result.Error -> result
-                is Result.Loading -> Result.Loading
+            } catch (e: Exception) {
+                // Network failed – fall back to cache
+                val cached = bookingDao.getForProvider(providerId)
+                if (cached.isNotEmpty()) Result.Success(cached.map { it.toDomain() })
+                else Result.Error(e)
             }
-        } catch (e: Exception) {
-            Result.Error(e)
         }
+
+        // Offline – serve from cache
+        val cached = bookingDao.getForProvider(providerId)
+        return if (cached.isNotEmpty()) Result.Success(cached.map { it.toDomain() })
+        else Result.Error(OfflineException("Bookings not available offline"))
     }
 
     override suspend fun updateBookingStatus(bookingId: String, status: BookingStatus): Result<Booking> {
@@ -161,7 +165,18 @@ class BookingRepository(
             val result = backendService.updateBookingStatus(bookingId, status.name)
             when (result) {
                 is Result.Success -> {
-                    val domainBooking = result.data.toDomain().copy(syncStatus = SyncStatus.SYNCED)
+                    // If the backend returned a full booking, use it; otherwise fall back
+                    // to the locally cached copy and just update its status. This handles
+                    // the stub returning a synthetic minimal DTO for bookings it doesn't
+                    // know about (e.g. created in a previous session).
+                    val backendDto = result.data
+                    val domainBooking = if (backendDto.clientId.isNotEmpty()) {
+                        backendDto.toDomain().copy(syncStatus = SyncStatus.SYNCED)
+                    } else {
+                        val cached = bookingDao.getById(bookingId)
+                        cached?.toDomain()?.copy(status = status, syncStatus = SyncStatus.SYNCED)
+                            ?: backendDto.toDomain().copy(syncStatus = SyncStatus.SYNCED)
+                    }
                     bookingDao.upsert(domainBooking.toEntity())
                     Result.Success(domainBooking)
                 }

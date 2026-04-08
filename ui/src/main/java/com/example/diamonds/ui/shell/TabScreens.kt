@@ -167,6 +167,7 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
 @Composable
 fun CleanerDashboardTab(
     session: UserSession,
+    onNavigateToRequests: () -> Unit = {},
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val dashState by viewModel.dashboardState.collectAsState()
@@ -233,7 +234,11 @@ fun CleanerDashboardTab(
             }
         }
         Spacer(Modifier.height(12.dp))
-        Card(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onNavigateToRequests)
+        ) {
             Column(Modifier.padding(16.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
