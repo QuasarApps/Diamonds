@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
 
 /**
@@ -53,7 +54,10 @@ fun CleanerScheduleScreen(
     }
 
     if (error != null) {
-        Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp), contentAlignment = Alignment.Center) {
             Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
         return
@@ -62,7 +66,9 @@ fun CleanerScheduleScreen(
     val hasAnything = state.todayJobs.isNotEmpty() || state.upcomingJobs.isNotEmpty()
     if (!hasAnything) {
         Column(
-            Modifier.fillMaxSize().padding(32.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -139,7 +145,11 @@ private fun ScheduledJobCard(item: CleanerBookingItem, viewModel: CleanerViewMod
 
             Row(Modifier.fillMaxWidth()) {
                 Text(
-                    "📅 ${item.booking.scheduledDate}  🕐 ${item.booking.scheduledTime}",
+                    "📅 ${DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)}  🕐 ${
+                        DateTimeFormatUtil.formatTimeForDisplay(
+                            item.booking.scheduledTime
+                        )
+                    }",
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)

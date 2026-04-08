@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 
 /**
  * Earnings dashboard for an individual cleaner.
@@ -95,7 +96,9 @@ fun CleanerEarningsScreen(
                     Spacer(Modifier.height(12.dp))
                     DailyBarChart(
                         dailyTotals = state.dailyTotals,
-                        modifier    = Modifier.fillMaxWidth().height(140.dp)
+                        modifier    = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
                     )
                     Spacer(Modifier.height(4.dp))
                     Row(
@@ -156,7 +159,9 @@ fun CleanerEarningsScreen(
         if (state.completedBookings.isEmpty()) {
             item {
                 Box(
-                    Modifier.fillMaxWidth().padding(32.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -235,7 +240,7 @@ private fun EarningsBookingRow(item: CleanerBookingItem) {
             Column(Modifier.weight(1f)) {
                 Text(item.serviceName, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                 Text(
-                    "${item.booking.scheduledDate}  ·  ${item.clientName}",
+                    "${DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)}  ·  ${item.clientName}",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

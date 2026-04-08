@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 
 /**
  * Full ratings & reviews screen for a single provider.
@@ -57,7 +58,9 @@ fun ProviderRatingsScreen(
 
     if (state.reviews.isEmpty()) {
         Column(
-            Modifier.fillMaxSize().padding(32.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -116,7 +119,9 @@ fun ProviderRatingsScreen(
                                         modifier = Modifier.width(28.dp))
                                     LinearProgressIndicator(
                                         progress = { frac },
-                                        modifier = Modifier.weight(1f).height(8.dp),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(8.dp),
                                         color    = MaterialTheme.colorScheme.primary,
                                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                                     )
@@ -168,7 +173,9 @@ private fun ReviewCard(item: ReviewWithClientName) {
                 }
                 Column(Modifier.weight(1f)) {
                     Text(item.clientName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                    Text(item.review.createdAt.take(10),
+                    Text(item.review.createdAt.toLongOrNull()
+                        ?.let { DateTimeFormatUtil.formatTimestampAsDate(it) }
+                        ?: item.review.createdAt.take(10),
                         fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 StarPicker(

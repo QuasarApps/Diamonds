@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 
 /**
  * Revenue dashboard for a Company account.
@@ -143,7 +144,8 @@ fun CompanyEarningsScreen(
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(item.serviceName, fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                            Text("${item.booking.scheduledDate}  ·  ${item.cleanerName}",
+                            Text(
+                                "${DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)}  ·  ${item.cleanerName}",
                                 fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Text("$${item.servicePrice.toInt()}",
@@ -156,7 +158,10 @@ fun CompanyEarningsScreen(
 
         if (state.recentCompleted.isEmpty() && !state.isLoading) {
             item {
-                Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("💰", fontSize = 48.sp)
                         Spacer(Modifier.height(12.dp))

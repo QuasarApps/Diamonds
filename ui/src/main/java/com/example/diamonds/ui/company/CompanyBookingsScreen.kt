@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
 
 /**
@@ -69,7 +70,10 @@ fun CompanyBookingsScreen(
     }
 
     if (error != null) {
-        Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp), contentAlignment = Alignment.Center) {
             Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
         return
@@ -94,7 +98,9 @@ fun CompanyBookingsScreen(
 
         if (items.isEmpty()) {
             Box(
-                Modifier.fillMaxSize().padding(32.dp),
+                Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -172,7 +178,12 @@ private fun CompanyBookingCard(
 
             Row(Modifier.fillMaxWidth()) {
                 Column(Modifier.weight(1f)) {
-                    Text("📅 ${item.booking.scheduledDate}  🕐 ${item.booking.scheduledTime}",
+                    Text(
+                        "📅 ${DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)}  🕐 ${
+                            DateTimeFormatUtil.formatTimeForDisplay(
+                                item.booking.scheduledTime
+                            )
+                        }",
                         fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("👤 Cleaner: ${item.cleanerName}", fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

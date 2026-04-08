@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
 
 @Composable
@@ -81,8 +82,14 @@ fun BookingConfirmationScreen(
 
                     DetailRow("Service",  state.service?.title ?: "—")
                     DetailRow("Cleaner",  state.provider?.name ?: "—")
-                    DetailRow("Date",     booking.scheduledDate)
-                    DetailRow("Time",     booking.scheduledTime)
+                    DetailRow(
+                        "Date",
+                        DateTimeFormatUtil.formatDateForDisplay(booking.scheduledDate)
+                    )
+                    DetailRow(
+                        "Time",
+                        DateTimeFormatUtil.formatTimeForDisplay(booking.scheduledTime)
+                    )
                     DetailRow("Address",  booking.address)
                     booking.notes?.let { DetailRow("Notes", it) }
 
@@ -110,7 +117,9 @@ fun BookingConfirmationScreen(
 
         Button(
             onClick  = { onPayNow(bookingId) },
-            modifier = Modifier.fillMaxWidth().height(52.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
         ) {
             Text("💳  Pay Now", fontSize = 16.sp)
         }
@@ -119,7 +128,9 @@ fun BookingConfirmationScreen(
 
         Button(
             onClick = onViewBookings,
-            modifier = Modifier.fillMaxWidth().height(52.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
         ) {
             Text("View My Bookings", fontSize = 16.sp)
         }
@@ -128,7 +139,9 @@ fun BookingConfirmationScreen(
 
         OutlinedButton(
             onClick = onBookAnother,
-            modifier = Modifier.fillMaxWidth().height(52.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
         ) {
             Text("Book Another Service", fontSize = 16.sp)
         }
@@ -139,7 +152,9 @@ fun BookingConfirmationScreen(
 
 @Composable
 internal fun DetailRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 4.dp)) {
         Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(0.4f), fontSize = 14.sp)
         Text(value, modifier = Modifier.weight(0.6f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }

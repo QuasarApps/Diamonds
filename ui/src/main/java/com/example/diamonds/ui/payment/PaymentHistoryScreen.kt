@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.PaymentStatus
 
 /**
@@ -50,7 +51,9 @@ fun PaymentHistoryScreen(
 
     if (state.items.isEmpty()) {
         Column(
-            Modifier.fillMaxSize().padding(32.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -96,7 +99,9 @@ private fun PaymentHistoryCard(item: PaymentHistoryItem) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(
-                    item.payment.createdAt.take(10),
+                    item.payment.createdAt.toLongOrNull()
+                        ?.let { DateTimeFormatUtil.formatTimestampAsDate(it) }
+                        ?: item.payment.createdAt.take(10),
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

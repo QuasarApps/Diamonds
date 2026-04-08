@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.ui.components.ConfirmationDialog
 import com.example.diamonds.ui.components.NotFoundScreen
@@ -121,7 +122,16 @@ private fun BookingSummaryCard(item: BookingWithDetails, onClick: () -> Unit) {
             HorizontalDivider()
             Spacer(Modifier.height(10.dp))
             Row {
-                Text("📅 ${item.booking.scheduledDate}  🕐 ${item.booking.scheduledTime}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                Text(
+                    "📅 ${DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)}  🕐 ${
+                        DateTimeFormatUtil.formatTimeForDisplay(
+                            item.booking.scheduledTime
+                        )
+                    }",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
                 Text("$${item.servicePrice.toInt()}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         }
@@ -199,8 +209,8 @@ fun BookingDetailScreen(
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SectionLabel("Schedule & Location")
-                DetailRow("Date",    booking.scheduledDate)
-                DetailRow("Time",    booking.scheduledTime)
+                DetailRow("Date", DateTimeFormatUtil.formatDateForDisplay(booking.scheduledDate))
+                DetailRow("Time", DateTimeFormatUtil.formatTimeForDisplay(booking.scheduledTime))
                 DetailRow("Address", booking.address)
                 booking.notes?.let { DetailRow("Notes", it) }
 

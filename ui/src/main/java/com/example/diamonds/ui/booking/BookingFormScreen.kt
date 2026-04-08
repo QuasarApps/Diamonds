@@ -1,5 +1,7 @@
 package com.example.diamonds.ui.booking
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,28 +14,40 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingFormScreen(
     providerId: String,
@@ -104,28 +118,98 @@ fun BookingFormScreen(
         Text("Schedule", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(12.dp))
 
+        // ── Date & Time pickers ────────────────────────────────────────
+        var showDatePicker by remember { mutableStateOf(false) }
+        var showTimePicker by remember { mutableStateOf(false) }
+
+        val datePickerState = rememberDatePickerState()
+        val timePickerState = rememberTimePickerState()
+
+        // Date picker dialog
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            viewModel.onDateChange(DateTimeFormatUtil.millisToIsoDate(millis))
+                        }
+                        showDatePicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
+
+        // Time picker dialog
+        if (showTimePicker) {
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                title = { Text("Select Time") },
+                text = { TimePicker(state = timePickerState) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.onTimeChange(
+                            DateTimeFormatUtil.toIsoTime(
+                                timePickerState.hour,
+                                timePickerState.minute
+                            )
+                        )
+                        showTimePicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+                }
+            )
+        }
+
         Row(modifier = Modifier.fillMaxWidth()) {
+            // Read-only date field that opens DatePickerDialog on click
+            val dateInteractionSource = remember { MutableInteractionSource() }
+            LaunchedEffect(dateInteractionSource) {
+                dateInteractionSource.interactions.collect { interaction ->
+                    if (interaction is PressInteraction.Release) {
+                        showDatePicker = true
+                    }
+                }
+            }
             OutlinedTextField(
-                value = state.date,
-                onValueChange = viewModel::onDateChange,
+                value = if (state.date.isNotBlank()) DateTimeFormatUtil.formatDateForDisplay(state.date) else "",
+                onValueChange = {},
+                readOnly = true,
                 label = { Text("Date") },
-                placeholder = { Text("YYYY-MM-DD") },
+                placeholder = { Text("Select date") },
                 singleLine = true,
                 isError = state.fieldErrors.containsKey(BookingField.DATE),
                 supportingText = state.fieldErrors[BookingField.DATE]?.let { msg -> { Text(msg) } },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                interactionSource = dateInteractionSource,
                 modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(12.dp))
+            // Read-only time field that opens TimePickerDialog on click
+            val timeInteractionSource = remember { MutableInteractionSource() }
+            LaunchedEffect(timeInteractionSource) {
+                timeInteractionSource.interactions.collect { interaction ->
+                    if (interaction is PressInteraction.Release) {
+                        showTimePicker = true
+                    }
+                }
+            }
             OutlinedTextField(
-                value = state.time,
-                onValueChange = viewModel::onTimeChange,
+                value = if (state.time.isNotBlank()) DateTimeFormatUtil.formatTimeForDisplay(state.time) else "",
+                onValueChange = {},
+                readOnly = true,
                 label = { Text("Time") },
-                placeholder = { Text("HH:MM") },
+                placeholder = { Text("Select time") },
                 singleLine = true,
                 isError = state.fieldErrors.containsKey(BookingField.TIME),
                 supportingText = state.fieldErrors[BookingField.TIME]?.let { msg -> { Text(msg) } },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                interactionSource = timeInteractionSource,
                 modifier = Modifier.weight(1f)
             )
         }

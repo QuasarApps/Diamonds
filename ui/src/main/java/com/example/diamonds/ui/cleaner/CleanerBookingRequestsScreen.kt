@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 
 /**
  * Cleaner: list of incoming PENDING booking requests with Accept / Decline actions.
@@ -58,7 +59,10 @@ fun CleanerBookingRequestsScreen(
     }
 
     if (error != null) {
-        Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp), contentAlignment = Alignment.Center) {
             Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
         return
@@ -66,7 +70,9 @@ fun CleanerBookingRequestsScreen(
 
     if (state.requests.isEmpty()) {
         Column(
-            Modifier.fillMaxSize().padding(32.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -150,8 +156,14 @@ private fun BookingRequestCard(
             Spacer(Modifier.height(10.dp))
 
             // Details
-            RequestDetailRow("📅 Date",    item.booking.scheduledDate)
-            RequestDetailRow("🕐 Time",    item.booking.scheduledTime)
+            RequestDetailRow(
+                "📅 Date",
+                DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)
+            )
+            RequestDetailRow(
+                "🕐 Time",
+                DateTimeFormatUtil.formatTimeForDisplay(item.booking.scheduledTime)
+            )
             RequestDetailRow("📍 Address", item.booking.address)
             item.booking.notes?.let { RequestDetailRow("📝 Notes", it) }
 
@@ -182,7 +194,9 @@ private fun BookingRequestCard(
 @Composable
 private fun RequestDetailRow(label: String, value: String) {
     Row(
-        Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.Top
     ) {
         Text(

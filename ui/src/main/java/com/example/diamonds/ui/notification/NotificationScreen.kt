@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationType
 
@@ -264,7 +265,7 @@ private fun formatNotificationTime(timestamp: String): String {
             minutes < 60 -> "${minutes}m ago"
             hours < 24 -> "${hours}h ago"
             days < 7 -> "${days}d ago"
-            else -> timestamp
+            else -> DateTimeFormatUtil.formatTimestampAsDate(millis)
         }
     } catch (_: Exception) {
         timestamp

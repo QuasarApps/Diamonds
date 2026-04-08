@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -259,13 +260,13 @@ fun ProviderTrackingScreen(
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            booking.scheduledTime,
+                            DateTimeFormatUtil.formatTimeForDisplay(booking.scheduledTime),
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 14.sp
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
-                            booking.scheduledDate,
+                            DateTimeFormatUtil.formatDateForDisplay(booking.scheduledDate),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
