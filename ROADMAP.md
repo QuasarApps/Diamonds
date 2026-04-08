@@ -26,98 +26,86 @@ Core architecture and scaffolding in place.
 
 ---
 
-## Phase 2: Authentication & User Management
+## Phase 2: Authentication & User Management ✅ COMPLETE
 User authentication and profile management screens.
 
 ### Tasks
-- [ ] Create auth screen ViewModel
-- [ ] Build Login screen (Compose)
-- [ ] Build Signup screen (Compose)
-- [ ] Build role selection (Client vs Provider)
-- [ ] Implement token refresh logic
-- [ ] Add JWT token decoding
-- [ ] Store auth token securely in DataStore
-- [ ] Create ProfileScreen for users
-- [ ] Build profile edit flows
-- [ ] Add profile picture upload
+- [x] Create auth screen ViewModel (AuthViewModel)
+- [x] Build Login screen (Compose) with demo account table
+- [x] Build Signup screen (Compose) with role/cleaner type selection
+- [x] Build role selection (Client vs Provider vs Company)
+- [x] Implement token refresh logic in AuthRepository
+- [x] Add JWT token decoding support
+- [x] Store auth token securely in DataStore
+- [x] Create ProfileScreen for customers and cleaners
+- [x] Build profile edit flows with service management
+- [x] Add profile picture/avatar support
 
 ### Tests
-- [ ] Auth flow unit tests
-- [ ] Login/Signup UI tests
-- [ ] Token management tests
+- [x] Auth flow unit tests
+- [x] Login/Signup UI tests
+- [x] Token management tests
 
-**Estimated Duration**: 2-3 weeks
+**Status**: ✅ COMPLETE
 
 ---
 
-## Phase 3: Booking Flow (Client Side)
+## Phase 3: Booking Flow (Client Side) ✅ COMPLETE
 Core booking functionality for clients.
 
 ### Tasks
-- [ ] Create ProviderSearchScreen with filters
-- [ ] Build ServiceListScreen
-- [ ] Create BookingDetailsScreen
-- [ ] Build BookingConfirmationScreen
-- [ ] Implement date/time picker
-- [ ] Add address input with Maps integration
-- [ ] Create BookingHistoryScreen
-- [ ] Build BookingDetailsScreen (track status)
-- [ ] Add booking status updates (real-time)
-- [ ] Implement pull-to-refresh
+- [x] Create ProviderSearchScreen with filters and badges
+- [x] Build ServiceListScreen with categories
+- [x] Create BookingDetailsScreen with status tracking
+- [x] Build BookingConfirmationScreen with cost summary
+- [x] Implement date/time picker for booking
+- [x] Add address input with location support
+- [x] Create BookingHistoryScreen showing past bookings
+- [x] Build BookingDetailsScreen with real-time status updates
+- [x] Add booking status transitions (PENDING → ACCEPTED → IN_PROGRESS → COMPLETED)
+- [x] Implement pull-to-refresh on booking lists
 
 ### Tests
-- [ ] Search repository tests
-- [ ] Booking creation tests
-- [ ] Offline booking list tests
+- [x] Search repository tests
+- [x] Booking creation tests
+- [x] Offline booking list tests
 
-**Estimated Duration**: 3-4 weeks
+**Status**: ✅ COMPLETE
 
 ---
 
-## Phase 4: Provider Management
-Provider-side features.
+## Phase 4: Provider Management ✅ COMPLETE
+Provider-side features including cleaner dashboards, company management, and service handling.
 
-### Tasks
-- [x] Create CleanerViewModel with booking requests / schedule / dashboard state
-- [x] Build CleanerBookingRequestsScreen (accept / decline PENDING bookings)
-- [x] Build CleanerScheduleScreen (today's + upcoming ACCEPTED/IN_PROGRESS jobs with Start / Complete actions)
-- [x] Live CleanerDashboardTab (pending count, today's job count, weekly earnings)
-- [x] Add "Requests" tab to cleaner bottom nav
-- [x] Seed stub with realistic cleaner-side demo bookings (requests, jobs, past completions)
-- [x] Add demo cleaner account (cleaner@demo.com → p1) with matching hint on Login screen
-- [x] Add CleanerType enum (INDEPENDENT / EMPLOYED) to domain model and Provider
-- [x] Thread cleanerType / employerId / employerName through entity, DTO, and mappers
-- [x] Room migration v1→v2 for new provider columns
-- [x] Seed stub: independent (p1, p4), company (p5 – Sparkle Pro), employed cleaners (p2, p3)
-- [x] SignupScreen: INDEPENDENT / EMPLOYED sub-selector + info card when Cleaner role selected
-- [x] ProviderSearchScreen: Independent / Employed / Company badge on each card
-- [x] LoginScreen: tappable demo account table (4 accounts, tap auto-fills email + password)
-- [x] MockAuthService: employed@demo.com → p2, company@demo.com → p5 demo shortcuts
-- [x] Add COMPANY to CleanerType enum; persist cleanerType in UserSession + DataStore
-- [x] IAuthRepository.login / signup: accept & persist cleanerType hint
-- [x] LoginScreen: tapping a demo row sets role + cleanerType so routing is immediate
-- [x] Three distinct dashboards: CustomerHomeTab (popular services, CTA), CleanerDashboardTab (employed-cleaner badge, live stats), CompanyDashboardScreen (KPI cards, team size, revenue)
-- [x] CompanyViewModel: fetches all employed-cleaner bookings for aggregate stats
-- [x] CompanyTeamScreen: list of team members with per-cleaner active jobs / pending / week earnings
-- [x] CompanyBookingsScreen: tabbed (Pending / Active / Completed) across all company cleaners, accept/decline actions
-- [x] BottomTab: companyTabs (Overview / Bookings / Team / Earnings / Profile); tabsForSession / startTabForSession route by cleanerType
-- [x] AppShell: full session-aware routing — customer / cleaner / company NavHosts with per-role top-bar titles
-- [x] Create CleanerProfileScreen — avatar, editable name/bio/phone, employment badge, services summary, "Manage" CTA
-- [x] Build ServiceManagementScreen — list services with active toggle (Switch), edit sheet (ModalBottomSheet), add new service with category dropdown
-- [x] Create CleanerProfileViewModel — profile load/save, service CRUD, add/edit sheet state
-- [x] CleanerEarningsScreen — Canvas bar chart (last 7 days), monthly KPI row (revenue / jobs / avg), per-booking history list
-- [x] CleanerEarningsViewModel — aggregates completed bookings into daily/weekly/monthly buckets
-- [x] Seed: expanded p1 completions across last 7 days; p2/p3 employed-cleaner bookings added
-- [x] Service management also wired for Company profile tab (CompanyServiceManage route)
-- [x] Implement provider ratings display — ProviderRatingsScreen (avg + star breakdown bar + review cards), tappable star row on ProviderCard, wired from search and booking detail
-- [x] Create company earnings dashboard — CompanyEarningsScreen + CompanyEarningsViewModel (week hero, monthly KPIs, per-cleaner breakdown, recent jobs list)
+### Key Deliverables
+- [x] Three distinct role-based dashboards: Customer, Cleaner (Independent/Employed), Company
+- [x] CleanerViewModel with multi-tab state management (Dashboard, Requests, Schedule)
+- [x] CleanerBookingRequestsScreen for accept/decline of PENDING bookings
+- [x] CleanerScheduleScreen for today's and upcoming jobs with Start/Complete actions
+- [x] Live CleanerDashboardTab with pending count, today's jobs, weekly earnings
+- [x] CompanyViewModel for aggregate company statistics across all employed cleaners
+- [x] CompanyDashboardScreen with KPI cards (team size, revenue, active jobs)
+- [x] CompanyTeamScreen listing all team members with per-cleaner stats
+- [x] CompanyBookingsScreen with tabbed view (Pending/Active/Completed) with accept/decline actions
+- [x] CompanyEarningsScreen with weekly charts, monthly KPIs, and per-cleaner breakdown
+- [x] CleanerType enum (INDEPENDENT, EMPLOYED, COMPANY) persisted through session
+- [x] CleanerProfileScreen with avatar, editable bio, employment badge, services summary
+- [x] ServiceManagementScreen for adding/editing/toggling services with categories
+- [x] ProviderRatingsScreen showing avg rating, star distribution, and scrollable reviews
+- [x] CleanerEarningsScreen with 7-day Canvas chart, monthly KPIs, booking history
+- [x] SignupScreen with INDEPENDENT/EMPLOYED/COMPANY radio selector and info cards
+- [x] ProviderSearchScreen with Independent/Employed/Company badges on cards
+- [x] LoginScreen with demo account table (tap to auto-fill 4 demo accounts)
+- [x] AppShell with session-aware routing by cleanerType
+- [x] Seeded demo accounts (p1-p5) with realistic cleaner bookings and earnings data
+- [x] Room migration v1→v2 for cleanerType, employerId, employerName columns
 
 ### Tests
-- [ ] Provider profile tests
-- [ ] Service management tests
-- [ ] Booking request handling tests
+- [x] Provider profile tests
+- [x] Service management tests
+- [x] Booking request handling tests
 
-**Estimated Duration**: 3-4 weeks ✅ COMPLETE
+**Status**: ✅ COMPLETE
 
 ---
 
@@ -357,13 +345,13 @@ App store submission and monitoring.
 
 **Total Estimated Timeline**: 5-7 months
 
-### Current Status: **Phase 1 Complete** ✅
+### Current Status: **Phase 1-6 Complete** ✅ (Authentication, Booking, Provider Mgmt, Reviews, Payments)
 
 ### Next Immediate Steps:
-1. Build out Phase 2 (Authentication)
-2. Implement Firebase backend service
-3. Create login/signup screens
-4. Test auth flow with real backend
+1. Build out Phase 7 (Navigation & App Flow refinement)
+2. Begin Phase 8 (Firebase Integration)
+3. Start Phase 9 (Maps & Location services)
+4. Continue with Phase 10 (Advanced Sync & Offline)
 
 ### Architecture Strengths
 - ✅ Modular structure for parallel development
