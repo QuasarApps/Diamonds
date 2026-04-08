@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -94,10 +95,11 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 32.dp),
+            .padding(horizontal = 32.dp)
+            .padding(top = 48.dp, bottom = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
         Text("\u25C6", fontSize = 56.sp, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(8.dp))
@@ -156,7 +158,9 @@ fun LoginScreen(
         Button(
             onClick = { focusManager.clearFocus(); viewModel.login() },
             enabled = !uiState.isLoading,
-            modifier = Modifier.fillMaxWidth().height(50.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)

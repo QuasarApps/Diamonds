@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -237,7 +238,11 @@ fun AppShell(
         }
     ) { padding ->
 
-        Column(Modifier.padding(padding)) {
+        Column(
+            Modifier
+                .padding(padding)
+                .imePadding()
+        ) {
             // ── Offline banner ──────────────────────────────────────────────
             if (!isOnline) {
                 OfflineBanner()

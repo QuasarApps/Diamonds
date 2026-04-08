@@ -1,12 +1,13 @@
 package com.example.diamonds.ui.payment
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
@@ -41,9 +42,11 @@ fun PaymentSuccessScreen(
     // For now we use whatever is in state.
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
         Text("✅", fontSize = 72.sp)
         Spacer(Modifier.height(20.dp))
@@ -71,12 +74,16 @@ fun PaymentSuccessScreen(
         Spacer(Modifier.height(32.dp))
 
         Button(onClick = onViewBookings,
-            modifier = Modifier.fillMaxWidth().height(52.dp)) {
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)) {
             Text("View My Bookings")
         }
         Spacer(Modifier.height(12.dp))
         OutlinedButton(onClick = onDone,
-            modifier = Modifier.fillMaxWidth().height(52.dp)) {
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)) {
             Text("Back to Home")
         }
     }
@@ -90,7 +97,9 @@ private fun ReceiptRow(
     small: Boolean = false
 ) {
     androidx.compose.foundation.layout.Row(
-        Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label,

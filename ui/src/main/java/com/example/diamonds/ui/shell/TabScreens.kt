@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -45,6 +47,7 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
@@ -59,7 +62,9 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
         Spacer(Modifier.height(32.dp))
 
         Card(
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onStartBooking),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onStartBooking),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
@@ -76,7 +81,9 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
 
         Spacer(Modifier.height(12.dp))
 
-        Card(modifier = Modifier.fillMaxWidth().clickable { showQuickOptions = !showQuickOptions }) {
+        Card(modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showQuickOptions = !showQuickOptions }) {
             Column(Modifier.padding(16.dp)) {
                 Text("⚡  Quick Book", fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
@@ -94,7 +101,9 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
             enter = expandVertically(),
             exit = shrinkVertically()
         ) {
-            Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Card(modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)) {
                 Column(
                     Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -169,6 +178,7 @@ fun CleanerDashboardTab(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top

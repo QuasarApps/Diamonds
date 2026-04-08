@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -175,6 +177,7 @@ fun BookingDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -230,7 +233,7 @@ fun BookingDetailScreen(
             Text(error ?: "", color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(24.dp))
 
         val canCancel = booking.status in listOf(BookingStatus.PENDING, BookingStatus.ACCEPTED)
         if (canCancel) {

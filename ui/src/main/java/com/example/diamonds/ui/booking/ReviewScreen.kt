@@ -1,5 +1,6 @@
 package com.example.diamonds.ui.booking
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -25,14 +27,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardCapitalization
 
 /**
  * Review / rating form for a completed booking.
@@ -146,7 +146,9 @@ fun ReviewScreen(
         Button(
             onClick  = { viewModel.submitReview(bookingId, providerId) },
             enabled  = state.rating > 0 && !state.isSubmitting,
-            modifier = Modifier.fillMaxWidth().height(52.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
         ) {
             if (state.isSubmitting) {
                 CircularProgressIndicator(
@@ -173,6 +175,7 @@ private fun ExistingReviewView(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
