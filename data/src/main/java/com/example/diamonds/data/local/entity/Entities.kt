@@ -131,3 +131,12 @@ data class NotificationEntity(
     val createdAt: String
 )
 
+@Entity(tableName = "provider_locations")
+data class ProviderLocationEntity(
+    @PrimaryKey val providerId: String,
+    val latitude: Double,
+    val longitude: Double,
+    val heading: Float = 0f,
+    val updatedAt: String
+)
+

@@ -18,13 +18,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -39,6 +39,10 @@ fun BookingFormScreen(
     providerId: String,
     serviceId: String,
     onBookingCreated: (bookingId: String) -> Unit,
+    onPickOnMap: () -> Unit = {},
+    mapLat: Double? = null,
+    mapLng: Double? = null,
+    mapAddress: String? = null,
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.formState.collectAsState()
@@ -46,6 +50,13 @@ fun BookingFormScreen(
 
     LaunchedEffect(providerId, serviceId) {
         viewModel.prepareBookingForm(providerId, serviceId)
+    }
+
+    // Apply location selected from the map screen
+    LaunchedEffect(mapLat, mapLng, mapAddress) {
+        if (mapLat != null && mapLng != null) {
+            viewModel.onLocationSelected(mapLat, mapLng, mapAddress ?: "")
+        }
     }
 
     LaunchedEffect(state.bookingSuccess) {
@@ -134,6 +145,31 @@ fun BookingFormScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(Modifier.height(8.dp))
+
+        // Show coordinates if selected via map
+        if (state.latitude != null && state.longitude != null) {
+            Text(
+                "📍 ${String.format("%.5f", state.latitude)}, ${
+                    String.format(
+                        "%.5f",
+                        state.longitude
+                    )
+                }",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+            Spacer(Modifier.height(4.dp))
+        }
+
+        OutlinedButton(
+            onClick = onPickOnMap,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("📍 Pick on Map")
+        }
+
         Spacer(Modifier.height(16.dp))
         Text("Notes (optional)", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(12.dp))
@@ -160,7 +196,9 @@ fun BookingFormScreen(
         Button(
             onClick = viewModel::submitBooking,
             enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth().height(52.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)

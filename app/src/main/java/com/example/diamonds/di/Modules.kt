@@ -14,6 +14,7 @@ import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.data.repository.AuthRepository
 import com.example.diamonds.data.repository.BookingRepository
 import com.example.diamonds.data.repository.ClientRepository
+import com.example.diamonds.data.repository.LocationRepository
 import com.example.diamonds.data.repository.NotificationRepository
 import com.example.diamonds.data.repository.PaymentRepository
 import com.example.diamonds.data.repository.ProviderRepository
@@ -23,12 +24,15 @@ import com.example.diamonds.data.sync.SyncManager
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
 import com.example.diamonds.domain.repository.IClientRepository
+import com.example.diamonds.domain.repository.ILocationRepository
 import com.example.diamonds.domain.repository.INotificationRepository
 import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.ISyncRepository
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -88,6 +92,12 @@ object DataModule {
     @Provides
     fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
         return WorkManager.getInstance(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideFusedLocationProviderClient(@ApplicationContext context: Context): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(context)
     }
 }
 
@@ -177,5 +187,16 @@ object RepositoryModule {
         preferencesDataStore: PreferencesDataStore
     ): INotificationRepository {
         return NotificationRepository(db, preferencesDataStore)
+    }
+
+    @Singleton
+    @Provides
+    fun provideLocationRepository(
+        db: AppDatabase,
+        backendService: IBackendService,
+        connectivityObserver: ConnectivityObserver,
+        fusedLocationClient: FusedLocationProviderClient
+    ): ILocationRepository {
+        return LocationRepository(db, backendService, connectivityObserver, fusedLocationClient)
     }
 }

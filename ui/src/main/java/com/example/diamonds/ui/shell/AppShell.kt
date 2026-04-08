@@ -63,6 +63,8 @@ import com.example.diamonds.ui.company.CompanyTeamScreen
 import com.example.diamonds.ui.components.ConfirmationDialog
 import com.example.diamonds.ui.components.OfflineBanner
 import com.example.diamonds.ui.customer.CustomerProfileScreen
+import com.example.diamonds.ui.map.BookingMapScreen
+import com.example.diamonds.ui.map.ProviderTrackingScreen
 import com.example.diamonds.ui.navigation.Screen
 import com.example.diamonds.ui.navigation.startTabForSession
 import com.example.diamonds.ui.navigation.tabsForSession
@@ -93,7 +95,9 @@ private val routesWithoutBottomBar = setOf(
     Screen.CompanyServiceManage.route,
     Screen.CompanyServiceEdit().route,
     Screen.Notifications.route,
-    Screen.NotificationPreferences.route
+    Screen.NotificationPreferences.route,
+    Screen.BookingMap.route,
+    Screen.ProviderTracking().route
 )
 
 /** Derive the top-bar title from the current route and session context. */
@@ -127,6 +131,8 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("company/services")  -> "Manage Services"
         route.startsWith("notifications/preferences") -> "Notification Settings"
         route.startsWith("notifications") -> "Notifications"
+        route.startsWith("customer/map") -> "Pick Location"
+        route.startsWith("customer/tracking") -> "Track Cleaner"
         else -> appName
     }
 }
@@ -337,6 +343,12 @@ fun AppShell(
                 ) { entry ->
                     val pid = entry.arguments?.getString("providerId") ?: return@composable
                     val sid = entry.arguments?.getString("serviceId")  ?: return@composable
+
+                    // Receive map-picked location via savedStateHandle
+                    val mapLat = entry.savedStateHandle.get<Double>("map_lat")
+                    val mapLng = entry.savedStateHandle.get<Double>("map_lng")
+                    val mapAddr = entry.savedStateHandle.get<String>("map_address")
+
                     BookingFormScreen(
                         providerId       = pid,
                         serviceId        = sid,
@@ -344,7 +356,13 @@ fun AppShell(
                             innerNav.navigate(Screen.BookingConfirmation().route(id)) {
                                 popUpTo(Screen.ProviderSearch.route) { inclusive = false }
                             }
-                        }
+                        },
+                        onPickOnMap = {
+                            innerNav.navigate(Screen.BookingMap.route)
+                        },
+                        mapLat = mapLat,
+                        mapLng = mapLng,
+                        mapAddress = mapAddr
                     )
                 }
                 composable(
@@ -391,8 +409,34 @@ fun AppShell(
                         onCancelled    = { innerNav.popBackStack() },
                         onLeaveReview  = { bookingId, providerId ->
                             innerNav.navigate(Screen.ReviewBooking().route(bookingId, providerId))
+                        },
+                        onTrackCleaner = { bookingId ->
+                            innerNav.navigate(Screen.ProviderTracking().route(bookingId))
                         }
                     )
+                }
+                // ── Map & Location screens ─────────────────────────────────
+                composable(Screen.BookingMap.route) {
+                    BookingMapScreen(
+                        onLocationConfirmed = { lat, lng, address ->
+                            innerNav.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.apply {
+                                    set("map_lat", lat)
+                                    set("map_lng", lng)
+                                    set("map_address", address)
+                                }
+                            innerNav.popBackStack()
+                        },
+                        onCancel = { innerNav.popBackStack() }
+                    )
+                }
+                composable(
+                    route = Screen.ProviderTracking().route,
+                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+                ) { entry ->
+                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                    ProviderTrackingScreen(bookingId = bid)
                 }
                 composable(
                     route = Screen.ReviewBooking().route,

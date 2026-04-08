@@ -242,3 +242,46 @@ data class NotificationPreferences(
     val promotions: Boolean = true
 )
 
+// ── Location & Maps ────────────────────────────────────────────────────────────
+
+/**
+ * A geographic coordinate pair. Pure Kotlin — no Android dependency.
+ */
+@Serializable
+data class GeoLocation(
+    val latitude: Double,
+    val longitude: Double
+)
+
+/**
+ * The service area a provider covers, centred on their base location.
+ */
+@Serializable
+data class ServiceArea(
+    val providerId: String,
+    val center: GeoLocation,
+    val radiusKm: Double
+)
+
+/**
+ * A snapshot of a provider's live position (used for real-time tracking).
+ */
+@Serializable
+data class ProviderLocation(
+    val providerId: String,
+    val location: GeoLocation,
+    val heading: Float = 0f,
+    val updatedAt: String
+)
+
+/**
+ * Aggregate tracking state for the customer tracking screen.
+ */
+data class TrackingState(
+    val providerLocation: ProviderLocation? = null,
+    val jobLocation: GeoLocation? = null,
+    val etaMinutes: Double? = null,
+    val distanceKm: Double? = null,
+    val isActive: Boolean = false
+)
+

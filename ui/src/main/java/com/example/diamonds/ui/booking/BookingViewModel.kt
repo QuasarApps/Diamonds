@@ -42,6 +42,8 @@ data class BookingFormUiState(
     val date: String = "",
     val time: String = "",
     val address: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val notes: String = "",
     val bookingSuccess: Boolean = false,
     val createdBookingId: String? = null,
@@ -158,6 +160,16 @@ class BookingViewModel @Inject constructor(
     fun onAddressChange(v: String) { _formState.value = _formState.value.copy(address = v, fieldErrors = _formState.value.fieldErrors - BookingField.ADDRESS) }
     fun onNotesChange(v: String)   { _formState.value = _formState.value.copy(notes = v) }
 
+    /** Called when the user selects a location from the map screen. */
+    fun onLocationSelected(lat: Double, lng: Double, address: String) {
+        _formState.value = _formState.value.copy(
+            latitude = lat,
+            longitude = lng,
+            address = if (address.isNotBlank()) address else _formState.value.address,
+            fieldErrors = _formState.value.fieldErrors - BookingField.ADDRESS
+        )
+    }
+
     fun submitBooking() {
         val state = _formState.value
         val errors = buildMap<BookingField, String> {
@@ -190,6 +202,8 @@ class BookingViewModel @Inject constructor(
                 totalPrice = service.basePrice,
                 notes = state.notes.ifBlank { null },
                 address = state.address,
+                latitude = state.latitude,
+                longitude = state.longitude,
                 createdAt = System.currentTimeMillis().toString(),
                 updatedAt = System.currentTimeMillis().toString()
             )

@@ -7,6 +7,9 @@ plugins {
     // alias(libs.plugins.google.services)
 }
 
+// Read MAPS_API_KEY from gradle.properties or local.properties
+val mapsApiKey: String = project.findProperty("MAPS_API_KEY")?.toString() ?: ""
+
 android {
     namespace = "com.example.diamonds"
     compileSdk = 34
@@ -19,6 +22,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
@@ -91,6 +96,9 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+
+    // Google Play Services Location
+    implementation(libs.play.services.location)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

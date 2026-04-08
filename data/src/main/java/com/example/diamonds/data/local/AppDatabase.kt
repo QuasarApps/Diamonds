@@ -11,6 +11,7 @@ import com.example.diamonds.data.local.dao.ClientDao
 import com.example.diamonds.data.local.dao.NotificationDao
 import com.example.diamonds.data.local.dao.PaymentDao
 import com.example.diamonds.data.local.dao.ProviderDao
+import com.example.diamonds.data.local.dao.ProviderLocationDao
 import com.example.diamonds.data.local.dao.ReviewDao
 import com.example.diamonds.data.local.dao.ServiceDao
 import com.example.diamonds.data.local.dao.SyncQueueDao
@@ -19,6 +20,7 @@ import com.example.diamonds.data.local.entity.ClientEntity
 import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
+import com.example.diamonds.data.local.entity.ProviderLocationEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
@@ -32,9 +34,10 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
         ReviewEntity::class,
         PaymentEntity::class,
         SyncQueueEntity::class,
-        NotificationEntity::class
+        NotificationEntity::class,
+        ProviderLocationEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -46,6 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun paymentDao(): PaymentDao
     abstract fun syncQueueDao(): SyncQueueDao
     abstract fun notificationDao(): NotificationDao
+    abstract fun providerLocationDao(): ProviderLocationDao
 
     companion object {
         @Volatile
@@ -80,6 +84,23 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v3 → v4: add provider_locations table for maps / live tracking. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS provider_locations (
+                        providerId TEXT NOT NULL PRIMARY KEY,
+                        latitude REAL NOT NULL,
+                        longitude REAL NOT NULL,
+                        heading REAL NOT NULL DEFAULT 0,
+                        updatedAt TEXT NOT NULL
+                    )
+                """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -87,7 +108,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "diamonds_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance

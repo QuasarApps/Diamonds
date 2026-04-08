@@ -22,7 +22,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.ui.components.ConfirmationDialog
 import com.example.diamonds.ui.components.NotFoundScreen
+import com.example.diamonds.ui.map.BookingLocationMapCard
 
 // ── Bookings List ─────────────────────────────────────────────────────────────
 
@@ -62,7 +62,10 @@ fun BookingsListScreen(
     }
 
     if (error != null) {
-        Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text("⚠️", fontSize = 40.sp)
             Spacer(Modifier.height(12.dp))
             Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
@@ -71,7 +74,10 @@ fun BookingsListScreen(
     }
 
     if (state.bookings.isEmpty()) {
-        Column(Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text("📋", fontSize = 48.sp)
             Spacer(Modifier.height(16.dp))
             Text("No bookings yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
@@ -96,7 +102,9 @@ fun BookingsListScreen(
 @Composable
 private fun BookingSummaryCard(item: BookingWithDetails, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(Modifier.padding(16.dp)) {
@@ -125,6 +133,7 @@ fun BookingDetailScreen(
     bookingId: String,
     onCancelled: () -> Unit,
     onLeaveReview: (bookingId: String, providerId: String) -> Unit = { _, _ -> },
+    onTrackCleaner: (bookingId: String) -> Unit = {},
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsState()
@@ -191,6 +200,17 @@ fun BookingDetailScreen(
                 DetailRow("Time",    booking.scheduledTime)
                 DetailRow("Address", booking.address)
                 booking.notes?.let { DetailRow("Notes", it) }
+
+                // Mini-map showing the booking location
+                if (booking.latitude != null && booking.longitude != null) {
+                    Spacer(Modifier.height(8.dp))
+                    BookingLocationMapCard(
+                        latitude = booking.latitude!!,
+                        longitude = booking.longitude!!,
+                        address = booking.address,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
 
@@ -218,17 +238,32 @@ fun BookingDetailScreen(
                 onClick = { showCancelDialog = true },
                 enabled = !state.isLoading,
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                modifier = Modifier.fillMaxWidth().height(52.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
             ) {
                 if (state.isLoading) CircularProgressIndicator(modifier = Modifier.width(20.dp), strokeWidth = 2.dp)
                 else Text("Cancel This Booking", fontSize = 15.sp)
             }
         }
 
+        // Track Cleaner button for accepted / in-progress bookings
+        val canTrack = booking.status in listOf(BookingStatus.ACCEPTED, BookingStatus.IN_PROGRESS)
+        if (canTrack) {
+            Button(
+                onClick = { onTrackCleaner(bookingId) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) { Text("🗺️  Track Cleaner", fontSize = 15.sp) }
+        }
+
         if (booking.status == BookingStatus.COMPLETED && state.provider != null) {
             Button(
                 onClick  = { onLeaveReview(bookingId, booking.providerId) },
-                modifier = Modifier.fillMaxWidth().height(52.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
             ) { Text("⭐  Leave a Review", fontSize = 15.sp) }
         }
     }

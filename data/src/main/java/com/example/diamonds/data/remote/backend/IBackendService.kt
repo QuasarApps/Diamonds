@@ -1,6 +1,6 @@
 package com.example.diamonds.data.remote.backend
 
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.Result
 
 /**
  * Abstract backend service interface - agnostic to Firebase/REST/GraphQL
@@ -52,6 +52,11 @@ interface IBackendService {
     suspend fun createPayment(payment: CreatePaymentRequest): Result<PaymentDto>
     suspend fun getPayment(paymentId: String): Result<PaymentDto>
     suspend fun getPaymentsForClient(clientId: String): Result<List<PaymentDto>>
+
+    // Location / Tracking
+    suspend fun getProviderLocation(providerId: String): Result<ProviderLocationDto>
+    suspend fun updateProviderLocation(location: ProviderLocationDto): Result<Unit>
+    suspend fun getServiceArea(providerId: String): Result<ServiceAreaDto>
 }
 
 // DTO classes for API communication (separate from domain models)
@@ -173,3 +178,19 @@ data class CreatePaymentRequest(
     val amount: Double,
     val method: String
 )
+
+data class ProviderLocationDto(
+    val providerId: String,
+    val latitude: Double,
+    val longitude: Double,
+    val heading: Float = 0f,
+    val updatedAt: String
+)
+
+data class ServiceAreaDto(
+    val providerId: String,
+    val centerLatitude: Double,
+    val centerLongitude: Double,
+    val radiusKm: Double
+)
+

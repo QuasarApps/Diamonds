@@ -10,6 +10,7 @@ import com.example.diamonds.data.local.entity.ClientEntity
 import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
+import com.example.diamonds.data.local.entity.ProviderLocationEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
@@ -191,5 +192,20 @@ interface NotificationDao {
 
     @Query("DELETE FROM notifications WHERE userId = :userId")
     suspend fun deleteAll(userId: String)
+}
+
+@Dao
+interface ProviderLocationDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(location: ProviderLocationEntity)
+
+    @Query("SELECT * FROM provider_locations WHERE providerId = :providerId")
+    suspend fun getByProviderId(providerId: String): ProviderLocationEntity?
+
+    @Query("SELECT * FROM provider_locations WHERE providerId = :providerId")
+    fun observeByProviderId(providerId: String): Flow<ProviderLocationEntity?>
+
+    @Query("DELETE FROM provider_locations WHERE providerId = :providerId")
+    suspend fun delete(providerId: String)
 }
 

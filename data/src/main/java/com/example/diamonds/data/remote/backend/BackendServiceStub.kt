@@ -408,4 +408,74 @@ class BackendServiceStub : IBackendService {
         return Result.Success(paymentStore.filter { it.clientId == clientId }
             .sortedByDescending { it.createdAt })
     }
+
+    // ── Location / Tracking ─────────────────────────────────────────────────
+
+    /** Mutable store so location updates persist within the session. */
+    private val providerLocationStore = mutableMapOf(
+        "p1" to ProviderLocationDto(
+            "p1",
+            40.7128,
+            -74.0060,
+            45f,
+            System.currentTimeMillis().toString()
+        ),
+        "p2" to ProviderLocationDto(
+            "p2",
+            40.7580,
+            -73.9855,
+            120f,
+            System.currentTimeMillis().toString()
+        ),
+        "p3" to ProviderLocationDto(
+            "p3",
+            40.7489,
+            -73.9680,
+            200f,
+            System.currentTimeMillis().toString()
+        ),
+        "p4" to ProviderLocationDto(
+            "p4",
+            40.7282,
+            -73.7949,
+            0f,
+            System.currentTimeMillis().toString()
+        ),
+        "p5" to ProviderLocationDto(
+            "p5",
+            40.7614,
+            -73.9776,
+            90f,
+            System.currentTimeMillis().toString()
+        )
+    )
+
+    /** Seed service areas centred on each provider's "home base" location. */
+    private val serviceAreaStore = mapOf(
+        "p1" to ServiceAreaDto("p1", 40.7128, -74.0060, 15.0),
+        "p2" to ServiceAreaDto("p2", 40.7580, -73.9855, 10.0),
+        "p3" to ServiceAreaDto("p3", 40.7489, -73.9680, 20.0),
+        "p4" to ServiceAreaDto("p4", 40.7282, -73.7949, 12.0),
+        "p5" to ServiceAreaDto("p5", 40.7614, -73.9776, 25.0)
+    )
+
+    override suspend fun getProviderLocation(providerId: String): Result<ProviderLocationDto> {
+        delay(300)
+        val loc = providerLocationStore[providerId]
+            ?: return Result.Error(Exception("Provider location for $providerId not found"))
+        return Result.Success(loc)
+    }
+
+    override suspend fun updateProviderLocation(location: ProviderLocationDto): Result<Unit> {
+        delay(200)
+        providerLocationStore[location.providerId] = location
+        return Result.Success(Unit)
+    }
+
+    override suspend fun getServiceArea(providerId: String): Result<ServiceAreaDto> {
+        delay(300)
+        val area = serviceAreaStore[providerId]
+            ?: return Result.Error(Exception("Service area for $providerId not found"))
+        return Result.Success(area)
+    }
 }

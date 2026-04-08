@@ -265,6 +265,30 @@ class FirebaseBackendService : IBackendService {
             snap.toObjects(PaymentDto::class.java)
         }
 
+    // ── Location / Tracking ─────────────────────────────────────────────────
+
+    private val locationsCol = db.collection("provider_locations")
+    private val serviceAreasCol = db.collection("service_areas")
+
+    override suspend fun getProviderLocation(providerId: String): Result<ProviderLocationDto> =
+        firestoreCall {
+            val snap = locationsCol.document(providerId).get().await()
+            snap.toObject(ProviderLocationDto::class.java)
+                ?: throw Exception("Provider location not found")
+        }
+
+    override suspend fun updateProviderLocation(location: ProviderLocationDto): Result<Unit> =
+        firestoreCall {
+            locationsCol.document(location.providerId).set(location).await()
+        }
+
+    override suspend fun getServiceArea(providerId: String): Result<ServiceAreaDto> =
+        firestoreCall {
+            val snap = serviceAreasCol.document(providerId).get().await()
+            snap.toObject(ServiceAreaDto::class.java)
+                ?: throw Exception("Service area not found")
+        }
+
     // ── Helper ───────────────────────────────────────────────────────────────
 
     /**

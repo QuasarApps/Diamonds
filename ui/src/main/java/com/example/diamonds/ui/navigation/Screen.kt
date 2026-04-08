@@ -82,4 +82,14 @@ sealed class Screen(val route: String) {
     // ── Shared (all roles) ─────────────────────────────────────────────────
     data object Notifications : Screen("notifications")
     data object NotificationPreferences : Screen("notifications/preferences")
+
+    // ── Map & Location ─────────────────────────────────────────────────────
+    /** Pick an address on a map during the booking flow. */
+    data object BookingMap : Screen("customer/map")
+
+    /** Real-time tracking of a cleaner for an active booking. */
+    data class ProviderTracking(val bookingId: String = "{bookingId}") :
+        Screen("customer/tracking/{bookingId}") {
+        fun route(id: String) = "customer/tracking/$id"
+    }
 }

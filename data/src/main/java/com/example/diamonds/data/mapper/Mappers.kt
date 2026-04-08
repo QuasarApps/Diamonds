@@ -5,6 +5,7 @@ import com.example.diamonds.data.local.entity.ClientEntity
 import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
+import com.example.diamonds.data.local.entity.ProviderLocationEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
@@ -18,12 +19,14 @@ import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.GeoLocation
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationType
 import com.example.diamonds.domain.model.Payment
 import com.example.diamonds.domain.model.PaymentMethod
 import com.example.diamonds.domain.model.PaymentStatus
 import com.example.diamonds.domain.model.Provider
+import com.example.diamonds.domain.model.ProviderLocation
 import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceCategory
@@ -323,5 +326,22 @@ fun Notification.toEntity(): NotificationEntity = NotificationEntity(
     referenceId = referenceId,
     isRead = isRead,
     createdAt = createdAt
+)
+
+// ── ProviderLocation ─────────────────────────────────────────────────────────
+
+fun ProviderLocationEntity.toDomain(): ProviderLocation = ProviderLocation(
+    providerId = providerId,
+    location = GeoLocation(latitude = latitude, longitude = longitude),
+    heading = heading,
+    updatedAt = updatedAt
+)
+
+fun ProviderLocation.toEntity(): ProviderLocationEntity = ProviderLocationEntity(
+    providerId = providerId,
+    latitude = location.latitude,
+    longitude = location.longitude,
+    heading = heading,
+    updatedAt = updatedAt
 )
 

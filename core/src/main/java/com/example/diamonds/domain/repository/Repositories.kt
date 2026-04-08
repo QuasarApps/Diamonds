@@ -3,14 +3,17 @@ package com.example.diamonds.domain.repository
 import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.GeoLocation
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationPreferences
 import com.example.diamonds.domain.model.Payment
 import com.example.diamonds.domain.model.PaymentStatus
 import com.example.diamonds.domain.model.Provider
+import com.example.diamonds.domain.model.ProviderLocation
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
+import com.example.diamonds.domain.model.ServiceArea
 import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.UserRole.CLEANER
@@ -147,6 +150,29 @@ interface INotificationRepository {
     fun observeNotifications(userId: String): Flow<List<Notification>>
     suspend fun getNotificationPreferences(): NotificationPreferences
     suspend fun updateNotificationPreferences(preferences: NotificationPreferences): Result<Unit>
+}
+
+/**
+ * Repository for location and maps operations.
+ */
+interface ILocationRepository {
+    /** Get the device's current location. */
+    suspend fun getCurrentLocation(): Result<GeoLocation>
+
+    /** Observe a provider's live location during a job. */
+    fun observeProviderLocation(providerId: String): Flow<ProviderLocation>
+
+    /** Update a provider's current location (cleaner-side). */
+    suspend fun updateProviderLocation(providerLocation: ProviderLocation): Result<Unit>
+
+    /** Get the service area for a provider. */
+    suspend fun getServiceArea(providerId: String): Result<ServiceArea>
+
+    /** Calculate the ETA (in minutes) between two points. */
+    suspend fun calculateEta(from: GeoLocation, to: GeoLocation): Result<Double>
+
+    /** Calculate the straight-line (Haversine) distance in km between two points. */
+    fun calculateDistance(from: GeoLocation, to: GeoLocation): Double
 }
 
 /**

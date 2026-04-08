@@ -1,6 +1,6 @@
 # Implementation Status & Next Steps
 
-**Status**: Phases 1-8 ✅ Complete | **Completion**: 53% of 15-phase roadmap
+**Status**: Phases 1-9 ✅ Complete | **Completion**: 60% of 15-phase roadmap
 
 ---
 
@@ -75,17 +75,32 @@
 - Three notification channels (bookings, payments, general)
 - BuildConfig flag for Firebase/Mock switching
 
+### Phase 9: Maps & Location ✅
+
+- Google Maps SDK integration (maps-compose, play-services-maps/location)
+- BookingMapScreen — full-screen map for address selection with drag pin
+- BookingLocationMapCard — mini-map in BookingDetailScreen
+- ProviderTrackingScreen — real-time cleaner tracking with ETA & distance
+- RequireLocationPermission composable with rationale dialog
+- MapViewModel with booking map & tracking state management
+- ILocationRepository + LocationRepository (FusedLocationProviderClient, Haversine)
+- Service area circle overlay on map
+- ProviderLocationEntity + DAO + Room migration v3→v4
+- Seeded provider locations and service areas in BackendServiceStub
+- "Pick on Map" in booking form, "Track Cleaner" in booking detail
+- Google Maps API key via gradle.properties + manifestPlaceholders
+
 ---
 
 ## Metrics
 
 | Item                | Count   |
 |---------------------|---------|
-| Production LOC      | 13,000+ |
-| UI Screens          | 33+     |
-| ViewModels          | 13      |
-| Repository Impls    | 8       |
-| Database Entities   | 8       |
+| Production LOC      | 14,500+ |
+| UI Screens          | 37+     |
+| ViewModels          | 14      |
+| Repository Impls    | 9       |
+| Database Entities   | 9       |
 | Demo Accounts       | 5       |
 | Documentation Files | 8       |
 | Modules             | 5       |
@@ -94,7 +109,6 @@
 
 ## What's NOT Done Yet
 
-**Phase 9**: Maps & location  
 **Phase 10**: Advanced sync  
 **Phase 11**: Error handling & analytics  
 **Phase 12**: Testing & optimization  
