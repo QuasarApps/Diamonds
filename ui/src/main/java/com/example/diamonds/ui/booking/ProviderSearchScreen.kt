@@ -40,7 +40,7 @@ import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.ui.components.FilterCriteria
-import com.example.diamonds.ui.components.FilterSheet
+import com.example.diamonds.ui.components.FilterSection
 
 private val categories = listOf(
     null to "All",
@@ -68,17 +68,6 @@ fun ProviderSearchScreen(
 
     LaunchedEffect(Unit) { viewModel.loadProviders() }
 
-    if (showFilterSheet) {
-        FilterSheet(
-            currentFilters = filters,
-            onApply = { newFilters ->
-                filters = newFilters
-                viewModel.selectCategory(newFilters.category)
-            },
-            onDismiss = { showFilterSheet = false }
-        )
-    }
-
     Column(modifier = Modifier.fillMaxSize()) {
 
         // Category filter chips + advanced filter button
@@ -99,47 +88,70 @@ fun ProviderSearchScreen(
                     )
                 }
             }
-            IconButton(onClick = { showFilterSheet = true }) {
+            IconButton(onClick = { showFilterSheet = !showFilterSheet }) {
                 Text("⚙️", fontSize = 20.sp)
             }
         }
 
-        if (state.isLoading) {
-            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
-                Spacer(Modifier.height(12.dp))
-                Text("Finding cleaners near you…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Inline expandable filter section (replaces former ModalBottomSheet)
+        FilterSection(
+            expanded = showFilterSheet,
+            currentFilters = filters,
+            onApply = { newFilters ->
+                filters = newFilters
+                showFilterSheet = false
+                viewModel.selectCategory(newFilters.category)
+            },
+            onDismiss = { showFilterSheet = false }
+        )
+
+        // Use when/else instead of return@Column so the composition tree is
+        // always structurally identical.  Early-returning from a Column lambda
+        // removes child groups mid-recomposition → IndexOutOfBoundsException.
+        when {
+            state.isLoading -> {
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(12.dp))
+                    Text("Finding cleaners near you…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            return@Column
-        }
 
-        if (error != null) {
-            Text(
-                text = error ?: "",
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-
-        if (state.providers.isEmpty() && !state.isLoading) {
-            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("😕", fontSize = 40.sp)
-                Spacer(Modifier.height(12.dp))
-                Text("No cleaners found in your area.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            state.providers.isEmpty() -> {
+                if (error != null) {
+                    Text(
+                        text = error ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text("😕", fontSize = 40.sp)
+                    Spacer(Modifier.height(12.dp))
+                    Text("No cleaners found in your area.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            return@Column
-        }
 
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(state.providers, key = { it.id }) { provider ->
-                ProviderCard(
-                    provider     = provider,
-                    onClick      = { onProviderSelected(provider.id) },
-                    onViewRatings = { onViewRatings(provider.id) }
-                )
+            else -> {
+                if (error != null) {
+                    Text(
+                        text = error ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(state.providers, key = { it.id }) { provider ->
+                        ProviderCard(
+                            provider     = provider,
+                            onClick      = { onProviderSelected(provider.id) },
+                            onViewRatings = { onViewRatings(provider.id) }
+                        )
+                    }
+                }
             }
         }
     }

@@ -1,5 +1,8 @@
 package com.example.diamonds.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -10,15 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -41,21 +41,22 @@ data class FilterCriteria(
 )
 
 /**
- * A bottom sheet with advanced filter options for provider search:
- * category selection, minimum rating, max price.
+ * An inline, expandable/collapsible filter section for provider search.
+ *
+ * Replaces the former [ModalBottomSheet]-based implementation to keep filters
+ * as part of the normal screen flow rather than an overlay interruption.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun FilterSheet(
+fun FilterSection(
+    expanded: Boolean,
     currentFilters: FilterCriteria,
     onApply: (FilterCriteria) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    var selectedCategory by remember { mutableStateOf(currentFilters.category) }
-    var minRating by remember { mutableFloatStateOf(currentFilters.minRating) }
-    var maxPrice by remember { mutableFloatStateOf(currentFilters.maxPrice) }
+    var selectedCategory by remember(currentFilters) { mutableStateOf(currentFilters.category) }
+    var minRating by remember(currentFilters) { mutableFloatStateOf(currentFilters.minRating) }
+    var maxPrice by remember(currentFilters) { mutableFloatStateOf(currentFilters.maxPrice) }
 
     val categoryLabels = listOf(
         null to "All",
@@ -68,19 +69,21 @@ fun FilterSheet(
         ServiceCategory.POST_CONSTRUCTION to "Post-Build"
     )
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
+    AnimatedVisibility(
+        visible = expanded,
+        enter = expandVertically(),
+        exit = shrinkVertically()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(top = 8.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Filters", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             HorizontalDivider()
+
+            Text("Filters", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             // ── Category ──────────────────────────────────────────────────
             Text("Category", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
@@ -115,8 +118,6 @@ fun FilterSheet(
                 steps = 19
             )
 
-            Spacer(Modifier.height(8.dp))
-
             // ── Actions ───────────────────────────────────────────────────
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(
@@ -136,6 +137,8 @@ fun FilterSheet(
                     modifier = Modifier.weight(1f)
                 ) { Text("Apply Filters") }
             }
+
+            HorizontalDivider()
         }
     }
 }

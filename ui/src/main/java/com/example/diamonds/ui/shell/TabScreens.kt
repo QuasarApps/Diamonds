@@ -1,5 +1,8 @@
 package com.example.diamonds.ui.shell
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -31,20 +35,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.cleaner.CleanerViewModel
-import com.example.diamonds.ui.components.QuickBookingSheet
 
 // ── Customer Home Tab ──────────────────────────────────────────────────────────
 
 @Composable
 fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
-    var showQuickSheet by remember { mutableStateOf(false) }
-
-    if (showQuickSheet) {
-        QuickBookingSheet(
-            onDismiss           = { showQuickSheet = false },
-            onCategorySelected  = { onStartBooking() }
-        )
-    }
+    var showQuickOptions by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -80,7 +76,7 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
 
         Spacer(Modifier.height(12.dp))
 
-        Card(modifier = Modifier.fillMaxWidth().clickable { showQuickSheet = true }) {
+        Card(modifier = Modifier.fillMaxWidth().clickable { showQuickOptions = !showQuickOptions }) {
             Column(Modifier.padding(16.dp)) {
                 Text("⚡  Quick Book", fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
@@ -89,6 +85,42 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+
+        // Inline expandable quick booking options (replaces former ModalBottomSheet)
+        AnimatedVisibility(
+            visible = showQuickOptions,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Column(
+                    Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf(
+                        "🏠" to "House Cleaning",
+                        "🏢" to "Office Cleaning",
+                        "🧹" to "Deep Cleaning",
+                        "🪟" to "Window Cleaning",
+                        "🏗️" to "Post-Construction",
+                        "🧽" to "Carpet Cleaning",
+                    ).forEach { (icon, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onStartBooking() }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(icon, fontSize = 22.sp)
+                            Spacer(Modifier.width(14.dp))
+                            Text(label, fontSize = 15.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                            Text("›", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
         }
 

@@ -68,37 +68,35 @@ fun ServiceListScreen(
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 CircularProgressIndicator()
             }
-            return@Column
-        }
-
-        if (error != null) {
+        } else if (error != null && state.services.isEmpty()) {
             Text(error ?: "", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
-        }
-
-        if (state.services.isEmpty() && !state.isLoading) {
+        } else if (state.services.isEmpty()) {
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Text("No services listed yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            return@Column
-        }
+        } else {
+            if (error != null) {
+                Text(error ?: "", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+            }
 
-        Text(
-            "Available Services",
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-        )
+            Text(
+                "Available Services",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
 
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(state.services, key = { it.id }) { service ->
-                ServiceCard(
-                    service = service,
-                    onClick = { onServiceSelected(service.id, providerId) }
-                )
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(state.services, key = { it.id }) { service ->
+                    ServiceCard(
+                        service = service,
+                        onClick = { onServiceSelected(service.id, providerId) }
+                    )
+                }
             }
         }
     }

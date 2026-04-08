@@ -1,6 +1,5 @@
 package com.example.diamonds.ui.booking
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,8 +53,7 @@ fun BookingConfirmationScreen(
         if (state.isLoading) {
             Spacer(Modifier.height(80.dp))
             CircularProgressIndicator(modifier = Modifier.size(48.dp))
-            return@Column
-        }
+        } else {
 
         Spacer(Modifier.height(32.dp))
 
@@ -134,6 +132,8 @@ fun BookingConfirmationScreen(
         ) {
             Text("Book Another Service", fontSize = 16.sp)
         }
+
+        } // end else
     }
 }
 

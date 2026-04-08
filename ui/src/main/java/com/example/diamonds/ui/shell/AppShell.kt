@@ -50,6 +50,7 @@ import com.example.diamonds.ui.cleaner.CleanerBookingRequestsScreen
 import com.example.diamonds.ui.cleaner.CleanerEarningsScreen
 import com.example.diamonds.ui.cleaner.CleanerProfileScreen
 import com.example.diamonds.ui.cleaner.CleanerScheduleScreen
+import com.example.diamonds.ui.cleaner.ServiceEditScreen
 import com.example.diamonds.ui.cleaner.ServiceManagementScreen
 import com.example.diamonds.ui.company.CompanyBookingsScreen
 import com.example.diamonds.ui.company.CompanyDashboardScreen
@@ -81,7 +82,9 @@ private val routesWithoutBottomBar = setOf(
     Screen.PaymentSuccess().route,
     Screen.PaymentHistory.route,
     Screen.CleanerServiceManage.route,
-    Screen.CompanyServiceManage.route
+    Screen.CleanerServiceEdit().route,
+    Screen.CompanyServiceManage.route,
+    Screen.CompanyServiceEdit().route
 )
 
 /** Derive the top-bar title from the current route and session context. */
@@ -104,12 +107,14 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("cleaner/schedule")  -> "My Schedule"
         route.startsWith("cleaner/earnings")  -> "Earnings"
         route.startsWith("cleaner/profile")   -> "My Profile"
+        route.startsWith("cleaner/services/edit") -> "Edit Service"
         route.startsWith("cleaner/services")  -> "Manage Services"
         route.startsWith("company/dashboard") -> "Overview"
         route.startsWith("company/bookings")  -> "All Bookings"
         route.startsWith("company/team")      -> "My Team"
         route.startsWith("company/earnings")  -> "Revenue"
         route.startsWith("company/profile")   -> "Company Profile"
+        route.startsWith("company/services/edit") -> "Edit Service"
         route.startsWith("company/services")  -> "Manage Services"
         else -> appName
     }
@@ -483,7 +488,20 @@ fun AppShell(
                     )
                 }
                 composable(Screen.CleanerServiceManage.route) {
-                    ServiceManagementScreen()
+                    ServiceManagementScreen(
+                        onAddService  = { innerNav.navigate(Screen.CleanerServiceEdit().route("new")) },
+                        onEditService = { id -> innerNav.navigate(Screen.CleanerServiceEdit().route(id)) }
+                    )
+                }
+                composable(
+                    route = Screen.CleanerServiceEdit().route,
+                    arguments = listOf(navArgument("serviceId") { type = NavType.StringType })
+                ) { entry ->
+                    val sid = entry.arguments?.getString("serviceId") ?: return@composable
+                    ServiceEditScreen(
+                        serviceId = sid,
+                        onDone    = { innerNav.popBackStack() }
+                    )
                 }
 
                 // ── Company screens ────────────────────────────────────────
@@ -536,7 +554,20 @@ fun AppShell(
                     )
                 }
                 composable(Screen.CompanyServiceManage.route) {
-                    ServiceManagementScreen()
+                    ServiceManagementScreen(
+                        onAddService  = { innerNav.navigate(Screen.CompanyServiceEdit().route("new")) },
+                        onEditService = { id -> innerNav.navigate(Screen.CompanyServiceEdit().route(id)) }
+                    )
+                }
+                composable(
+                    route = Screen.CompanyServiceEdit().route,
+                    arguments = listOf(navArgument("serviceId") { type = NavType.StringType })
+                ) { entry ->
+                    val sid = entry.arguments?.getString("serviceId") ?: return@composable
+                    ServiceEditScreen(
+                        serviceId = sid,
+                        onDone    = { innerNav.popBackStack() }
+                    )
                 }
 
                 // ── Catch-all / 404 ────────────────────────────────────────

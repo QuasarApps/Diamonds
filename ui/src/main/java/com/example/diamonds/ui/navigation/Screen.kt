@@ -64,6 +64,9 @@ sealed class Screen(val route: String) {
     data object CleanerEarnings        : Screen("cleaner/earnings")
     data object CleanerProfile         : Screen("cleaner/profile")
     data object CleanerServiceManage   : Screen("cleaner/services")
+    data class  CleanerServiceEdit(val serviceId: String = "{serviceId}") : Screen("cleaner/services/edit/{serviceId}") {
+        fun route(id: String) = "cleaner/services/edit/$id"
+    }
 
     // ── Company tab destinations ───────────────────────────────────────────
     data object CompanyDashboard  : Screen("company/dashboard")
@@ -72,4 +75,7 @@ sealed class Screen(val route: String) {
     data object CompanyEarnings   : Screen("company/earnings")
     data object CompanyProfile    : Screen("company/profile")
     data object CompanyServiceManage : Screen("company/services")
+    data class  CompanyServiceEdit(val serviceId: String = "{serviceId}") : Screen("company/services/edit/{serviceId}") {
+        fun route(id: String) = "company/services/edit/$id"
+    }
 }

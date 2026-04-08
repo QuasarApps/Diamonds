@@ -35,9 +35,8 @@ data class ServiceManageUiState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val services: List<Service> = emptyList(),
-    /** When non-null, the add-service sheet is open pre-populated with these values */
-    val editingService: Service? = null,
-    val showAddSheet: Boolean = false
+    /** Non-null after a successful save – the edit screen observes this to pop itself. */
+    val savedServiceId: String? = null
 )
 
 // ── ViewModel ─────────────────────────────────────────────────────────────────
@@ -183,25 +182,9 @@ class CleanerProfileViewModel @Inject constructor(
         }
     }
 
-    fun openAddSheet() {
-        _serviceManageState.value = _serviceManageState.value.copy(
-            showAddSheet    = true,
-            editingService  = null
-        )
-    }
-
-    fun openEditSheet(service: Service) {
-        _serviceManageState.value = _serviceManageState.value.copy(
-            showAddSheet    = true,
-            editingService  = service
-        )
-    }
-
-    fun closeSheet() {
-        _serviceManageState.value = _serviceManageState.value.copy(
-            showAddSheet   = false,
-            editingService = null
-        )
+    /** Called by ServiceEditScreen after it observes savedServiceId and navigates away. */
+    fun clearSavedServiceId() {
+        _serviceManageState.value = _serviceManageState.value.copy(savedServiceId = null)
     }
 
     fun saveService(
@@ -209,7 +192,8 @@ class CleanerProfileViewModel @Inject constructor(
         description: String,
         price: Double,
         durationMinutes: Int,
-        category: ServiceCategory
+        category: ServiceCategory,
+        serviceId: String? = null
     ) {
         viewModelScope.launch {
             _serviceManageState.value = _serviceManageState.value.copy(isSaving = true)
@@ -220,7 +204,9 @@ class CleanerProfileViewModel @Inject constructor(
                 return@launch
             }
 
-            val existing = _serviceManageState.value.editingService
+            val existing = serviceId?.let { id ->
+                _serviceManageState.value.services.find { it.id == id }
+            }
             val now = java.time.LocalDate.now().toString()
             val service = if (existing != null) {
                 existing.copy(
@@ -253,7 +239,10 @@ class CleanerProfileViewModel @Inject constructor(
 
             when (result) {
                 is Result.Success -> {
-                    closeSheet()
+                    _serviceManageState.value = _serviceManageState.value.copy(
+                        isSaving       = false,
+                        savedServiceId = service.id
+                    )
                     loadServices() // refresh list
                 }
                 is Result.Error -> {
