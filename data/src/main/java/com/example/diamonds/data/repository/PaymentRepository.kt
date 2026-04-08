@@ -5,14 +5,18 @@ import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.remote.backend.CreatePaymentRequest
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.OfflineException
+import com.example.diamonds.domain.model.Payment
+import com.example.diamonds.domain.model.PaymentStatus
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.IPaymentRepository
 
 /**
  * Payment repository - reads are cached, writes require online
  */
 class PaymentRepository(
-    private val db: AppDatabase,
+    db: AppDatabase,
     private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : IPaymentRepository {

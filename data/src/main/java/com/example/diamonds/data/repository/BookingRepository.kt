@@ -1,18 +1,19 @@
 package com.example.diamonds.data.repository
 
-import com.example.diamonds.common.util.ConnectivityState
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.mapper.toEntity
 import com.example.diamonds.data.remote.backend.CreateBookingRequest
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.Booking
+import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.OfflineException
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.IBookingRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 /**
  * Booking repository with offline-first, read-only offline pattern
@@ -20,13 +21,12 @@ import java.time.format.DateTimeFormatter
  * - WRITE operations: require ONLINE state, return OfflineException if offline
  */
 class BookingRepository(
-    private val db: AppDatabase,
+    db: AppDatabase,
     private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : IBookingRepository {
 
     private val bookingDao = db.bookingDao()
-    private val syncQueueDao = db.syncQueueDao()
 
     override suspend fun createBooking(booking: Booking): Result<Booking> {
         // WRITE operation: require online

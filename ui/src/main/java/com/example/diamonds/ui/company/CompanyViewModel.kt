@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 // ── UI State ──────────────────────────────────────────────────────────────────
@@ -106,9 +107,9 @@ class CompanyViewModel @Inject constructor(
         }
     }
 
-    private fun todayString() = java.time.LocalDate.now().toString()
+    private fun todayString() = LocalDate.now().toString()
     private fun weekStartString(): String {
-        val now = java.time.LocalDate.now()
+        val now = LocalDate.now()
         return now.minusDays(now.dayOfWeek.value.toLong() - 1).toString()
     }
 

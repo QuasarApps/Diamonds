@@ -95,7 +95,7 @@ class BookingViewModel @Inject constructor(
                 is Result.Success -> _searchState.value = _searchState.value.copy(
                     isLoading = false,
                     providers = if (category == null) r.data
-                    else r.data.filter { _ -> true } // real filtering happens server-side
+                    else r.data.filter { p -> p.serviceRadius > 0 } // placeholder until server-side filtering
                 )
                 is Result.Error -> {
                     _searchState.value = _searchState.value.copy(isLoading = false)
@@ -173,10 +173,12 @@ class BookingViewModel @Inject constructor(
 
             val session = authRepository.getCurrentUserSession().first()
             val clientId = session?.userId ?: "anonymous"
-            val providerId = state.provider?.id ?: return@launch
-            val serviceId  = state.service?.id  ?: return@launch
+            val provider = state.provider ?: return@launch
+            val service = state.service ?: return@launch
+            val providerId = provider.id
+            val serviceId = service.id
 
-            val newBooking = com.example.diamonds.domain.model.Booking(
+            val newBooking = Booking(
                 id = "",
                 clientId = clientId,
                 providerId = providerId,
@@ -184,8 +186,8 @@ class BookingViewModel @Inject constructor(
                 status = BookingStatus.PENDING,
                 scheduledDate = state.date,
                 scheduledTime = state.time,
-                estimatedDuration = state.service?.duration ?: 60,
-                totalPrice = state.service?.basePrice ?: 0.0,
+                estimatedDuration = service.duration,
+                totalPrice = service.basePrice,
                 notes = state.notes.ifBlank { null },
                 address = state.address,
                 createdAt = System.currentTimeMillis().toString(),

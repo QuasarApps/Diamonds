@@ -18,11 +18,11 @@ import kotlinx.coroutines.flow.map
  * or in-app events, and are persisted so the user can review them later.
  */
 class NotificationRepository(
-    private val db: AppDatabase,
+    db: AppDatabase,
     private val preferencesDataStore: PreferencesDataStore
 ) : INotificationRepository {
 
-    private val dao get() = db.notificationDao()
+    private val dao = db.notificationDao()
 
     override suspend fun getNotifications(userId: String): Result<List<Notification>> {
         return try {

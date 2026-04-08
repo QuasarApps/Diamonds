@@ -5,7 +5,10 @@ import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.remote.backend.CreateReviewRequest
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.OfflineException
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.Review
+import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.IReviewRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -14,7 +17,7 @@ import kotlinx.coroutines.flow.map
  * Review repository - reads are cached, writes require online
  */
 class ReviewRepository(
-    private val db: AppDatabase,
+    db: AppDatabase,
     private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : IReviewRepository {

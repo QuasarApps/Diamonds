@@ -5,7 +5,10 @@ import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.mapper.toEntity
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.OfflineException
+import com.example.diamonds.domain.model.Provider
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.domain.repository.IProviderRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -14,7 +17,7 @@ import kotlinx.coroutines.flow.map
  * Provider repository with offline-first read pattern
  */
 class ProviderRepository(
-    private val db: AppDatabase,
+    db: AppDatabase,
     private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : IProviderRepository {
@@ -121,20 +124,6 @@ class ProviderRepository(
         }
 
         return try {
-            val dto = com.example.diamonds.data.remote.backend.ProviderDto(
-                id = provider.id,
-                name = provider.name,
-                email = provider.email,
-                phoneNumber = provider.phoneNumber,
-                profileImageUrl = provider.profileImageUrl,
-                bio = provider.bio,
-                rating = provider.rating,
-                reviewCount = provider.reviewCount,
-                verificationStatus = provider.verificationStatus.name,
-                serviceRadius = provider.serviceRadius,
-                createdAt = provider.createdAt,
-                updatedAt = provider.updatedAt
-            )
             // TODO: Add updateProvider to IBackendService
             Result.Error(Exception("Not implemented in backend service"))
         } catch (e: Exception) {

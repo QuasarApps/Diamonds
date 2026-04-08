@@ -5,28 +5,26 @@ package com.example.diamonds.data.sync
 import com.example.diamonds.common.util.Constants
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
+import com.example.diamonds.data.local.entity.SyncQueueEntity
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.domain.model.Result
-import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.ISyncRepository
 import com.example.diamonds.domain.repository.SyncOperation
-import com.example.diamonds.domain.model.SyncStatus as ModelSyncStatus
-import com.example.diamonds.data.local.entity.SyncQueueEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.math.min
+import com.example.diamonds.domain.model.SyncStatus as ModelSyncStatus
 
 /**
  * Manages sync queue and orchestrates retries with exponential backoff
  * Respects user cancellations; automatically retries failures
  */
 class SyncManager(
-    private val db: AppDatabase,
-    private val backendService: IBackendService,
+    db: AppDatabase,
+    @Suppress("unused") private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : ISyncRepository {
 
@@ -148,23 +146,13 @@ class SyncManager(
             delay(100)
             syncQueueDao.delete(operation.id)
         } catch (e: Exception) {
-            if (operation.retryCount >= Constants.MAX_RETRY_ATTEMPTS) {
-                // Max retries exceeded
-                syncQueueDao.updateAfterRetry(
-                    operation.id,
-                    ModelSyncStatus.FAILED.name,
-                    LocalDateTime.now().toString(),
-                    e.message
-                )
-            } else {
-                // Mark for retry
-                syncQueueDao.updateAfterRetry(
-                    operation.id,
-                    ModelSyncStatus.FAILED.name,
-                    LocalDateTime.now().toString(),
-                    e.message
-                )
-            }
+            // Mark for retry (or permanently failed if max retries exceeded)
+            syncQueueDao.updateAfterRetry(
+                operation.id,
+                ModelSyncStatus.FAILED.name,
+                LocalDateTime.now().toString(),
+                e.message
+            )
         }
     }
 

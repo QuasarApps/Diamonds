@@ -5,14 +5,17 @@ import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.mapper.toEntity
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.OfflineException
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.Service
+import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.domain.repository.IServiceRepository
 
 /**
  * Service repository - reads are cached, writes require online
  */
 class ServiceRepository(
-    private val db: AppDatabase,
+    db: AppDatabase,
     private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : IServiceRepository {

@@ -39,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.example.diamonds.domain.model.NotificationType
 import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.booking.BookingConfirmationScreen
@@ -605,14 +606,13 @@ fun AppShell(
                             val ref = notification.referenceId
                             if (ref != null) {
                                 when (notification.type) {
-                                    com.example.diamonds.domain.model.NotificationType.BOOKING_UPDATE ->
+                                    NotificationType.BOOKING_UPDATE ->
                                         innerNav.navigate(Screen.BookingDetail().route(ref))
 
-                                    com.example.diamonds.domain.model.NotificationType.PAYMENT ->
+                                    NotificationType.PAYMENT ->
                                         innerNav.navigate(Screen.PaymentHistory.route)
 
-                                    else -> { /* stay on notifications */
-                                    }
+                                    else -> Unit
                                 }
                             }
                         }

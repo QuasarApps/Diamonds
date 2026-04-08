@@ -8,7 +8,6 @@ import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IProviderRepository
-import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 // ── UI State ──────────────────────────────────────────────────────────────────
@@ -45,7 +45,6 @@ data class ServiceManageUiState(
 class CleanerProfileViewModel @Inject constructor(
     private val providerRepository: IProviderRepository,
     private val serviceRepository: IServiceRepository,
-    private val reviewRepository: IReviewRepository,
     private val authRepository: IAuthRepository,
     connectivityObserver: ConnectivityObserver
 ) : BaseViewModel<Unit>(connectivityObserver, Unit) {
@@ -207,7 +206,7 @@ class CleanerProfileViewModel @Inject constructor(
             val existing = serviceId?.let { id ->
                 _serviceManageState.value.services.find { it.id == id }
             }
-            val now = java.time.LocalDate.now().toString()
+            val now = LocalDate.now().toString()
             val service = if (existing != null) {
                 existing.copy(
                     title       = title.trim(),

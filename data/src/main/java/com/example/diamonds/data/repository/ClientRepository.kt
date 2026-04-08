@@ -1,12 +1,13 @@
 package com.example.diamonds.data.repository
 
-import com.example.diamonds.common.util.ConnectivityState
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.mapper.toEntity
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.OfflineException
+import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.repository.IClientRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.map
  * Client repository with offline-first read pattern
  */
 class ClientRepository(
-    private val db: AppDatabase,
+    db: AppDatabase,
     private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : IClientRepository {
@@ -88,6 +89,6 @@ class ClientRepository(
 
     override fun observeCurrentClient(): Flow<Client?> {
         // TODO: Observe current client from session
-        return db.clientDao().observeById("current_user").map { it?.toDomain() }
+        return clientDao.observeById("current_user").map { it?.toDomain() }
     }
 }
