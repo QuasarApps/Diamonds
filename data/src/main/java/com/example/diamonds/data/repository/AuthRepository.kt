@@ -17,6 +17,7 @@ class AuthRepository(
     override suspend fun login(
         email: String,
         password: String,
+        roleHint: UserRole?,
         cleanerTypeHint: CleanerType?
     ): Result<String> {
         return try {
@@ -24,7 +25,10 @@ class AuthRepository(
                 is Result.Success -> {
                     val auth = result.data
                     val existingSession = preferencesDataStore.observeUserSession().first()
-                    val role        = existingSession?.role        ?: UserRole.CUSTOMER
+                    // Hint wins > existing session > default CUSTOMER
+                    val role = roleHint
+                        ?: existingSession?.role
+                        ?: UserRole.CUSTOMER
                     // Hint wins > existing session > default INDEPENDENT
                     val cleanerType = cleanerTypeHint
                         ?: existingSession?.cleanerType

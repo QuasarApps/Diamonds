@@ -7,12 +7,16 @@ import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.ui.MainDispatcherRule
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -99,7 +103,7 @@ class AuthViewModelTest {
 
     @Test
     fun `login success sets loginSuccess true in uiState`() = runTest {
-        coEvery { authRepository.login(any(), any(), any()) } returns Result.Success("token")
+        coEvery { authRepository.login(any(), any(), any(), any()) } returns Result.Success("token")
 
         viewModel.onEmailChange("valid@example.com")
         viewModel.onPasswordChange("password123")
@@ -111,7 +115,7 @@ class AuthViewModelTest {
 
     @Test
     fun `login error sets error message`() = runTest {
-        coEvery { authRepository.login(any(), any(), any()) } returns
+        coEvery { authRepository.login(any(), any(), any(), any()) } returns
             Result.Error(Exception("Invalid credentials"))
 
         viewModel.onEmailChange("valid@example.com")
@@ -190,7 +194,7 @@ class AuthViewModelTest {
 
     @Test
     fun `clearAuthSuccess resets all success flags`() = runTest {
-        coEvery { authRepository.login(any(), any(), any()) } returns Result.Success("t")
+        coEvery { authRepository.login(any(), any(), any(), any()) } returns Result.Success("t")
 
         viewModel.onEmailChange("valid@example.com")
         viewModel.onPasswordChange("password123")

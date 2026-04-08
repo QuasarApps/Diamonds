@@ -27,6 +27,7 @@ interface IAuthRepository {
     suspend fun login(
         email: String,
         password: String,
+        roleHint: UserRole? = null,
         cleanerTypeHint: com.example.diamonds.domain.model.CleanerType? = null
     ): Result<String> // returns auth token
     suspend fun signup(

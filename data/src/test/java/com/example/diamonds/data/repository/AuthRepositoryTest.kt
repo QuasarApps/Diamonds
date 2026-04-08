@@ -13,7 +13,8 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -54,11 +55,13 @@ class AuthRepositoryTest {
     fun `login with cleanerTypeHint persists the hint in the session`() = runTest {
         coEvery { authService.login(any(), any()) } returns Result.Success(stubAuthResult)
 
-        repository.login("test@example.com", "password", CleanerType.EMPLOYED)
+        repository.login("test@example.com", "password", UserRole.CLEANER, CleanerType.EMPLOYED)
 
         coVerify {
             preferencesDataStore.saveUserSession(
-                match { session -> session.cleanerType == CleanerType.EMPLOYED }
+                match { session ->
+                    session.role == UserRole.CLEANER && session.cleanerType == CleanerType.EMPLOYED
+                }
             )
         }
     }

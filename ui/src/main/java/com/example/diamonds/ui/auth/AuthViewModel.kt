@@ -64,6 +64,7 @@ class AuthViewModel @Inject constructor(
             when (val result = authRepository.login(
                 _email.value.trim(),
                 _password.value,
+                roleHint = _selectedRole.value,
                 cleanerTypeHint = if (_selectedRole.value == UserRole.CLEANER) _cleanerType.value else null
             )) {
                 is Result.Success -> updateState { it.copy(isLoading = false, loginSuccess = true) }
