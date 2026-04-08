@@ -1,7 +1,9 @@
 package com.example.diamonds.domain.model
 
+import com.example.diamonds.domain.model.CleanerType.COMPANY
+import com.example.diamonds.domain.model.CleanerType.EMPLOYED
+import com.example.diamonds.domain.model.CleanerType.INDEPENDENT
 import kotlinx.serialization.Serializable
-import java.time.LocalDateTime
 
 /**
  * Represents a client (person booking cleaning services)
@@ -201,3 +203,42 @@ enum class SyncStatus {
     FAILED,
     CANCELLED
 }
+
+/**
+ * Types of push / in-app notifications.
+ */
+@Serializable
+enum class NotificationType {
+    BOOKING_UPDATE,
+    PAYMENT,
+    REVIEW,
+    PROMOTION,
+    SYSTEM
+}
+
+/**
+ * Represents an in-app notification (persisted locally).
+ */
+@Serializable
+data class Notification(
+    val id: String,
+    val userId: String,
+    val title: String,
+    val body: String,
+    val type: NotificationType = NotificationType.SYSTEM,
+    /** Optional ID of the related entity (bookingId, paymentId, etc.) */
+    val referenceId: String? = null,
+    val isRead: Boolean = false,
+    val createdAt: String
+)
+
+/**
+ * User-configurable notification preferences.
+ */
+data class NotificationPreferences(
+    val pushEnabled: Boolean = true,
+    val bookingUpdates: Boolean = true,
+    val paymentAlerts: Boolean = true,
+    val promotions: Boolean = true
+)
+

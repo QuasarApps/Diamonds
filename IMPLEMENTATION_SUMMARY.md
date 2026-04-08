@@ -1,6 +1,6 @@
 # Implementation Status & Next Steps
 
-**Status**: Phases 1-7 ✅ Complete | **Completion**: 47% of 15-phase roadmap
+**Status**: Phases 1-8 ✅ Complete | **Completion**: 53% of 15-phase roadmap
 
 ---
 
@@ -61,26 +61,39 @@
 - Bottom sheets (QuickBookingSheet, FilterSheet for provider search)
 - Improved back-stack management on logout
 
+### Phase 8: Firebase Integration ✅
+
+- FirebaseAuthService with full Email/Password auth
+- FirebaseBackendService with Firestore CRUD operations
+- FirestoreBookingListener for real-time booking updates
+- FCM push notifications (DiamondsFcmService)
+- Notification domain model, entity, DAO, repository
+- NotificationScreen with swipe-to-dismiss
+- NotificationPreferencesScreen with toggle switches
+- Notification bell icon with unread badge in TopAppBar
+- Room migration v2→v3 for notifications table
+- Three notification channels (bookings, payments, general)
+- BuildConfig flag for Firebase/Mock switching
+
 ---
 
 ## Metrics
 
-| Item | Count |
-|------|-------|
-| Production LOC | 11,000+ |
-| UI Screens | 30+ |
-| ViewModels | 12 |
-| Repository Impls | 7 |
-| Database Entities | 7 |
-| Demo Accounts | 5 |
-| Documentation Files | 8 |
-| Modules | 5 |
+| Item                | Count   |
+|---------------------|---------|
+| Production LOC      | 13,000+ |
+| UI Screens          | 33+     |
+| ViewModels          | 13      |
+| Repository Impls    | 8       |
+| Database Entities   | 8       |
+| Demo Accounts       | 5       |
+| Documentation Files | 8       |
+| Modules             | 5       |
 
 ---
 
 ## What's NOT Done Yet
 
-**Phase 8**: Firebase backend  
 **Phase 9**: Maps & location  
 **Phase 10**: Advanced sync  
 **Phase 11**: Error handling & analytics  

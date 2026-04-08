@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,12 +62,15 @@ import com.example.diamonds.ui.company.CompanyTeamScreen
 import com.example.diamonds.ui.components.ConfirmationDialog
 import com.example.diamonds.ui.components.OfflineBanner
 import com.example.diamonds.ui.customer.CustomerProfileScreen
-import com.example.diamonds.ui.payment.PaymentHistoryScreen
-import com.example.diamonds.ui.payment.PaymentScreen
-import com.example.diamonds.ui.payment.PaymentSuccessScreen
 import com.example.diamonds.ui.navigation.Screen
 import com.example.diamonds.ui.navigation.startTabForSession
 import com.example.diamonds.ui.navigation.tabsForSession
+import com.example.diamonds.ui.notification.NotificationPreferencesScreen
+import com.example.diamonds.ui.notification.NotificationScreen
+import com.example.diamonds.ui.notification.NotificationViewModel
+import com.example.diamonds.ui.payment.PaymentHistoryScreen
+import com.example.diamonds.ui.payment.PaymentScreen
+import com.example.diamonds.ui.payment.PaymentSuccessScreen
 
 /** Deep-link URI scheme used for in-app links and push notifications. */
 private const val DEEP_LINK_SCHEME = "diamonds"
@@ -84,7 +90,9 @@ private val routesWithoutBottomBar = setOf(
     Screen.CleanerServiceManage.route,
     Screen.CleanerServiceEdit().route,
     Screen.CompanyServiceManage.route,
-    Screen.CompanyServiceEdit().route
+    Screen.CompanyServiceEdit().route,
+    Screen.Notifications.route,
+    Screen.NotificationPreferences.route
 )
 
 /** Derive the top-bar title from the current route and session context. */
@@ -116,6 +124,8 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("company/profile")   -> "Company Profile"
         route.startsWith("company/services/edit") -> "Edit Service"
         route.startsWith("company/services")  -> "Manage Services"
+        route.startsWith("notifications/preferences") -> "Notification Settings"
+        route.startsWith("notifications") -> "Notifications"
         else -> appName
     }
 }
@@ -127,10 +137,12 @@ private const val NAV_ANIM_DURATION = 300
 @Composable
 fun AppShell(
     onLogout: () -> Unit,
-    viewModel: AppShellViewModel = hiltViewModel()
+    viewModel: AppShellViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel = hiltViewModel()
 ) {
     val session by viewModel.session.collectAsState()
     val isOnline by viewModel.isOnline.collectAsState()
+    val unreadCount by notificationViewModel.unreadCount.collectAsState()
     val s = session ?: return
 
     val tabs        = tabsForSession(s)
@@ -174,6 +186,21 @@ fun AppShell(
                 },
                 actions = {
                     if (isTabRoot) {
+                        // Notification bell with unread badge
+                        IconButton(onClick = { innerNav.navigate(Screen.Notifications.route) }) {
+                            BadgedBox(
+                                badge = {
+                                    if (unreadCount > 0) {
+                                        Badge { Text(if (unreadCount > 99) "99+" else "$unreadCount") }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Filled.Notifications,
+                                    contentDescription = "Notifications"
+                                )
+                            }
+                        }
                         TextButton(onClick = { showSignOutDialog = true }) { Text("Sign Out") }
                     }
                 }
@@ -568,6 +595,31 @@ fun AppShell(
                         serviceId = sid,
                         onDone    = { innerNav.popBackStack() }
                     )
+                }
+
+                // ── Notification screens (shared across all roles) ──────
+                composable(Screen.Notifications.route) {
+                    NotificationScreen(
+                        onNotificationClick = { notification ->
+                            // Navigate to relevant screen based on type / referenceId
+                            val ref = notification.referenceId
+                            if (ref != null) {
+                                when (notification.type) {
+                                    com.example.diamonds.domain.model.NotificationType.BOOKING_UPDATE ->
+                                        innerNav.navigate(Screen.BookingDetail().route(ref))
+
+                                    com.example.diamonds.domain.model.NotificationType.PAYMENT ->
+                                        innerNav.navigate(Screen.PaymentHistory.route)
+
+                                    else -> { /* stay on notifications */
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+                composable(Screen.NotificationPreferences.route) {
+                    NotificationPreferencesScreen()
                 }
 
                 // ── Catch-all / 404 ────────────────────────────────────────

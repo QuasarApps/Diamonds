@@ -2,8 +2,6 @@ package com.example.diamonds.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.diamonds.domain.model.*
-import kotlinx.serialization.Serializable
 
 @Entity(tableName = "clients")
 data class ClientEntity(
@@ -120,3 +118,16 @@ data class SyncQueueEntity(
     val lastAttemptAt: String? = null,
     val error: String? = null
 )
+
+@Entity(tableName = "notifications")
+data class NotificationEntity(
+    @PrimaryKey val id: String,
+    val userId: String,
+    val title: String,
+    val body: String,
+    val type: String, // NotificationType enum name
+    val referenceId: String? = null,
+    val isRead: Boolean = false,
+    val createdAt: String
+)
+

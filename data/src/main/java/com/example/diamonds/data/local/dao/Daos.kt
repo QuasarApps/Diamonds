@@ -1,7 +1,18 @@
 package com.example.diamonds.data.local.dao
 
-import androidx.room.*
-import com.example.diamonds.data.local.entity.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.diamonds.data.local.entity.BookingEntity
+import com.example.diamonds.data.local.entity.ClientEntity
+import com.example.diamonds.data.local.entity.NotificationEntity
+import com.example.diamonds.data.local.entity.PaymentEntity
+import com.example.diamonds.data.local.entity.ProviderEntity
+import com.example.diamonds.data.local.entity.ReviewEntity
+import com.example.diamonds.data.local.entity.ServiceEntity
+import com.example.diamonds.data.local.entity.SyncQueueEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -154,3 +165,31 @@ interface SyncQueueDao {
     @Query("DELETE FROM sync_queue WHERE status = 'CANCELLED'")
     suspend fun purgeCancelledOperations()
 }
+
+@Dao
+interface NotificationDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(notification: NotificationEntity)
+
+    @Query("SELECT * FROM notifications WHERE userId = :userId ORDER BY createdAt DESC")
+    suspend fun getAll(userId: String): List<NotificationEntity>
+
+    @Query("SELECT * FROM notifications WHERE userId = :userId ORDER BY createdAt DESC")
+    fun observeAll(userId: String): Flow<List<NotificationEntity>>
+
+    @Query("SELECT COUNT(*) FROM notifications WHERE userId = :userId AND isRead = 0")
+    fun observeUnreadCount(userId: String): Flow<Int>
+
+    @Query("UPDATE notifications SET isRead = 1 WHERE id = :id")
+    suspend fun markAsRead(id: String)
+
+    @Query("UPDATE notifications SET isRead = 1 WHERE userId = :userId")
+    suspend fun markAllAsRead(userId: String)
+
+    @Query("DELETE FROM notifications WHERE id = :id")
+    suspend fun delete(id: String)
+
+    @Query("DELETE FROM notifications WHERE userId = :userId")
+    suspend fun deleteAll(userId: String)
+}
+

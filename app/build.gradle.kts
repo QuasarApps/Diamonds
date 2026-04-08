@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
     id("com.google.dagger.hilt.android")
+    // Apply only when google-services.json exists; comment out if not using Firebase
+    // alias(libs.plugins.google.services)
 }
 
 android {
@@ -23,9 +25,12 @@ android {
         debug {
             // Flip to false (and add google-services.json) to use FirebaseAuthService
             buildConfigField("boolean", "USE_MOCK_AUTH", "true")
+            // Flip to false to use FirebaseBackendService instead of BackendServiceStub
+            buildConfigField("boolean", "USE_MOCK_BACKEND", "true")
         }
         release {
             buildConfigField("boolean", "USE_MOCK_AUTH", "false")
+            buildConfigField("boolean", "USE_MOCK_BACKEND", "false")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -86,6 +91,11 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.messaging.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

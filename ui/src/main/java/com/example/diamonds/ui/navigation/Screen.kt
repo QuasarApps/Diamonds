@@ -78,4 +78,8 @@ sealed class Screen(val route: String) {
     data class  CompanyServiceEdit(val serviceId: String = "{serviceId}") : Screen("company/services/edit/{serviceId}") {
         fun route(id: String) = "company/services/edit/$id"
     }
+
+    // ── Shared (all roles) ─────────────────────────────────────────────────
+    data object Notifications : Screen("notifications")
+    data object NotificationPreferences : Screen("notifications/preferences")
 }

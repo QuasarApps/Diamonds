@@ -1,10 +1,36 @@
 package com.example.diamonds.data.mapper
 
-import com.example.diamonds.data.local.entity.*
-import com.example.diamonds.data.remote.backend.*
-import com.example.diamonds.domain.model.*
-import com.example.diamonds.domain.repository.SyncOperation
+import com.example.diamonds.data.local.entity.BookingEntity
+import com.example.diamonds.data.local.entity.ClientEntity
+import com.example.diamonds.data.local.entity.NotificationEntity
+import com.example.diamonds.data.local.entity.PaymentEntity
+import com.example.diamonds.data.local.entity.ProviderEntity
+import com.example.diamonds.data.local.entity.ReviewEntity
+import com.example.diamonds.data.local.entity.ServiceEntity
+import com.example.diamonds.data.local.entity.SyncQueueEntity
+import com.example.diamonds.data.remote.backend.BookingDto
+import com.example.diamonds.data.remote.backend.ClientDto
+import com.example.diamonds.data.remote.backend.PaymentDto
+import com.example.diamonds.data.remote.backend.ProviderDto
+import com.example.diamonds.data.remote.backend.ReviewDto
+import com.example.diamonds.data.remote.backend.ServiceDto
+import com.example.diamonds.domain.model.Booking
+import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.CleanerType
+import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.Notification
+import com.example.diamonds.domain.model.NotificationType
+import com.example.diamonds.domain.model.Payment
+import com.example.diamonds.domain.model.PaymentMethod
+import com.example.diamonds.domain.model.PaymentStatus
+import com.example.diamonds.domain.model.Provider
+import com.example.diamonds.domain.model.Review
+import com.example.diamonds.domain.model.Service
+import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.domain.model.SyncStatus
+import com.example.diamonds.domain.model.VerificationStatus
 import com.example.diamonds.domain.repository.EntityType
+import com.example.diamonds.domain.repository.SyncOperation
 import com.example.diamonds.domain.repository.SyncOperationType
 
 /**
@@ -270,3 +296,32 @@ fun PaymentDto.toDomain(): Payment = Payment(
     createdAt = createdAt,
     updatedAt = updatedAt
 )
+
+// ── Notification mappers ─────────────────────────────────────────────────────
+
+fun NotificationEntity.toDomain(): Notification = Notification(
+    id = id,
+    userId = userId,
+    title = title,
+    body = body,
+    type = try {
+        NotificationType.valueOf(type)
+    } catch (_: Exception) {
+        NotificationType.SYSTEM
+    },
+    referenceId = referenceId,
+    isRead = isRead,
+    createdAt = createdAt
+)
+
+fun Notification.toEntity(): NotificationEntity = NotificationEntity(
+    id = id,
+    userId = userId,
+    title = title,
+    body = body,
+    type = type.name,
+    referenceId = referenceId,
+    isRead = isRead,
+    createdAt = createdAt
+)
+

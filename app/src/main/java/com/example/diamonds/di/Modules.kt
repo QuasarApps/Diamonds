@@ -2,15 +2,33 @@ package com.example.diamonds.di
 
 import android.content.Context
 import androidx.work.WorkManager
+import com.example.diamonds.BuildConfig
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.local.preferences.PreferencesDataStore
 import com.example.diamonds.data.remote.auth.IAuthService
 import com.example.diamonds.data.remote.backend.BackendServiceStub
+import com.example.diamonds.data.remote.backend.FirebaseBackendService
+import com.example.diamonds.data.remote.backend.FirestoreBookingListener
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.data.repository.*
+import com.example.diamonds.data.repository.AuthRepository
+import com.example.diamonds.data.repository.BookingRepository
+import com.example.diamonds.data.repository.ClientRepository
+import com.example.diamonds.data.repository.NotificationRepository
+import com.example.diamonds.data.repository.PaymentRepository
+import com.example.diamonds.data.repository.ProviderRepository
+import com.example.diamonds.data.repository.ReviewRepository
+import com.example.diamonds.data.repository.ServiceRepository
 import com.example.diamonds.data.sync.SyncManager
-import com.example.diamonds.domain.repository.*
+import com.example.diamonds.domain.repository.IAuthRepository
+import com.example.diamonds.domain.repository.IBookingRepository
+import com.example.diamonds.domain.repository.IClientRepository
+import com.example.diamonds.domain.repository.INotificationRepository
+import com.example.diamonds.domain.repository.IPaymentRepository
+import com.example.diamonds.domain.repository.IProviderRepository
+import com.example.diamonds.domain.repository.IReviewRepository
+import com.example.diamonds.domain.repository.IServiceRepository
+import com.example.diamonds.domain.repository.ISyncRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,8 +61,17 @@ object DataModule {
     @Singleton
     @Provides
     fun provideBackendService(): IBackendService {
-        // TODO: Replace with real Firebase or REST implementation
-        return BackendServiceStub()
+        return if (BuildConfig.USE_MOCK_BACKEND) {
+            BackendServiceStub()
+        } else {
+            FirebaseBackendService()
+        }
+    }
+
+    @Singleton
+    @Provides
+    fun provideFirestoreBookingListener(): FirestoreBookingListener {
+        return FirestoreBookingListener()
     }
 
     @Singleton
@@ -141,5 +168,14 @@ object RepositoryModule {
     @Provides
     fun provideSyncRepository(syncManager: SyncManager): ISyncRepository {
         return syncManager
+    }
+
+    @Singleton
+    @Provides
+    fun provideNotificationRepository(
+        db: AppDatabase,
+        preferencesDataStore: PreferencesDataStore
+    ): INotificationRepository {
+        return NotificationRepository(db, preferencesDataStore)
     }
 }

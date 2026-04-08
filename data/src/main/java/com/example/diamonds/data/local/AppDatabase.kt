@@ -6,8 +6,22 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.diamonds.data.local.dao.*
-import com.example.diamonds.data.local.entity.*
+import com.example.diamonds.data.local.dao.BookingDao
+import com.example.diamonds.data.local.dao.ClientDao
+import com.example.diamonds.data.local.dao.NotificationDao
+import com.example.diamonds.data.local.dao.PaymentDao
+import com.example.diamonds.data.local.dao.ProviderDao
+import com.example.diamonds.data.local.dao.ReviewDao
+import com.example.diamonds.data.local.dao.ServiceDao
+import com.example.diamonds.data.local.dao.SyncQueueDao
+import com.example.diamonds.data.local.entity.BookingEntity
+import com.example.diamonds.data.local.entity.ClientEntity
+import com.example.diamonds.data.local.entity.NotificationEntity
+import com.example.diamonds.data.local.entity.PaymentEntity
+import com.example.diamonds.data.local.entity.ProviderEntity
+import com.example.diamonds.data.local.entity.ReviewEntity
+import com.example.diamonds.data.local.entity.ServiceEntity
+import com.example.diamonds.data.local.entity.SyncQueueEntity
 
 @Database(
     entities = [
@@ -17,9 +31,10 @@ import com.example.diamonds.data.local.entity.*
         BookingEntity::class,
         ReviewEntity::class,
         PaymentEntity::class,
-        SyncQueueEntity::class
+        SyncQueueEntity::class,
+        NotificationEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reviewDao(): ReviewDao
     abstract fun paymentDao(): PaymentDao
     abstract fun syncQueueDao(): SyncQueueDao
+    abstract fun notificationDao(): NotificationDao
 
     companion object {
         @Volatile
@@ -44,6 +60,26 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v2 → v3: add notifications table for push / in-app notifications. */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS notifications (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        userId TEXT NOT NULL,
+                        title TEXT NOT NULL,
+                        body TEXT NOT NULL,
+                        type TEXT NOT NULL,
+                        referenceId TEXT,
+                        isRead INTEGER NOT NULL DEFAULT 0,
+                        createdAt TEXT NOT NULL
+                    )
+                """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -51,7 +87,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "diamonds_database"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                 INSTANCE = instance
                 instance

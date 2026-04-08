@@ -1,6 +1,20 @@
 package com.example.diamonds.domain.repository
 
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.Booking
+import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.Notification
+import com.example.diamonds.domain.model.NotificationPreferences
+import com.example.diamonds.domain.model.Payment
+import com.example.diamonds.domain.model.PaymentStatus
+import com.example.diamonds.domain.model.Provider
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.Review
+import com.example.diamonds.domain.model.Service
+import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.domain.model.SyncStatus
+import com.example.diamonds.domain.repository.UserRole.CLEANER
+import com.example.diamonds.domain.repository.UserRole.CUSTOMER
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -118,6 +132,21 @@ interface ISyncRepository {
     fun observeSyncQueue(): Flow<List<SyncOperation>>
     fun observePendingOperationCount(): Flow<Int>
     suspend fun retryFailedOperation(operationId: String): Result<Unit>
+}
+
+/**
+ * Repository for notification operations (local persistence + preferences).
+ */
+interface INotificationRepository {
+    suspend fun getNotifications(userId: String): Result<List<Notification>>
+    suspend fun addNotification(notification: Notification): Result<Unit>
+    suspend fun markAsRead(notificationId: String): Result<Unit>
+    suspend fun markAllAsRead(userId: String): Result<Unit>
+    suspend fun deleteNotification(notificationId: String): Result<Unit>
+    fun observeUnreadCount(userId: String): Flow<Int>
+    fun observeNotifications(userId: String): Flow<List<Notification>>
+    suspend fun getNotificationPreferences(): NotificationPreferences
+    suspend fun updateNotificationPreferences(preferences: NotificationPreferences): Result<Unit>
 }
 
 /**
