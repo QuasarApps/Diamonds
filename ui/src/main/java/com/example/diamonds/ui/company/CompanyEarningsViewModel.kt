@@ -122,4 +122,8 @@ class CompanyEarningsViewModel @Inject constructor(
             )
         }
     }
+
+    fun refreshEarnings() {
+        loadEarnings()
+    }
 }

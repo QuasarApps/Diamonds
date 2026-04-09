@@ -18,6 +18,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -38,68 +39,75 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
-/**
- * Cleaner: list of incoming PENDING booking requests with Accept / Decline actions.
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CleanerBookingRequestsScreen(
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val state by viewModel.requestsState.collectAsState()
     val error by viewModel.error.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.loadRequests() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
-    if (state.isLoading) {
+    if (state.isLoading && !isRefreshing) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    if (error != null) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(24.dp), contentAlignment = Alignment.Center) {
-            Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-        }
-        return
-    }
-
-    if (state.requests.isEmpty()) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("🎉", fontSize = 48.sp)
-            Spacer(Modifier.height(16.dp))
-            Text("No pending requests", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "New booking requests will appear here.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
-        return
-    }
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshRequests() }
     ) {
-        items(state.requests, key = { it.booking.id }) { item ->
-            BookingRequestCard(
-                item      = item,
-                onAccept  = { viewModel.acceptRequest(item.booking.id) },
-                onDecline = { viewModel.declineRequest(item.booking.id) }
-            )
+        when {
+            error != null -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    error ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            state.requests.isEmpty() -> Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("🎉", fontSize = 48.sp)
+                Spacer(Modifier.height(16.dp))
+                Text("No pending requests", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "New booking requests will appear here.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
+                )
+            }
+
+            else -> LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.requests, key = { it.booking.id }) { item ->
+                    BookingRequestCard(
+                        item = item,
+                        onAccept = { viewModel.acceptRequest(item.booking.id) },
+                        onDecline = { viewModel.declineRequest(item.booking.id) }
+                    )
+                }
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,11 +39,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.Service
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
  * Lets a cleaner or company manage their listed services:
  * toggle active/inactive, and navigate to add/edit screens.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServiceManagementScreen(
     onAddService: () -> Unit = {},
@@ -47,15 +53,23 @@ fun ServiceManagementScreen(
     viewModel: CleanerProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.serviceManageState.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.loadServices() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshServices() }
+    ) {
     Box(Modifier.fillMaxSize()) {
-        if (state.isLoading) {
+        if (state.isLoading && !isRefreshing) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else if (state.services.isEmpty()) {
             Column(
-                Modifier.fillMaxSize().padding(32.dp),
+                Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -104,6 +118,7 @@ fun ServiceManagementScreen(
             )
         }
     }
+    } // end PullToRefreshLayout
 }
 
 @Composable

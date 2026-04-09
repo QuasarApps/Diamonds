@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
  * Full ratings & reviews screen for a single provider.
@@ -40,44 +45,52 @@ import com.example.diamonds.common.util.DateTimeFormatUtil
  *  - Star breakdown bar chart (5 → 1)
  *  - Scrollable list of individual reviews with star display and comment
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderRatingsScreen(
     providerId: String,
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.ratingsState.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(providerId) { viewModel.loadProviderRatings(providerId) }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
-    if (state.isLoading) {
+    if (state.isLoading && !isRefreshing) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    if (state.reviews.isEmpty()) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("⭐", fontSize = 48.sp)
-            Spacer(Modifier.height(12.dp))
-            Text("No reviews yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-            Text("Be the first to review ${state.provider?.name ?: "this provider"}.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        }
-        return
-    }
-
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshProviderRatings() }
     ) {
+        if (state.reviews.isEmpty()) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("⭐", fontSize = 48.sp)
+                Spacer(Modifier.height(12.dp))
+                Text("No reviews yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Be the first to review ${state.provider?.name ?: "this provider"}.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
         // ── Summary header ────────────────────────────────────────────────
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -146,7 +159,9 @@ fun ProviderRatingsScreen(
         items(state.reviews, key = { it.review.id }) { item ->
             ReviewCard(item)
         }
-    }
+            } // end LazyColumn
+        } // end else
+    } // end PullToRefreshLayout
 }
 
 @Composable

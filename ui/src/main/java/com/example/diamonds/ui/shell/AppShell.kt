@@ -123,12 +123,15 @@ private fun graphRouteForTab(tabRoute: String): String = when (tabRoute) {
 /**
  * Returns true when the current destination is the root screen of its tab
  * graph (i.e. the user has not navigated deeper within the tab).
+ * Also returns true when in a top-level graph (the start destination of
+ * the NavHost's nav graph, i.e. one of the tab graph routes).
  */
 private fun NavController.isAtTabRoot(): Boolean {
     val entry = currentBackStackEntry ?: return true
-    val parent = entry.destination.parent ?: return true
-    // The start destination id of the nested graph equals the root screen.
-    return entry.destination.id == parent.startDestinationId
+    val dest = entry.destination
+    val parent = dest.parent ?: return true
+    // At root if current destination is the start of its parent graph
+    return dest.id == parent.startDestinationId
 }
 
 /** Derive the top-bar title from the current route and session context. */
@@ -194,7 +197,8 @@ fun AppShell(
     val displayName = s.displayName
         ?: s.email.substringBefore("@").replaceFirstChar { it.uppercase() }
 
-    // Determine which tab graph is currently active by inspecting the hierarchy.
+    // Determine which tab graph is currently active by walking up the hierarchy.
+    // The active graph route is the parent graph of the current destination.
     val activeGraphRoute = backEntry?.destination?.parent?.route
 
     // The tab-bar tab that should appear "selected".
@@ -206,7 +210,28 @@ fun AppShell(
     // Show back arrow when we are NOT at the root of the active tab graph.
     val atTabRoot = navController.isAtTabRoot()
 
+    // Whether the current tab is the default start tab.
+    val isOnStartTab = selectedTabRoute == startTab.route
+
     val title = titleForRoute(currentRoute, s)
+
+    // ── Back press handling ─────────────────────────────────────────────────
+    // When at the root of any tab: if it's NOT the start tab, navigate to the
+    // start tab instead of crossing to a previous tab on the back stack.
+    // If already on the start tab at root, let the system handle the back
+    // press (which will exit the app).
+    if (atTabRoot && !isOnStartTab) {
+        BackHandler {
+            val startGraphRoute = graphRouteForTab(startTab.route)
+            navController.navigate(startGraphRoute) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
 
     // ── Sign-out confirmation dialog ────────────────────────────────────────
     var showSignOutDialog by remember { mutableStateOf(false) }
@@ -269,14 +294,24 @@ fun AppShell(
                         selected = isSelected,
                         onClick = {
                             val graphRoute = graphRouteForTab(tab.screen.route)
-                            navController.navigate(graphRoute) {
-                                // Pop everything up to (but not including) the start graph
-                                // so we don't accumulate tab graphs on the back stack.
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                            if (isSelected) {
+                                // Already on this tab — pop to the tab root if deep
+                                navController.popBackStack(
+                                    destinationId = navController.currentBackStackEntry
+                                        ?.destination?.parent?.startDestinationId
+                                        ?: return@NavigationBarItem,
+                                    inclusive = false
+                                )
+                            } else {
+                                navController.navigate(graphRoute) {
+                                    // Pop up to (but not including) the NavHost's start destination
+                                    // so we don't accumulate tab graphs on the back stack.
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         icon = { Text(tab.icon, fontSize = 20.sp) },

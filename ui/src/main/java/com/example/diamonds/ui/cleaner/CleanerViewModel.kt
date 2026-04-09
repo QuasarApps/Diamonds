@@ -234,6 +234,20 @@ class CleanerViewModel @Inject constructor(
         }
     }
 
+    // ── Refresh helpers ───────────────────────────────────────────────────────
+
+    fun refreshRequests() {
+        loadRequests()
+    }
+
+    fun refreshSchedule() {
+        loadSchedule()
+    }
+
+    fun refreshDashboard() {
+        loadDashboard()
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /** Enrich a [Booking] with resolved client name + service info. Never throws. */

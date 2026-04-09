@@ -12,14 +12,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -29,31 +35,40 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.PaymentStatus
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
  * Full payment history for the current customer.
  * Reachable from the customer profile tab.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentHistoryScreen(
     viewModel: PaymentViewModel = hiltViewModel()
 ) {
     val state by viewModel.historyState.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.loadHistory() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
-    if (state.isLoading) {
+    if (state.isLoading && !isRefreshing) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshHistory() }
+    ) {
     if (state.items.isEmpty()) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(32.dp),
+                .padding(32.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -65,24 +80,25 @@ fun PaymentHistoryScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center)
         }
-        return
-    }
-
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item {
-            Text(
-                "${state.items.size} transaction${if (state.items.size != 1) "s" else ""}",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item {
+                Text(
+                    "${state.items.size} transaction${if (state.items.size != 1) "s" else ""}",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            items(state.items, key = { it.payment.id }) { item ->
+                PaymentHistoryCard(item)
+            }
         }
-        items(state.items, key = { it.payment.id }) { item ->
-            PaymentHistoryCard(item)
-        }
     }
+    } // end PullToRefreshLayout
 }
 
 @Composable

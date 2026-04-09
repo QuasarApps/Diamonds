@@ -252,4 +252,12 @@ class CleanerProfileViewModel @Inject constructor(
             }
         }
     }
+
+    fun refreshProfile() {
+        loadProfile()
+    }
+
+    fun refreshServices() {
+        loadServices()
+    }
 }

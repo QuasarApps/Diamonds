@@ -1,8 +1,16 @@
 package com.example.diamonds.ui.booking
 
+import androidx.lifecycle.SavedStateHandle
 import com.example.diamonds.common.util.ConnectivityState
 import com.example.diamonds.data.connectivity.ConnectivityObserver
-import com.example.diamonds.domain.model.*
+import com.example.diamonds.domain.model.Booking
+import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.CleanerType
+import com.example.diamonds.domain.model.Provider
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.Service
+import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.domain.model.VerificationStatus
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
 import com.example.diamonds.domain.repository.IProviderRepository
@@ -10,12 +18,16 @@ import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.MainDispatcherRule
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -31,6 +43,7 @@ class BookingViewModelTest {
     private lateinit var serviceRepository: IServiceRepository
     private lateinit var authRepository: IAuthRepository
     private lateinit var connectivityObserver: ConnectivityObserver
+    private lateinit var savedStateHandle: SavedStateHandle
     private lateinit var viewModel: BookingViewModel
 
     private val mockSession = UserSession(
@@ -66,10 +79,11 @@ class BookingViewModelTest {
         connectivityObserver = mockk {
             every { observeConnectivityState() } returns flowOf(ConnectivityState.ONLINE)
         }
+        savedStateHandle = SavedStateHandle()
         every { authRepository.getCurrentUserSession() } returns flowOf(mockSession)
         viewModel = BookingViewModel(
             bookingRepository, providerRepository, serviceRepository,
-            authRepository, connectivityObserver
+            authRepository, connectivityObserver, savedStateHandle
         )
     }
 

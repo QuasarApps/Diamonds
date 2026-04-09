@@ -20,6 +20,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -42,10 +43,12 @@ import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.ui.components.ConfirmationDialog
 import com.example.diamonds.ui.components.NotFoundScreen
+import com.example.diamonds.ui.components.PullToRefreshLayout
 import com.example.diamonds.ui.map.BookingLocationMapCard
 
 // ── Bookings List ─────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingsListScreen(
     onBookingSelected: (String) -> Unit,
@@ -54,50 +57,73 @@ fun BookingsListScreen(
 ) {
     val state by viewModel.bookingsListState.collectAsState()
     val error by viewModel.error.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.loadMyBookings() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
-    if (state.isLoading) {
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            CircularProgressIndicator()
-        }
-        return
-    }
-
-    if (error != null) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text("⚠️", fontSize = 40.sp)
-            Spacer(Modifier.height(12.dp))
-            Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-        }
-        return
-    }
-
-    if (state.bookings.isEmpty()) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text("📋", fontSize = 48.sp)
-            Spacer(Modifier.height(16.dp))
-            Text("No bookings yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-            Text("Book your first cleaning service to get started.", color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(24.dp))
-            Button(onClick = onStartBooking) { Text("Find a Cleaner") }
-        }
-        return
-    }
-
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshBookingsList() }
     ) {
-        items(state.bookings, key = { it.booking.id }) { item ->
-            BookingSummaryCard(item = item, onClick = { onBookingSelected(item.booking.id) })
+        if (state.isLoading && !isRefreshing) {
+            Column(
+                Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (error != null && state.bookings.isEmpty()) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("⚠️", fontSize = 40.sp)
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    error ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else if (state.bookings.isEmpty()) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(32.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("📋", fontSize = 48.sp)
+                Spacer(Modifier.height(16.dp))
+                Text("No bookings yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Book your first cleaning service to get started.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(24.dp))
+                Button(onClick = onStartBooking) { Text("Find a Cleaner") }
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(state.bookings, key = { it.booking.id }) { item ->
+                    BookingSummaryCard(
+                        item = item,
+                        onClick = { onBookingSelected(item.booking.id) })
+                }
+            }
         }
     }
 }
@@ -140,6 +166,7 @@ private fun BookingSummaryCard(item: BookingWithDetails, onClick: () -> Unit) {
 
 // ── Booking Detail ────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingDetailScreen(
     bookingId: String,
@@ -151,10 +178,14 @@ fun BookingDetailScreen(
     val state by viewModel.detailState.collectAsState()
     val error by viewModel.error.collectAsState()
     var showCancelDialog by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(bookingId) { viewModel.loadBookingDetail(bookingId) }
     LaunchedEffect(state.cancelSuccess) {
         if (state.cancelSuccess) onCancelled()
+    }
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) isRefreshing = false
     }
 
     if (showCancelDialog) {
@@ -169,7 +200,7 @@ fun BookingDetailScreen(
         )
     }
 
-    if (state.isLoading) {
+    if (state.isLoading && !isRefreshing) {
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             CircularProgressIndicator()
         }
@@ -184,6 +215,10 @@ fun BookingDetailScreen(
         return
     }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshBookingDetail(bookingId) }
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -280,6 +315,7 @@ fun BookingDetailScreen(
             ) { Text("⭐  Leave a Review", fontSize = 15.sp) }
         }
     }
+    } // end PullToRefreshLayout
 }
 
 @Composable

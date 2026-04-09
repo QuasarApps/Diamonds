@@ -1,5 +1,6 @@
 package com.example.diamonds.ui.booking
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.domain.model.Booking
@@ -81,7 +82,8 @@ class BookingViewModel @Inject constructor(
     private val providerRepository: IProviderRepository,
     private val serviceRepository: IServiceRepository,
     private val authRepository: IAuthRepository,
-    connectivityObserver: ConnectivityObserver
+    connectivityObserver: ConnectivityObserver,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel<Unit>(connectivityObserver, Unit) {
 
     // ── Provider search ───────────────────────────────────────────────────────
@@ -112,6 +114,10 @@ class BookingViewModel @Inject constructor(
         loadProviders(category)
     }
 
+    fun refreshProviders() {
+        loadProviders(_searchState.value.selectedCategory)
+    }
+
     // ── Service list ──────────────────────────────────────────────────────────
 
     private val _serviceListState = MutableStateFlow(ServiceListUiState())
@@ -140,9 +146,34 @@ class BookingViewModel @Inject constructor(
         }
     }
 
+    fun refreshServicesForProvider() {
+        _serviceListState.value.provider?.id?.let { loadServicesForProvider(it) }
+    }
+
     // ── Booking form ──────────────────────────────────────────────────────────
 
-    private val _formState = MutableStateFlow(BookingFormUiState())
+    // Keys for SavedStateHandle persistence (survive process death)
+    companion object {
+        private const val KEY_FORM_DATE = "form_date"
+        private const val KEY_FORM_TIME = "form_time"
+        private const val KEY_FORM_ADDRESS = "form_address"
+        private const val KEY_FORM_LAT = "form_lat"
+        private const val KEY_FORM_LNG = "form_lng"
+        private const val KEY_FORM_NOTES = "form_notes"
+        private const val KEY_FORM_PROVIDER = "form_provider_id"
+        private const val KEY_FORM_SERVICE = "form_service_id"
+    }
+
+    private val _formState = MutableStateFlow(
+        BookingFormUiState(
+            date = savedStateHandle.get<String>(KEY_FORM_DATE) ?: "",
+            time = savedStateHandle.get<String>(KEY_FORM_TIME) ?: "",
+            address = savedStateHandle.get<String>(KEY_FORM_ADDRESS) ?: "",
+            latitude = savedStateHandle.get<Double>(KEY_FORM_LAT),
+            longitude = savedStateHandle.get<Double>(KEY_FORM_LNG),
+            notes = savedStateHandle.get<String>(KEY_FORM_NOTES) ?: ""
+        )
+    )
     val formState: StateFlow<BookingFormUiState> = _formState.asStateFlow()
 
     fun prepareBookingForm(providerId: String, serviceId: String) {
@@ -150,7 +181,12 @@ class BookingViewModel @Inject constructor(
         // this preserves date, time, address and other fields the user may have filled in
         // before navigating away (e.g. to the map picker) and returning.
         val current = _formState.value
-        if (current.provider?.id == providerId && current.service?.id == serviceId) return
+        // Also check savedStateHandle to handle process-death restore
+        val savedProviderId = savedStateHandle.get<String>(KEY_FORM_PROVIDER)
+        val savedServiceId = savedStateHandle.get<String>(KEY_FORM_SERVICE)
+        if ((current.provider?.id == providerId && current.service?.id == serviceId) ||
+            (savedProviderId == providerId && savedServiceId == serviceId && current.provider != null)
+        ) return
 
         viewModelScope.launch {
             _formState.value = current.copy(isLoading = true)
@@ -163,20 +199,51 @@ class BookingViewModel @Inject constructor(
                 provider = provider,
                 service = service
             )
+            // Persist the provider/service IDs so we can guard on process-death restore
+            savedStateHandle[KEY_FORM_PROVIDER] = providerId
+            savedStateHandle[KEY_FORM_SERVICE] = serviceId
         }
     }
 
-    fun onDateChange(v: String)    { _formState.value = _formState.value.copy(date = v,    fieldErrors = _formState.value.fieldErrors - BookingField.DATE) }
-    fun onTimeChange(v: String)    { _formState.value = _formState.value.copy(time = v,    fieldErrors = _formState.value.fieldErrors - BookingField.TIME) }
-    fun onAddressChange(v: String) { _formState.value = _formState.value.copy(address = v, fieldErrors = _formState.value.fieldErrors - BookingField.ADDRESS) }
-    fun onNotesChange(v: String)   { _formState.value = _formState.value.copy(notes = v) }
+    fun onDateChange(v: String) {
+        savedStateHandle[KEY_FORM_DATE] = v
+        _formState.value = _formState.value.copy(
+            date = v,
+            fieldErrors = _formState.value.fieldErrors - BookingField.DATE
+        )
+    }
+
+    fun onTimeChange(v: String) {
+        savedStateHandle[KEY_FORM_TIME] = v
+        _formState.value = _formState.value.copy(
+            time = v,
+            fieldErrors = _formState.value.fieldErrors - BookingField.TIME
+        )
+    }
+
+    fun onAddressChange(v: String) {
+        savedStateHandle[KEY_FORM_ADDRESS] = v
+        _formState.value = _formState.value.copy(
+            address = v,
+            fieldErrors = _formState.value.fieldErrors - BookingField.ADDRESS
+        )
+    }
+
+    fun onNotesChange(v: String) {
+        savedStateHandle[KEY_FORM_NOTES] = v
+        _formState.value = _formState.value.copy(notes = v)
+    }
 
     /** Called when the user selects a location from the map screen. */
     fun onLocationSelected(lat: Double, lng: Double, address: String) {
+        val resolvedAddress = if (address.isNotBlank()) address else _formState.value.address
+        savedStateHandle[KEY_FORM_LAT] = lat
+        savedStateHandle[KEY_FORM_LNG] = lng
+        savedStateHandle[KEY_FORM_ADDRESS] = resolvedAddress
         _formState.value = _formState.value.copy(
             latitude = lat,
             longitude = lng,
-            address = if (address.isNotBlank()) address else _formState.value.address,
+            address = resolvedAddress,
             fieldErrors = _formState.value.fieldErrors - BookingField.ADDRESS
         )
     }
@@ -234,7 +301,24 @@ class BookingViewModel @Inject constructor(
         }
     }
 
+    fun refreshBookingsList() {
+        loadMyBookings()
+    }
+
+    fun refreshBookingDetail(bookingId: String) {
+        loadBookingDetail(bookingId)
+    }
+
     fun clearBookingSuccess() {
+        // Clear saved form state so a fresh form is shown next time
+        savedStateHandle.remove<String>(KEY_FORM_DATE)
+        savedStateHandle.remove<String>(KEY_FORM_TIME)
+        savedStateHandle.remove<String>(KEY_FORM_ADDRESS)
+        savedStateHandle.remove<Double>(KEY_FORM_LAT)
+        savedStateHandle.remove<Double>(KEY_FORM_LNG)
+        savedStateHandle.remove<String>(KEY_FORM_NOTES)
+        savedStateHandle.remove<String>(KEY_FORM_PROVIDER)
+        savedStateHandle.remove<String>(KEY_FORM_SERVICE)
         _formState.value = _formState.value.copy(bookingSuccess = false, createdBookingId = null)
     }
 

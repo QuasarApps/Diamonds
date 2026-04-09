@@ -244,4 +244,16 @@ class CompanyViewModel @Inject constructor(
             }
         }
     }
+
+    fun refreshDashboard() {
+        loadDashboard()
+    }
+
+    fun refreshBookings() {
+        loadBookings()
+    }
+
+    fun refreshTeam() {
+        loadTeam()
+    }
 }

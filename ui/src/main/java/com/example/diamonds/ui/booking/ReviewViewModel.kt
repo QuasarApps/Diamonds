@@ -190,4 +190,8 @@ class ReviewViewModel @Inject constructor(
             )
         }
     }
+
+    fun refreshProviderRatings() {
+        _ratingsState.value.provider?.id?.let { loadProviderRatings(it) }
+    }
 }

@@ -90,4 +90,9 @@ class NotificationViewModel @Inject constructor(
             updateState { it.copy(preferences = preferences) }
         }
     }
+
+    fun refresh() {
+        updateState { it.copy(isLoading = true) }
+        loadNotifications()
+    }
 }

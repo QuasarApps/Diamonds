@@ -18,6 +18,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -42,11 +43,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
  * Company-wide bookings screen: tabbed view of Pending, Active, and Completed
  * jobs across all employed cleaners. Company can accept/decline pending requests.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompanyBookingsScreen(
     viewModel: CompanyViewModel = hiltViewModel()
@@ -54,6 +57,7 @@ fun CompanyBookingsScreen(
     val state by viewModel.bookingsState.collectAsState()
     val error by viewModel.error.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+    var isRefreshing by remember { mutableStateOf(false) }
     val tabs = listOf(
         "Pending (${state.pending.size})",
         "Active (${state.active.size})",
@@ -61,14 +65,19 @@ fun CompanyBookingsScreen(
     )
 
     LaunchedEffect(Unit) { viewModel.loadBookings() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
-    if (state.isLoading) {
+    if (state.isLoading && !isRefreshing) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshBookings() }
+    ) {
     if (error != null) {
         Box(
             Modifier
@@ -76,9 +85,7 @@ fun CompanyBookingsScreen(
                 .padding(24.dp), contentAlignment = Alignment.Center) {
             Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
         }
-        return
-    }
-
+    } else {
     Column(Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = selectedTab) {
             tabs.forEachIndexed { i, title ->
@@ -133,6 +140,8 @@ fun CompanyBookingsScreen(
             }
         }
     }
+    } // end else
+    } // end PullToRefreshLayout
 }
 
 @Composable

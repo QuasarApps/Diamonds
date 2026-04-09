@@ -209,6 +209,10 @@ class PaymentViewModel @Inject constructor(
         }
     }
 
+    fun refreshHistory() {
+        loadHistory()
+    }
+
     private fun validate(s: PaymentUiState): Boolean {
         var valid = true
         var updated = s

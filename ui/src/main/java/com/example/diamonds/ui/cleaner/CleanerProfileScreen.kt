@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -29,7 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserSession
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
  * Profile screen for individual cleaners (INDEPENDENT or EMPLOYED).
@@ -50,6 +54,7 @@ import com.example.diamonds.domain.repository.UserSession
  *  - Editable bio and phone fields
  *  - Service summary with a "Manage Services" button
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CleanerProfileScreen(
     session: UserSession,
@@ -62,8 +67,10 @@ fun CleanerProfileScreen(
     val editPhone   by viewModel.editPhone.collectAsState()
     val error       by viewModel.error.collectAsState()
     val snackbar    = remember { SnackbarHostState() }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.loadProfile() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
     LaunchedEffect(state.savedSuccess) {
         if (state.savedSuccess) {
@@ -76,13 +83,17 @@ fun CleanerProfileScreen(
         error?.let { snackbar.showSnackbar(it) }
     }
 
-    if (state.isLoading) {
+    if (state.isLoading && !isRefreshing) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshProfile() }
+    ) {
     Box(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -256,4 +267,5 @@ fun CleanerProfileScreen(
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
+    } // end PullToRefreshLayout
 }

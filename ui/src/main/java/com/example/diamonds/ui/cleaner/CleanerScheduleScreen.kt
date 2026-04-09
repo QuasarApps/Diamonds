@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -32,43 +36,49 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
-/**
- * Cleaner: schedule view showing today's and upcoming accepted/in-progress jobs
- * with "Start Job" and "Complete Job" quick actions.
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CleanerScheduleScreen(
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val state by viewModel.scheduleState.collectAsState()
     val error by viewModel.error.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.loadSchedule() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
-    if (state.isLoading) {
+    if (state.isLoading && !isRefreshing) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    if (error != null) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(24.dp), contentAlignment = Alignment.Center) {
-            Text(error ?: "", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
-        }
-        return
-    }
-
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshSchedule() }
+    ) {
     val hasAnything = state.todayJobs.isNotEmpty() || state.upcomingJobs.isNotEmpty()
-    if (!hasAnything) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(32.dp),
+        when {
+            error != null -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(24.dp), contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    error ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            !hasAnything -> Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -76,19 +86,17 @@ fun CleanerScheduleScreen(
             Spacer(Modifier.height(16.dp))
             Text("No upcoming jobs", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
-            Text(
-                "Accepted bookings will appear here.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+                Text(
+                    "Accepted bookings will appear here.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
+                )
         }
-        return
-    }
 
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
+            else -> LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
         if (state.todayJobs.isNotEmpty()) {
             item {
                 SectionHeader("Today")
@@ -107,7 +115,9 @@ fun CleanerScheduleScreen(
                 ScheduledJobCard(item = item, viewModel = viewModel)
             }
         }
-    }
+            } // end else -> LazyColumn
+        } // end when
+    } // end PullToRefreshLayout
 }
 
 @Composable

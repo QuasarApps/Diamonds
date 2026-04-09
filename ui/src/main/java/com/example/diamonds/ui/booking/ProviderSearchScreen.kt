@@ -20,7 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
- import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +41,7 @@ import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.ui.components.FilterCriteria
 import com.example.diamonds.ui.components.FilterSection
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 private val categories = listOf(
     null to "All",
@@ -65,9 +66,15 @@ fun ProviderSearchScreen(
 
     var showFilterSheet by remember { mutableStateOf(false) }
     var filters by remember { mutableStateOf(FilterCriteria()) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.loadProviders() }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshProviders() }
+    ) {
     Column(modifier = Modifier.fillMaxSize()) {
 
         // Category filter chips + advanced filter button
@@ -155,12 +162,15 @@ fun ProviderSearchScreen(
             }
         }
     }
+    } // end PullToRefreshLayout
 }
 
 @Composable
 private fun ProviderCard(provider: Provider, onClick: () -> Unit, onViewRatings: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(

@@ -127,4 +127,8 @@ class CleanerEarningsViewModel @Inject constructor(
             }
         }
     }
+
+    fun refreshEarnings() {
+        loadEarnings()
+    }
 }

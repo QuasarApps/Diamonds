@@ -29,8 +29,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationType
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
  * Notification list screen — shows all in-app notifications with
@@ -54,7 +59,13 @@ fun NotificationScreen(
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refresh() }
+    ) {
     Column(Modifier.fillMaxSize()) {
         // Header with "Mark All Read"
         if (state.notifications.isNotEmpty()) {
@@ -154,6 +165,7 @@ fun NotificationScreen(
             }
         }
     }
+    } // end PullToRefreshLayout
 }
 
 @Composable
