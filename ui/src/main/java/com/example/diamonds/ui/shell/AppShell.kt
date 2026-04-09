@@ -32,11 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
@@ -79,27 +81,55 @@ import com.example.diamonds.ui.payment.PaymentSuccessScreen
 /** Deep-link URI scheme used for in-app links and push notifications. */
 private const val DEEP_LINK_SCHEME = "diamonds"
 
-/** Routes where the bottom bar should be hidden (deep booking flow). */
-private val routesWithoutBottomBar = setOf(
-    Screen.ProviderSearch.route,
-    Screen.ServiceList().route,
-    Screen.BookingForm().route,
-    Screen.BookingConfirmation().route,
-    Screen.BookingDetail().route,
-    Screen.ReviewBooking().route,
-    Screen.ProviderRatings().route,
-    Screen.Payment().route,
-    Screen.PaymentSuccess().route,
-    Screen.PaymentHistory.route,
-    Screen.CleanerServiceManage.route,
-    Screen.CleanerServiceEdit().route,
-    Screen.CompanyServiceManage.route,
-    Screen.CompanyServiceEdit().route,
-    Screen.Notifications.route,
-    Screen.NotificationPreferences.route,
-    Screen.BookingMap.route,
-    Screen.ProviderTracking().route
-)
+/**
+ * Nested-graph route prefixes — the outer NavHost navigates between these
+ * "tab graph" routes; each graph owns its own back stack independently.
+ */
+private object TabGraph {
+    const val CustomerHome = "graph/customer/home"
+    const val CustomerBookings = "graph/customer/bookings"
+    const val CustomerProfile = "graph/customer/profile"
+    const val CleanerDashboard = "graph/cleaner/dashboard"
+    const val CleanerRequests = "graph/cleaner/requests"
+    const val CleanerSchedule = "graph/cleaner/schedule"
+    const val CleanerEarnings = "graph/cleaner/earnings"
+    const val CleanerProfile = "graph/cleaner/profile"
+    const val CompanyDashboard = "graph/company/dashboard"
+    const val CompanyBookings = "graph/company/bookings"
+    const val CompanyTeam = "graph/company/team"
+    const val CompanyEarnings = "graph/company/earnings"
+    const val CompanyProfile = "graph/company/profile"
+    const val Notifications = "graph/notifications"
+}
+
+/** Map each bottom-tab [Screen] to its nested graph route. */
+private fun graphRouteForTab(tabRoute: String): String = when (tabRoute) {
+    Screen.CustomerHome.route -> TabGraph.CustomerHome
+    Screen.CustomerBookings.route -> TabGraph.CustomerBookings
+    Screen.CustomerProfile.route -> TabGraph.CustomerProfile
+    Screen.CleanerDashboard.route -> TabGraph.CleanerDashboard
+    Screen.CleanerRequests.route -> TabGraph.CleanerRequests
+    Screen.CleanerSchedule.route -> TabGraph.CleanerSchedule
+    Screen.CleanerEarnings.route -> TabGraph.CleanerEarnings
+    Screen.CleanerProfile.route -> TabGraph.CleanerProfile
+    Screen.CompanyDashboard.route -> TabGraph.CompanyDashboard
+    Screen.CompanyBookings.route -> TabGraph.CompanyBookings
+    Screen.CompanyTeam.route -> TabGraph.CompanyTeam
+    Screen.CompanyEarnings.route -> TabGraph.CompanyEarnings
+    Screen.CompanyProfile.route -> TabGraph.CompanyProfile
+    else -> tabRoute
+}
+
+/**
+ * Returns true when the current destination is the root screen of its tab
+ * graph (i.e. the user has not navigated deeper within the tab).
+ */
+private fun NavController.isAtTabRoot(): Boolean {
+    val entry = currentBackStackEntry ?: return true
+    val parent = entry.destination.parent ?: return true
+    // The start destination id of the nested graph equals the root screen.
+    return entry.destination.id == parent.startDestinationId
+}
 
 /** Derive the top-bar title from the current route and session context. */
 private fun titleForRoute(route: String?, session: UserSession): String {
@@ -153,18 +183,29 @@ fun AppShell(
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
     val s = session ?: return
 
-    val tabs        = tabsForSession(s)
-    val startTab    = startTabForSession(s)
-    val innerNav    = rememberNavController()
-    val backEntry   by innerNav.currentBackStackEntryAsState()
+    val tabs = tabsForSession(s)
+    val startTab = startTabForSession(s)
+
+    // Single NavController for the whole shell; tab graphs are nested inside.
+    val navController = rememberNavController()
+    val backEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backEntry?.destination?.route
 
     val displayName = s.displayName
         ?: s.email.substringBefore("@").replaceFirstChar { it.uppercase() }
 
-    val isTabRoot = routesWithoutBottomBar.none {
-        currentRoute?.startsWith(it.substringBefore("{")) == true
-    }
+    // Determine which tab graph is currently active by inspecting the hierarchy.
+    val activeGraphRoute = backEntry?.destination?.parent?.route
+
+    // The tab-bar tab that should appear "selected".
+    val selectedTabRoute =
+        tabs.firstOrNull { graphRouteForTab(it.screen.route) == activeGraphRoute }?.screen?.route
+            ?: tabs.firstOrNull { it.screen.route == currentRoute }?.screen?.route
+            ?: startTab.route
+
+    // Show back arrow when we are NOT at the root of the active tab graph.
+    val atTabRoot = navController.isAtTabRoot()
+
     val title = titleForRoute(currentRoute, s)
 
     // ── Sign-out confirmation dialog ────────────────────────────────────────
@@ -186,16 +227,20 @@ fun AppShell(
             TopAppBar(
                 title = { Text(title, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
-                    if (!isTabRoot) {
-                        IconButton(onClick = { innerNav.popBackStack() }) {
+                    if (!atTabRoot) {
+                        IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                         }
                     }
                 },
                 actions = {
-                    if (isTabRoot) {
+                    if (atTabRoot) {
                         // Notification bell with unread badge
-                        IconButton(onClick = { innerNav.navigate(Screen.Notifications.route) }) {
+                        IconButton(onClick = {
+                            navController.navigate(TabGraph.Notifications) {
+                                launchSingleTop = true
+                            }
+                        }) {
                             BadgedBox(
                                 badge = {
                                     if (unreadCount > 0) {
@@ -215,29 +260,32 @@ fun AppShell(
             )
         },
         bottomBar = {
-            if (isTabRoot) {
-                NavigationBar {
-                    tabs.forEach { tab ->
-                        NavigationBarItem(
-                            selected = currentRoute == tab.screen.route,
-                            onClick  = {
-                                innerNav.navigate(tab.screen.route) {
-                                    popUpTo(innerNav.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState    = true
+            // Always show the bottom bar (it is the tab root concept now);
+            // individual deep screens are inside the tab graph, not outside it.
+            NavigationBar {
+                tabs.forEach { tab ->
+                    val isSelected = tab.screen.route == selectedTabRoute
+                    NavigationBarItem(
+                        selected = isSelected,
+                        onClick = {
+                            val graphRoute = graphRouteForTab(tab.screen.route)
+                            navController.navigate(graphRoute) {
+                                // Pop everything up to (but not including) the start graph
+                                // so we don't accumulate tab graphs on the back stack.
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
-                            },
-                            icon  = { Text(tab.icon, fontSize = 20.sp) },
-                            label = { Text(tab.label, fontSize = 11.sp) }
-                        )
-                    }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        icon = { Text(tab.icon, fontSize = 20.sp) },
+                        label = { Text(tab.label, fontSize = 11.sp) }
+                    )
                 }
             }
         }
     ) { padding ->
-
         Column(
             Modifier
                 .padding(padding)
@@ -249,8 +297,8 @@ fun AppShell(
             }
 
             NavHost(
-                navController    = innerNav,
-                startDestination = startTab.route,
+                navController = navController,
+                startDestination = graphRouteForTab(startTab.route),
                 // ── Default navigation transitions ─────────────────────────
                 enterTransition = {
                     slideIntoContainer(
@@ -278,415 +326,554 @@ fun AppShell(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                // ── Customer tab screens (fade transitions for tab switches) ─────
-                composable(
-                    Screen.CustomerHome.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
+
+                // ════════════════════════════════════════════════════════════
+                // CUSTOMER TAB GRAPHS
+                // ════════════════════════════════════════════════════════════
+
+                // ── Home tab ─────────────────────────────────────────────
+                navigation(
+                    route = TabGraph.CustomerHome,
+                    startDestination = Screen.CustomerHome.route
                 ) {
-                    CustomerHomeTab(
-                        displayName    = displayName,
-                        onStartBooking = { innerNav.navigate(Screen.ProviderSearch.route) }
-                    )
-                }
-                composable(
-                    Screen.CustomerBookings.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    BookingsListScreen(
-                        onBookingSelected = { id -> innerNav.navigate(Screen.BookingDetail().route(id)) },
-                        onStartBooking    = { innerNav.navigate(Screen.ProviderSearch.route) }
-                    )
-                }
-                composable(
-                    Screen.CustomerProfile.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CustomerProfileScreen(
-                        session          = s,
-                        onPaymentHistory = { innerNav.navigate(Screen.PaymentHistory.route) },
-                        onMyBookings     = {
-                            innerNav.navigate(Screen.CustomerBookings.route) {
-                                popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
-                            }
-                        },
-                        onSignOut = { showSignOutDialog = true }
-                    )
-                }
-
-                // ── Customer booking flow (with navArgument declarations) ──────
-                composable(Screen.ProviderSearch.route) {
-                    ProviderSearchScreen(
-                        onProviderSelected = { pid -> innerNav.navigate(Screen.ServiceList().route(pid)) },
-                        onViewRatings      = { pid -> innerNav.navigate(Screen.ProviderRatings().route(pid)) }
-                    )
-                }
-                composable(
-                    route = Screen.ServiceList().route,
-                    arguments = listOf(navArgument("providerId") { type = NavType.StringType })
-                ) { entry ->
-                    val pid = entry.arguments?.getString("providerId") ?: return@composable
-                    ServiceListScreen(
-                        providerId        = pid,
-                        onServiceSelected = { sid, p -> innerNav.navigate(Screen.BookingForm().route(p, sid)) }
-                    )
-                }
-                composable(
-                    route = Screen.BookingForm().route,
-                    arguments = listOf(
-                        navArgument("providerId") { type = NavType.StringType },
-                        navArgument("serviceId")  { type = NavType.StringType }
-                    )
-                ) { entry ->
-                    val pid = entry.arguments?.getString("providerId") ?: return@composable
-                    val sid = entry.arguments?.getString("serviceId")  ?: return@composable
-
-                    // Receive map-picked location via savedStateHandle
-                    val mapLat = entry.savedStateHandle.get<Double>("map_lat")
-                    val mapLng = entry.savedStateHandle.get<Double>("map_lng")
-                    val mapAddr = entry.savedStateHandle.get<String>("map_address")
-
-                    BookingFormScreen(
-                        providerId       = pid,
-                        serviceId        = sid,
-                        onBookingCreated = { id ->
-                            innerNav.navigate(Screen.BookingConfirmation().route(id)) {
-                                popUpTo(Screen.ProviderSearch.route) { inclusive = false }
-                            }
-                        },
-                        onPickOnMap = {
-                            innerNav.navigate(Screen.BookingMap.route)
-                        },
-                        mapLat = mapLat,
-                        mapLng = mapLng,
-                        mapAddress = mapAddr
-                    )
-                }
-                composable(
-                    route = Screen.BookingConfirmation().route,
-                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType }),
-                    deepLinks = listOf(
-                        navDeepLink { uriPattern = "$DEEP_LINK_SCHEME://customer/confirm/{bookingId}" }
-                    )
-                ) { entry ->
-                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
-
-                    // Intercept back press → go to bookings list, not back to the form
-                    BackHandler {
-                        innerNav.navigate(Screen.CustomerBookings.route) {
-                            popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
-                        }
+                    composable(
+                        Screen.CustomerHome.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CustomerHomeTab(
+                            displayName = displayName,
+                            onStartBooking = { navController.navigate(Screen.ProviderSearch.route) }
+                        )
                     }
-
-                    BookingConfirmationScreen(
-                        bookingId      = bid,
-                        onPayNow       = { id -> innerNav.navigate(Screen.Payment().route(id)) },
-                        onViewBookings = {
-                            innerNav.navigate(Screen.CustomerBookings.route) {
-                                popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
+                    composable(Screen.ProviderSearch.route) {
+                        ProviderSearchScreen(
+                            onProviderSelected = { pid ->
+                                navController.navigate(
+                                    Screen.ServiceList().route(pid)
+                                )
+                            },
+                            onViewRatings = { pid ->
+                                navController.navigate(
+                                    Screen.ProviderRatings().route(pid)
+                                )
                             }
-                        },
-                        onBookAnother  = {
-                            innerNav.navigate(Screen.ProviderSearch.route) {
-                                popUpTo(Screen.CustomerBookings.route) { inclusive = false }
+                        )
+                    }
+                    composable(
+                        route = Screen.ServiceList().route,
+                        arguments = listOf(navArgument("providerId") { type = NavType.StringType })
+                    ) { entry ->
+                        val pid = entry.arguments?.getString("providerId") ?: return@composable
+                        ServiceListScreen(
+                            providerId = pid,
+                            onServiceSelected = { sid, p ->
+                                navController.navigate(
+                                    Screen.BookingForm().route(p, sid)
+                                )
                             }
-                        }
-                    )
-                }
-                composable(
-                    route = Screen.BookingDetail().route,
-                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType }),
-                    deepLinks = listOf(
-                        navDeepLink { uriPattern = "$DEEP_LINK_SCHEME://customer/booking/{bookingId}" }
-                    )
-                ) { entry ->
-                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
-                    BookingDetailScreen(
-                        bookingId      = bid,
-                        onCancelled    = { innerNav.popBackStack() },
-                        onLeaveReview  = { bookingId, providerId ->
-                            innerNav.navigate(Screen.ReviewBooking().route(bookingId, providerId))
-                        },
-                        onTrackCleaner = { bookingId ->
-                            innerNav.navigate(Screen.ProviderTracking().route(bookingId))
-                        }
-                    )
-                }
-                // ── Map & Location screens ─────────────────────────────────
-                composable(Screen.BookingMap.route) {
-                    BookingMapScreen(
-                        onLocationConfirmed = { lat, lng, address ->
-                            innerNav.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.apply {
+                        )
+                    }
+                    composable(
+                        route = Screen.BookingForm().route,
+                        arguments = listOf(
+                            navArgument("providerId") { type = NavType.StringType },
+                            navArgument("serviceId") { type = NavType.StringType }
+                        )
+                    ) { entry ->
+                        val pid = entry.arguments?.getString("providerId") ?: return@composable
+                        val sid = entry.arguments?.getString("serviceId") ?: return@composable
+                        val mapLat = entry.savedStateHandle.get<Double>("map_lat")
+                        val mapLng = entry.savedStateHandle.get<Double>("map_lng")
+                        val mapAddr = entry.savedStateHandle.get<String>("map_address")
+                        BookingFormScreen(
+                            providerId = pid,
+                            serviceId = sid,
+                            onBookingCreated = { id ->
+                                navController.navigate(Screen.BookingConfirmation().route(id)) {
+                                    popUpTo(Screen.ProviderSearch.route) { inclusive = false }
+                                }
+                            },
+                            onPickOnMap = { navController.navigate(Screen.BookingMap.route) },
+                            mapLat = mapLat,
+                            mapLng = mapLng,
+                            mapAddress = mapAddr
+                        )
+                    }
+                    composable(Screen.BookingMap.route) {
+                        BookingMapScreen(
+                            onLocationConfirmed = { lat, lng, address ->
+                                navController.previousBackStackEntry?.savedStateHandle?.apply {
                                     set("map_lat", lat)
                                     set("map_lng", lng)
                                     set("map_address", address)
                                 }
-                            innerNav.popBackStack()
-                        },
-                        onCancel = { innerNav.popBackStack() }
-                    )
-                }
-                composable(
-                    route = Screen.ProviderTracking().route,
-                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
-                ) { entry ->
-                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
-                    ProviderTrackingScreen(bookingId = bid)
-                }
-                composable(
-                    route = Screen.ReviewBooking().route,
-                    arguments = listOf(
-                        navArgument("bookingId")  { type = NavType.StringType },
-                        navArgument("providerId") { type = NavType.StringType }
-                    )
-                ) { entry ->
-                    val bid = entry.arguments?.getString("bookingId")  ?: return@composable
-                    val pid = entry.arguments?.getString("providerId") ?: return@composable
-                    ReviewScreen(
-                        bookingId         = bid,
-                        providerId        = pid,
-                        onReviewSubmitted = { innerNav.popBackStack() }
-                    )
-                }
-                composable(
-                    route = Screen.ProviderRatings().route,
-                    arguments = listOf(navArgument("providerId") { type = NavType.StringType })
-                ) { entry ->
-                    val pid = entry.arguments?.getString("providerId") ?: return@composable
-                    ProviderRatingsScreen(providerId = pid)
-                }
-                composable(
-                    route = Screen.Payment().route,
-                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
-                ) { entry ->
-                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
-                    PaymentScreen(
-                        bookingId        = bid,
-                        onPaymentSuccess = { payId ->
-                            innerNav.navigate(Screen.PaymentSuccess().route(payId)) {
-                                popUpTo(Screen.Payment().route) { inclusive = true }
-                            }
-                        },
-                        onSkip = {
-                            innerNav.navigate(Screen.CustomerBookings.route) {
-                                popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
-                            }
-                        }
-                    )
-                }
-                composable(
-                    route = Screen.PaymentSuccess().route,
-                    arguments = listOf(navArgument("paymentId") { type = NavType.StringType })
-                ) { entry ->
-                    val payId = entry.arguments?.getString("paymentId") ?: return@composable
-
-                    // Intercept back press → go home, not back to payment
-                    BackHandler {
-                        innerNav.navigate(Screen.CustomerHome.route) {
-                            popUpTo(innerNav.graph.findStartDestination().id) { inclusive = true }
-                        }
+                                navController.popBackStack()
+                            },
+                            onCancel = { navController.popBackStack() }
+                        )
                     }
-
-                    PaymentSuccessScreen(
-                        paymentId    = payId,
-                        onViewBookings = {
-                            innerNav.navigate(Screen.CustomerBookings.route) {
-                                popUpTo(innerNav.graph.findStartDestination().id) { inclusive = false }
-                            }
-                        },
-                        onDone = {
-                            innerNav.navigate(Screen.CustomerHome.route) {
-                                popUpTo(innerNav.graph.findStartDestination().id) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-                composable(Screen.PaymentHistory.route) {
-                    PaymentHistoryScreen()
-                }
-
-                // ── Independent / Employed Cleaner screens ─────────────────
-                composable(
-                    Screen.CleanerDashboard.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CleanerDashboardTab(
-                        session = s,
-                        onNavigateToRequests = {
-                            innerNav.navigate(Screen.CleanerRequests.route) {
-                                popUpTo(innerNav.graph.findStartDestination().id) {
+                    composable(
+                        route = Screen.BookingConfirmation().route,
+                        arguments = listOf(navArgument("bookingId") { type = NavType.StringType }),
+                        deepLinks = listOf(navDeepLink {
+                            uriPattern = "$DEEP_LINK_SCHEME://customer/confirm/{bookingId}"
+                        })
+                    ) { entry ->
+                        val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                        BackHandler {
+                            navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
+                                popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
                             }
                         }
-                    )
-                }
-                composable(
-                    Screen.CleanerRequests.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CleanerBookingRequestsScreen()
-                }
-                composable(
-                    Screen.CleanerSchedule.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CleanerScheduleScreen()
-                }
-                composable(
-                    Screen.CleanerEarnings.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CleanerEarningsScreen()
-                }
-                composable(
-                    Screen.CleanerProfile.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CleanerProfileScreen(
-                        session          = s,
-                        onManageServices = { innerNav.navigate(Screen.CleanerServiceManage.route) }
-                    )
-                }
-                composable(Screen.CleanerServiceManage.route) {
-                    ServiceManagementScreen(
-                        onAddService  = { innerNav.navigate(Screen.CleanerServiceEdit().route("new")) },
-                        onEditService = { id -> innerNav.navigate(Screen.CleanerServiceEdit().route(id)) }
-                    )
-                }
-                composable(
-                    route = Screen.CleanerServiceEdit().route,
-                    arguments = listOf(navArgument("serviceId") { type = NavType.StringType })
-                ) { entry ->
-                    val sid = entry.arguments?.getString("serviceId") ?: return@composable
-                    ServiceEditScreen(
-                        serviceId = sid,
-                        onDone    = { innerNav.popBackStack() }
-                    )
-                }
-
-                // ── Company screens ────────────────────────────────────────
-                composable(
-                    Screen.CompanyDashboard.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CompanyDashboardScreen()
-                }
-                composable(
-                    Screen.CompanyBookings.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CompanyBookingsScreen()
-                }
-                composable(
-                    Screen.CompanyTeam.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CompanyTeamScreen()
-                }
-                composable(
-                    Screen.CompanyEarnings.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CompanyEarningsScreen()
-                }
-                composable(
-                    Screen.CompanyProfile.route,
-                    enterTransition  = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    exitTransition   = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                    popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                    popExitTransition  = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                ) {
-                    CleanerProfileScreen(
-                        session          = s,
-                        onManageServices = { innerNav.navigate(Screen.CompanyServiceManage.route) }
-                    )
-                }
-                composable(Screen.CompanyServiceManage.route) {
-                    ServiceManagementScreen(
-                        onAddService  = { innerNav.navigate(Screen.CompanyServiceEdit().route("new")) },
-                        onEditService = { id -> innerNav.navigate(Screen.CompanyServiceEdit().route(id)) }
-                    )
-                }
-                composable(
-                    route = Screen.CompanyServiceEdit().route,
-                    arguments = listOf(navArgument("serviceId") { type = NavType.StringType })
-                ) { entry ->
-                    val sid = entry.arguments?.getString("serviceId") ?: return@composable
-                    ServiceEditScreen(
-                        serviceId = sid,
-                        onDone    = { innerNav.popBackStack() }
-                    )
-                }
-
-                // ── Notification screens (shared across all roles) ──────
-                composable(Screen.Notifications.route) {
-                    NotificationScreen(
-                        onNotificationClick = { notification ->
-                            // Navigate to relevant screen based on type / referenceId
-                            val ref = notification.referenceId
-                            if (ref != null) {
-                                when (notification.type) {
-                                    NotificationType.BOOKING_UPDATE ->
-                                        innerNav.navigate(Screen.BookingDetail().route(ref))
-
-                                    NotificationType.PAYMENT ->
-                                        innerNav.navigate(Screen.PaymentHistory.route)
-
-                                    else -> Unit
+                        BookingConfirmationScreen(
+                            bookingId = bid,
+                            onPayNow = { id -> navController.navigate(Screen.Payment().route(id)) },
+                            onViewBookings = {
+                                navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            onBookAnother = {
+                                navController.navigate(Screen.ProviderSearch.route) {
+                                    popUpTo(Screen.CustomerHome.route) { inclusive = false }
+                                }
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.Payment().route,
+                        arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+                    ) { entry ->
+                        val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                        PaymentScreen(
+                            bookingId = bid,
+                            onPaymentSuccess = { payId ->
+                                navController.navigate(Screen.PaymentSuccess().route(payId)) {
+                                    popUpTo(Screen.Payment().route) { inclusive = true }
+                                }
+                            },
+                            onSkip = {
+                                navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.PaymentSuccess().route,
+                        arguments = listOf(navArgument("paymentId") { type = NavType.StringType })
+                    ) { entry ->
+                        val payId = entry.arguments?.getString("paymentId") ?: return@composable
+                        BackHandler {
+                            navController.navigate(graphRouteForTab(Screen.CustomerHome.route)) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    inclusive = true
                                 }
                             }
                         }
-                    )
-                }
-                composable(Screen.NotificationPreferences.route) {
-                    NotificationPreferencesScreen()
+                        PaymentSuccessScreen(
+                            paymentId = payId,
+                            onViewBookings = {
+                                navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            onDone = {
+                                navController.navigate(graphRouteForTab(Screen.CustomerHome.route)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.ProviderRatings().route,
+                        arguments = listOf(navArgument("providerId") { type = NavType.StringType })
+                    ) { entry ->
+                        val pid = entry.arguments?.getString("providerId") ?: return@composable
+                        ProviderRatingsScreen(providerId = pid)
+                    }
                 }
 
-                // ── Catch-all / 404 ────────────────────────────────────────
-                // Note: Navigation Compose doesn't have a built-in catch-all.
-                // Unknown routes will simply not match and Navigation will
-                // throw. We handle this defensively via the error screens
-                // embedded in each detail screen.
+                // ── Bookings tab ──────────────────────────────────────────
+                navigation(
+                    route = TabGraph.CustomerBookings,
+                    startDestination = Screen.CustomerBookings.route
+                ) {
+                    composable(
+                        Screen.CustomerBookings.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        BookingsListScreen(
+                            onBookingSelected = { id ->
+                                navController.navigate(
+                                    Screen.BookingDetail().route(id)
+                                )
+                            },
+                            onStartBooking = {
+                                navController.navigate(graphRouteForTab(Screen.CustomerHome.route)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.BookingDetail().route,
+                        arguments = listOf(navArgument("bookingId") { type = NavType.StringType }),
+                        deepLinks = listOf(navDeepLink {
+                            uriPattern = "$DEEP_LINK_SCHEME://customer/booking/{bookingId}"
+                        })
+                    ) { entry ->
+                        val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                        BookingDetailScreen(
+                            bookingId = bid,
+                            onCancelled = { navController.popBackStack() },
+                            onLeaveReview = { bookingId, providerId ->
+                                navController.navigate(
+                                    Screen.ReviewBooking().route(bookingId, providerId)
+                                )
+                            },
+                            onTrackCleaner = { bookingId ->
+                                navController.navigate(Screen.ProviderTracking().route(bookingId))
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.ReviewBooking().route,
+                        arguments = listOf(
+                            navArgument("bookingId") { type = NavType.StringType },
+                            navArgument("providerId") { type = NavType.StringType }
+                        )
+                    ) { entry ->
+                        val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                        val pid = entry.arguments?.getString("providerId") ?: return@composable
+                        ReviewScreen(
+                            bookingId = bid,
+                            providerId = pid,
+                            onReviewSubmitted = { navController.popBackStack() }
+                        )
+                    }
+                    composable(
+                        route = Screen.ProviderTracking().route,
+                        arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+                    ) { entry ->
+                        val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                        ProviderTrackingScreen(bookingId = bid)
+                    }
+                }
+
+                // ── Profile tab ───────────────────────────────────────────
+                navigation(
+                    route = TabGraph.CustomerProfile,
+                    startDestination = Screen.CustomerProfile.route
+                ) {
+                    composable(
+                        Screen.CustomerProfile.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CustomerProfileScreen(
+                            session = s,
+                            onPaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
+                            onMyBookings = {
+                                navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            onSignOut = { showSignOutDialog = true }
+                        )
+                    }
+                    composable(Screen.PaymentHistory.route) {
+                        PaymentHistoryScreen()
+                    }
+                }
+
+                // ════════════════════════════════════════════════════════════
+                // CLEANER TAB GRAPHS
+                // ════════════════════════════════════════════════════════════
+
+                navigation(
+                    route = TabGraph.CleanerDashboard,
+                    startDestination = Screen.CleanerDashboard.route
+                ) {
+                    composable(
+                        Screen.CleanerDashboard.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CleanerDashboardTab(
+                            session = s,
+                            onNavigateToRequests = {
+                                navController.navigate(graphRouteForTab(Screen.CleanerRequests.route)) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CleanerRequests,
+                    startDestination = Screen.CleanerRequests.route
+                ) {
+                    composable(
+                        Screen.CleanerRequests.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CleanerBookingRequestsScreen()
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CleanerSchedule,
+                    startDestination = Screen.CleanerSchedule.route
+                ) {
+                    composable(
+                        Screen.CleanerSchedule.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CleanerScheduleScreen()
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CleanerEarnings,
+                    startDestination = Screen.CleanerEarnings.route
+                ) {
+                    composable(
+                        Screen.CleanerEarnings.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CleanerEarningsScreen()
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CleanerProfile,
+                    startDestination = Screen.CleanerProfile.route
+                ) {
+                    composable(
+                        Screen.CleanerProfile.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CleanerProfileScreen(
+                            session = s,
+                            onManageServices = { navController.navigate(Screen.CleanerServiceManage.route) }
+                        )
+                    }
+                    composable(Screen.CleanerServiceManage.route) {
+                        ServiceManagementScreen(
+                            onAddService = {
+                                navController.navigate(
+                                    Screen.CleanerServiceEdit().route("new")
+                                )
+                            },
+                            onEditService = { id ->
+                                navController.navigate(
+                                    Screen.CleanerServiceEdit().route(id)
+                                )
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.CleanerServiceEdit().route,
+                        arguments = listOf(navArgument("serviceId") { type = NavType.StringType })
+                    ) { entry ->
+                        val sid = entry.arguments?.getString("serviceId") ?: return@composable
+                        ServiceEditScreen(
+                            serviceId = sid,
+                            onDone = { navController.popBackStack() })
+                    }
+                }
+
+                // ════════════════════════════════════════════════════════════
+                // COMPANY TAB GRAPHS
+                // ════════════════════════════════════════════════════════════
+
+                navigation(
+                    route = TabGraph.CompanyDashboard,
+                    startDestination = Screen.CompanyDashboard.route
+                ) {
+                    composable(
+                        Screen.CompanyDashboard.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CompanyDashboardScreen()
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CompanyBookings,
+                    startDestination = Screen.CompanyBookings.route
+                ) {
+                    composable(
+                        Screen.CompanyBookings.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CompanyBookingsScreen()
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CompanyTeam,
+                    startDestination = Screen.CompanyTeam.route
+                ) {
+                    composable(
+                        Screen.CompanyTeam.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CompanyTeamScreen()
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CompanyEarnings,
+                    startDestination = Screen.CompanyEarnings.route
+                ) {
+                    composable(
+                        Screen.CompanyEarnings.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CompanyEarningsScreen()
+                    }
+                }
+
+                navigation(
+                    route = TabGraph.CompanyProfile,
+                    startDestination = Screen.CompanyProfile.route
+                ) {
+                    composable(
+                        Screen.CompanyProfile.route,
+                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
+                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
+                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
+                    ) {
+                        CleanerProfileScreen(
+                            session = s,
+                            onManageServices = { navController.navigate(Screen.CompanyServiceManage.route) }
+                        )
+                    }
+                    composable(Screen.CompanyServiceManage.route) {
+                        ServiceManagementScreen(
+                            onAddService = {
+                                navController.navigate(
+                                    Screen.CompanyServiceEdit().route("new")
+                                )
+                            },
+                            onEditService = { id ->
+                                navController.navigate(
+                                    Screen.CompanyServiceEdit().route(id)
+                                )
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.CompanyServiceEdit().route,
+                        arguments = listOf(navArgument("serviceId") { type = NavType.StringType })
+                    ) { entry ->
+                        val sid = entry.arguments?.getString("serviceId") ?: return@composable
+                        ServiceEditScreen(
+                            serviceId = sid,
+                            onDone = { navController.popBackStack() })
+                    }
+                }
+
+                // ════════════════════════════════════════════════════════════
+                // NOTIFICATIONS (shared overlay graph, accessible from all tabs)
+                // ════════════════════════════════════════════════════════════
+
+                navigation(
+                    route = TabGraph.Notifications,
+                    startDestination = Screen.Notifications.route
+                ) {
+                    composable(Screen.Notifications.route) {
+                        NotificationScreen(
+                            onNotificationClick = { notification ->
+                                val ref = notification.referenceId
+                                if (ref != null) {
+                                    when (notification.type) {
+                                        NotificationType.BOOKING_UPDATE ->
+                                            navController.navigate(
+                                                Screen.BookingDetail().route(ref)
+                                            )
+
+                                        NotificationType.PAYMENT ->
+                                            navController.navigate(Screen.PaymentHistory.route)
+
+                                        else -> Unit
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    composable(Screen.NotificationPreferences.route) {
+                        NotificationPreferencesScreen()
+                    }
+                }
             }
         }
     }

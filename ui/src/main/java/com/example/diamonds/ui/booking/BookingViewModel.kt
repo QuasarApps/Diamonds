@@ -146,12 +146,23 @@ class BookingViewModel @Inject constructor(
     val formState: StateFlow<BookingFormUiState> = _formState.asStateFlow()
 
     fun prepareBookingForm(providerId: String, serviceId: String) {
+        // If the form is already prepared for the same provider/service, do not reset —
+        // this preserves date, time, address and other fields the user may have filled in
+        // before navigating away (e.g. to the map picker) and returning.
+        val current = _formState.value
+        if (current.provider?.id == providerId && current.service?.id == serviceId) return
+
         viewModelScope.launch {
-            _formState.value = BookingFormUiState(isLoading = true)
+            _formState.value = current.copy(isLoading = true)
             clearError()
             val provider = (providerRepository.getProvider(providerId) as? Result.Success)?.data
             val service  = (serviceRepository.getService(serviceId) as? Result.Success)?.data
-            _formState.value = BookingFormUiState(provider = provider, service = service)
+            // Preserve any user-entered fields; only overwrite provider/service/loading.
+            _formState.value = _formState.value.copy(
+                isLoading = false,
+                provider = provider,
+                service = service
+            )
         }
     }
 
