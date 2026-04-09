@@ -87,12 +87,13 @@ fun CleanerEarningsScreen(
                         color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "$${String.format("%.2f", state.weekTotal)}",
+                        if (isRefreshing) "—" else "$${String.format("%.2f", state.weekTotal)}",
                         fontSize = 36.sp, fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        "${state.weekCompletedCount} job${if (state.weekCompletedCount != 1) "s" else ""} completed",
+                        if (isRefreshing) "—"
+                        else "${state.weekCompletedCount} job${if (state.weekCompletedCount != 1) "s" else ""} completed",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -140,10 +141,17 @@ fun CleanerEarningsScreen(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        EarningsStat("Revenue",  "$${String.format("%.2f", state.monthTotal)}")
-                        EarningsStat("Jobs Done","${state.monthCompletedCount}")
+                        EarningsStat(
+                            "Revenue",
+                            if (isRefreshing) "—" else "$${String.format("%.2f", state.monthTotal)}"
+                        )
+                        EarningsStat(
+                            "Jobs Done",
+                            if (isRefreshing) "—" else "${state.monthCompletedCount}"
+                        )
                         EarningsStat("Avg / Job",
-                            if (state.monthCompletedCount > 0)
+                            if (isRefreshing) "—"
+                            else if (state.monthCompletedCount > 0)
                                 "$${String.format("%.0f", state.monthTotal / state.monthCompletedCount)}"
                             else "—"
                         )
@@ -153,7 +161,7 @@ fun CleanerEarningsScreen(
         }
 
         // ── Completed jobs list header ────────────────────────────────────
-        if (state.completedBookings.isNotEmpty()) {
+            if (!isRefreshing && state.completedBookings.isNotEmpty()) {
             item {
                 Text(
                     "Completed Jobs",
@@ -164,11 +172,13 @@ fun CleanerEarningsScreen(
         }
 
         // ── Per-booking rows ──────────────────────────────────────────────
-        items(state.completedBookings, key = { it.booking.id }) { item ->
-            EarningsBookingRow(item)
+            if (!isRefreshing) {
+                items(state.completedBookings, key = { it.booking.id }) { item ->
+                    EarningsBookingRow(item)
+                }
         }
 
-        if (state.completedBookings.isEmpty()) {
+            if (!isRefreshing && state.completedBookings.isEmpty()) {
             item {
                 Box(
                     Modifier

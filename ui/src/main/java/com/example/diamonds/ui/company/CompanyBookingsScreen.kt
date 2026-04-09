@@ -58,7 +58,9 @@ fun CompanyBookingsScreen(
     val error by viewModel.error.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
     var isRefreshing by remember { mutableStateOf(false) }
-    val tabs = listOf(
+    // Show '—' counts while refreshing so stale numbers don't persist
+    val tabs = if (isRefreshing) listOf("Pending (—)", "Active (—)", "Completed (—)")
+    else listOf(
         "Pending (${state.pending.size})",
         "Active (${state.active.size})",
         "Completed (${state.completed.size})"
@@ -97,7 +99,8 @@ fun CompanyBookingsScreen(
             }
         }
 
-        val items = when (selectedTab) {
+        val items = if (isRefreshing) emptyList()
+        else when (selectedTab) {
             0    -> state.pending
             1    -> state.active
             else -> state.completed

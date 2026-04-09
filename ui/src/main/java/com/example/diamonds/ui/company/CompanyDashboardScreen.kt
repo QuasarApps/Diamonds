@@ -85,19 +85,19 @@ fun CompanyDashboardScreen(
                 modifier = Modifier.weight(1f),
                 emoji = "👥",
                 label = "Team",
-                value = "${state.teamSize}"
+                value = if (isRefreshing) "—" else "${state.teamSize}"
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 emoji = "⚡",
                 label = "Active",
-                value = "${state.activeJobCount}"
+                value = if (isRefreshing) "—" else "${state.activeJobCount}"
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 emoji = "📅",
                 label = "Today",
-                value = "${state.todayJobCount}"
+                value = if (isRefreshing) "—" else "${state.todayJobCount}"
             )
         }
 
@@ -106,7 +106,7 @@ fun CompanyDashboardScreen(
         // ── Pending requests banner ────────────────────────────────────────
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = if (state.pendingCount > 0)
+            colors = if (!isRefreshing && state.pendingCount > 0)
                 CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             else CardDefaults.cardColors()
         ) {
@@ -122,15 +122,18 @@ fun CompanyDashboardScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text("Pending Requests", fontWeight = FontWeight.SemiBold)
-                        if (state.pendingCount > 0) {
+                        if (!isRefreshing && state.pendingCount > 0) {
                             Badge { Text("${state.pendingCount}") }
                         }
                     }
                     Text(
-                        if (state.pendingCount == 0) "No requests awaiting approval."
-                        else "${state.pendingCount} request${if (state.pendingCount > 1) "s" else ""} across your team need${if (state.pendingCount == 1) "s" else ""} action.",
+                        when {
+                            isRefreshing -> "—"
+                            state.pendingCount == 0 -> "No requests awaiting approval."
+                            else -> "${state.pendingCount} request${if (state.pendingCount > 1) "s" else ""} across your team need${if (state.pendingCount == 1) "s" else ""} action."
+                        },
                         fontSize = 13.sp,
-                        color = if (state.pendingCount > 0)
+                        color = if (!isRefreshing && state.pendingCount > 0)
                             MaterialTheme.colorScheme.onSecondaryContainer
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -146,7 +149,7 @@ fun CompanyDashboardScreen(
                 Text("This Week's Revenue", fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "$${String.format("%.2f", state.weekEarnings)}",
+                    if (isRefreshing) "—" else "$${String.format("%.2f", state.weekEarnings)}",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary

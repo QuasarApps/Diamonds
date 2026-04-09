@@ -19,6 +19,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,13 +38,25 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.cleaner.CleanerViewModel
+import com.example.diamonds.ui.components.PullToRefreshLayout
 
 // ── Customer Home Tab ──────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
     var showQuickOptions by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
 
+    // Customer home has no remote data — refresh just dismisses itself
+    LaunchedEffect(isRefreshing) {
+        if (isRefreshing) isRefreshing = false
+    }
+
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true }
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -159,11 +172,13 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
             Text("Book a Service")
         }
     }
+    } // end PullToRefreshLayout
 }
 
 // ── Cleaner Dashboard Tab ──────────────────────────────────────────────────────
 // Used by both INDEPENDENT and EMPLOYED individual cleaners.
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CleanerDashboardTab(
     session: UserSession,
@@ -171,11 +186,17 @@ fun CleanerDashboardTab(
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val dashState by viewModel.dashboardState.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
     val displayName = session.displayName
         ?: session.email.substringBefore("@").replaceFirstChar { it.uppercase() }
 
     LaunchedEffect(Unit) { viewModel.loadDashboard() }
+    LaunchedEffect(dashState.isLoading) { if (!dashState.isLoading) isRefreshing = false }
 
+    PullToRefreshLayout(
+        isRefreshing = isRefreshing,
+        onRefresh = { isRefreshing = true; viewModel.refreshDashboard() }
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -217,7 +238,12 @@ fun CleanerDashboardTab(
             Column(Modifier.padding(16.dp)) {
                 Text("Today's Jobs", fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
-                if (dashState.todayCount == 0) {
+                if (isRefreshing) {
+                    Text(
+                        "—", fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else if (dashState.todayCount == 0) {
                     Text(
                         "No jobs scheduled for today. Check back soon!",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -245,12 +271,17 @@ fun CleanerDashboardTab(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text("New Requests", fontWeight = FontWeight.SemiBold)
-                    if (dashState.pendingCount > 0) {
+                    if (!isRefreshing && dashState.pendingCount > 0) {
                         Badge { Text("${dashState.pendingCount}") }
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                if (dashState.pendingCount == 0) {
+                if (isRefreshing) {
+                    Text(
+                        "—", fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else if (dashState.pendingCount == 0) {
                     Text(
                         "No new booking requests right now.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -272,7 +303,8 @@ fun CleanerDashboardTab(
                 Text("This Week's Earnings", fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "$${String.format("%.2f", dashState.weekEarnings)}",
+                    if (isRefreshing) "—"
+                    else "$${String.format("%.2f", dashState.weekEarnings)}",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -280,4 +312,5 @@ fun CleanerDashboardTab(
             }
         }
     }
+    } // end PullToRefreshLayout
 }

@@ -84,12 +84,13 @@ fun CompanyEarningsScreen(
                         color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "$${String.format("%.2f", state.weekTotal)}",
+                        if (isRefreshing) "—" else "$${String.format("%.2f", state.weekTotal)}",
                         fontSize = 36.sp, fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        "${state.weekJobCount} job${if (state.weekJobCount != 1) "s" else ""} completed across ${state.teamSize} cleaner${if (state.teamSize != 1) "s" else ""}",
+                        if (isRefreshing) "—"
+                        else "${state.weekJobCount} job${if (state.weekJobCount != 1) "s" else ""} completed across ${state.teamSize} cleaner${if (state.teamSize != 1) "s" else ""}",
                         fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -106,10 +107,17 @@ fun CompanyEarningsScreen(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        CompanyKpi("Revenue",  "$${String.format("%.2f", state.monthTotal)}")
-                        CompanyKpi("Jobs",     "${state.monthJobCount}")
+                        CompanyKpi(
+                            "Revenue",
+                            if (isRefreshing) "—" else "$${String.format("%.2f", state.monthTotal)}"
+                        )
+                        CompanyKpi(
+                            "Jobs",
+                            if (isRefreshing) "—" else "${state.monthJobCount}"
+                        )
                         CompanyKpi("Avg / Job",
-                            if (state.monthJobCount > 0)
+                            if (isRefreshing) "—"
+                            else if (state.monthJobCount > 0)
                                 "$${String.format("%.0f", state.monthTotal / state.monthJobCount)}"
                             else "—"
                         )
@@ -119,7 +127,7 @@ fun CompanyEarningsScreen(
         }
 
         // ── Per-cleaner breakdown ─────────────────────────────────────────
-        if (state.cleanerBreakdown.isNotEmpty()) {
+        if (!isRefreshing && state.cleanerBreakdown.isNotEmpty()) {
             item {
                 Text("By Cleaner", style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 4.dp))
@@ -144,7 +152,7 @@ fun CompanyEarningsScreen(
         }
 
         // ── Recent completed bookings ─────────────────────────────────────
-        if (state.recentCompleted.isNotEmpty()) {
+        if (!isRefreshing && state.recentCompleted.isNotEmpty()) {
             item {
                 Text("Recent Completed Jobs", style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 4.dp))
