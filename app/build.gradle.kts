@@ -3,8 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
     id("com.google.dagger.hilt.android")
-    // Apply only when google-services.json exists; comment out if not using Firebase
-    // alias(libs.plugins.google.services)
+    alias(libs.plugins.google.services)
 }
 
 // Read MAPS_API_KEY from gradle.properties or local.properties
@@ -21,7 +20,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.example.diamonds.HiltTestRunner"
 
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
@@ -108,4 +107,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    kaptAndroidTest(libs.hilt.android.compiler.testing)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
