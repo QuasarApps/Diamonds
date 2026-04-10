@@ -437,6 +437,15 @@ class FakeSyncRepository : ISyncRepository {
 
     override fun observeSyncQueue(): Flow<List<SyncOperation>> = flowOf(emptyList())
     override fun observePendingOperationCount(): Flow<Int> = flowOf(0)
+    override fun observeConflictOperations(): Flow<List<SyncOperation>> = flowOf(emptyList())
+    override fun observeFailedOperations(): Flow<List<SyncOperation>> = flowOf(emptyList())
     override suspend fun retryFailedOperation(operationId: String): Result<Unit> =
         Result.Success(Unit)
+
+    override suspend fun retryAllFailed(): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun resolveConflict(operationId: String, useLocal: Boolean): Result<Unit> =
+        Result.Success(Unit)
+
+    override suspend fun syncNow(): Result<Unit> = Result.Success(Unit)
 }
