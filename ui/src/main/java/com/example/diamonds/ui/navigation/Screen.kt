@@ -82,6 +82,7 @@ sealed class Screen(val route: String) {
     // ── Shared (all roles) ─────────────────────────────────────────────────
     data object Notifications : Screen("notifications")
     data object NotificationPreferences : Screen("notifications/preferences")
+    data object SyncStatus : Screen("sync_status")
 
     // ── Map & Location ─────────────────────────────────────────────────────
     /** Pick an address on a map during the booking flow. */

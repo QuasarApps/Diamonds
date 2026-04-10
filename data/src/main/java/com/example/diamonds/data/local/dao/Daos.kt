@@ -154,11 +154,23 @@ interface SyncQueueDao {
     @Query("SELECT COUNT(*) FROM sync_queue WHERE status IN ('PENDING', 'FAILED')")
     fun observePendingCount(): Flow<Int>
 
+    @Query("SELECT * FROM sync_queue WHERE status = 'FAILED' ORDER BY lastAttemptAt ASC")
+    fun observeFailedOperations(): Flow<List<SyncQueueEntity>>
+
+    @Query("SELECT * FROM sync_queue WHERE status = 'CONFLICT' ORDER BY lastAttemptAt ASC")
+    fun observeConflictOperations(): Flow<List<SyncQueueEntity>>
+
     @Query("UPDATE sync_queue SET status = :newStatus WHERE id = :id")
     suspend fun updateStatus(id: String, newStatus: String)
 
     @Query("UPDATE sync_queue SET status = :newStatus, retryCount = retryCount + 1, lastAttemptAt = :timestamp, error = :error WHERE id = :id")
     suspend fun updateAfterRetry(id: String, newStatus: String, timestamp: String, error: String?)
+
+    @Query("UPDATE sync_queue SET status = 'CONFLICT', serverPayload = :serverPayload, lastAttemptAt = :timestamp, error = :error WHERE id = :id")
+    suspend fun markConflict(id: String, serverPayload: String, timestamp: String, error: String?)
+
+    @Query("UPDATE sync_queue SET status = 'PENDING' WHERE status = 'FAILED'")
+    suspend fun resetAllFailed()
 
     @Query("DELETE FROM sync_queue WHERE id = :id")
     suspend fun delete(id: String)

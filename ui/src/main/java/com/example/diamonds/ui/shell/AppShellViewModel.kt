@@ -3,6 +3,7 @@ package com.example.diamonds.ui.shell
 import androidx.lifecycle.viewModelScope
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.domain.repository.IAuthRepository
+import com.example.diamonds.domain.repository.ISyncRepository
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,16 +19,24 @@ import javax.inject.Inject
  * Exposes the live [UserSession] so that the shell scaffold, bottom nav,
  * and any child screen can react to the current role without each needing
  * its own copy of the session logic.
+ *
+ * Also exposes the pending sync operation count for the sync status indicator.
  */
 @HiltViewModel
 class AppShellViewModel @Inject constructor(
     private val authRepository: IAuthRepository,
+    private val syncRepository: ISyncRepository,
     connectivityObserver: ConnectivityObserver
 ) : BaseViewModel<Unit>(connectivityObserver, Unit) {
 
     val session: StateFlow<UserSession?> = authRepository
         .getCurrentUserSession()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Number of pending + failed sync operations. */
+    val pendingSyncCount: StateFlow<Int> = syncRepository
+        .observePendingOperationCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {

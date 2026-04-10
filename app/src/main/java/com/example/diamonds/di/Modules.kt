@@ -20,6 +20,7 @@ import com.example.diamonds.data.repository.PaymentRepository
 import com.example.diamonds.data.repository.ProviderRepository
 import com.example.diamonds.data.repository.ReviewRepository
 import com.example.diamonds.data.repository.ServiceRepository
+import com.example.diamonds.data.sync.ConnectivitySyncTrigger
 import com.example.diamonds.data.sync.SyncManager
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
@@ -98,6 +99,15 @@ object DataModule {
     @Provides
     fun provideFusedLocationProviderClient(@ApplicationContext context: Context): FusedLocationProviderClient {
         return LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideConnectivitySyncTrigger(
+        connectivityObserver: ConnectivityObserver,
+        syncManager: SyncManager
+    ): ConnectivitySyncTrigger {
+        return ConnectivitySyncTrigger(connectivityObserver, syncManager)
     }
 }
 

@@ -37,7 +37,7 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
         NotificationEntity::class,
         ProviderLocationEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -101,6 +101,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v4 → v5: add serverPayload column to sync_queue for conflict resolution. */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE sync_queue ADD COLUMN serverPayload TEXT")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -108,7 +115,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "diamonds_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                 INSTANCE = instance
                 instance

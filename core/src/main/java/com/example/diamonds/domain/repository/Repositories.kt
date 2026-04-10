@@ -136,6 +136,13 @@ interface ISyncRepository {
     fun observeSyncQueue(): Flow<List<SyncOperation>>
     fun observePendingOperationCount(): Flow<Int>
     suspend fun retryFailedOperation(operationId: String): Result<Unit>
+    suspend fun retryAllFailed(): Result<Unit>
+    suspend fun resolveConflict(operationId: String, useLocal: Boolean): Result<Unit>
+    fun observeFailedOperations(): Flow<List<SyncOperation>>
+    fun observeConflictOperations(): Flow<List<SyncOperation>>
+
+    /** Trigger an immediate sync of all queued operations. */
+    suspend fun syncNow(): Result<Unit>
 }
 
 /**
@@ -229,7 +236,8 @@ data class SyncOperation(
     val retryCount: Int = 0,
     val createdAt: String,
     val lastAttemptAt: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val serverPayload: String? = null // Server data when CONFLICT
 )
 
 /**

@@ -116,7 +116,8 @@ data class SyncQueueEntity(
     val retryCount: Int = 0,
     val createdAt: String,
     val lastAttemptAt: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val serverPayload: String? = null // Server data when CONFLICT
 )
 
 @Entity(tableName = "notifications")

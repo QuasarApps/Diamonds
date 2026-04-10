@@ -77,6 +77,7 @@ import com.example.diamonds.ui.notification.NotificationViewModel
 import com.example.diamonds.ui.payment.PaymentHistoryScreen
 import com.example.diamonds.ui.payment.PaymentScreen
 import com.example.diamonds.ui.payment.PaymentSuccessScreen
+import com.example.diamonds.ui.sync.SyncStatusScreen
 
 /** Deep-link URI scheme used for in-app links and push notifications. */
 private const val DEEP_LINK_SCHEME = "diamonds"
@@ -165,6 +166,7 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("company/services")  -> "Manage Services"
         route.startsWith("notifications/preferences") -> "Notification Settings"
         route.startsWith("notifications") -> "Notifications"
+        route.startsWith("sync_status") -> "Sync Status"
         route.startsWith("customer/map") -> "Pick Location"
         route.startsWith("customer/tracking") -> "Track Cleaner"
         else -> appName
@@ -184,6 +186,7 @@ fun AppShell(
     val session by viewModel.session.collectAsState()
     val isOnline by viewModel.isOnline.collectAsState()
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
+    val pendingSyncCount by viewModel.pendingSyncCount.collectAsState()
     val s = session ?: return
 
     val tabs = tabsForSession(s)
@@ -260,6 +263,16 @@ fun AppShell(
                 },
                 actions = {
                     if (atTabRoot) {
+                        // Sync status indicator (tappable when ops are pending)
+                        if (pendingSyncCount > 0) {
+                            TextButton(onClick = {
+                                navController.navigate(Screen.SyncStatus.route) {
+                                    launchSingleTop = true
+                                }
+                            }) {
+                                Text("⏳ $pendingSyncCount")
+                            }
+                        }
                         // Notification bell with unread badge
                         IconButton(onClick = {
                             navController.navigate(TabGraph.Notifications) {
@@ -908,6 +921,13 @@ fun AppShell(
                     composable(Screen.NotificationPreferences.route) {
                         NotificationPreferencesScreen()
                     }
+                }
+
+                // ════════════════════════════════════════════════════════════
+                // SYNC STATUS (standalone destination, accessible from top bar)
+                // ════════════════════════════════════════════════════════════
+                composable(Screen.SyncStatus.route) {
+                    SyncStatusScreen()
                 }
             }
         }

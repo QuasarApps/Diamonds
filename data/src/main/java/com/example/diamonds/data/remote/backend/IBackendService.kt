@@ -1,6 +1,7 @@
 package com.example.diamonds.data.remote.backend
 
 import com.example.diamonds.domain.model.Result
+import kotlinx.serialization.Serializable
 
 /**
  * Abstract backend service interface - agnostic to Firebase/REST/GraphQL
@@ -61,6 +62,7 @@ interface IBackendService {
 
 // DTO classes for API communication (separate from domain models)
 
+@Serializable
 data class ClientDto(
     val id: String,
     val name: String,
@@ -71,6 +73,7 @@ data class ClientDto(
     val updatedAt: String
 )
 
+@Serializable
 data class ProviderDto(
     val id: String,
     val name: String,
@@ -91,6 +94,7 @@ data class ProviderDto(
     val updatedAt: String
 )
 
+@Serializable
 data class ServiceDto(
     val id: String,
     val providerId: String,
@@ -105,6 +109,7 @@ data class ServiceDto(
     val updatedAt: String
 )
 
+@Serializable
 data class BookingDto(
     val id: String,
     val clientId: String,
@@ -123,6 +128,7 @@ data class BookingDto(
     val updatedAt: String
 )
 
+@Serializable
 data class ReviewDto(
     val id: String,
     val bookingId: String,
@@ -135,6 +141,7 @@ data class ReviewDto(
     val updatedAt: String
 )
 
+@Serializable
 data class PaymentDto(
     val id: String,
     val bookingId: String,
@@ -150,6 +157,7 @@ data class PaymentDto(
 
 // Request payloads
 
+@Serializable
 data class CreateBookingRequest(
     val clientId: String,
     val providerId: String,
@@ -162,6 +170,7 @@ data class CreateBookingRequest(
     val notes: String? = null
 )
 
+@Serializable
 data class CreateReviewRequest(
     val bookingId: String,
     val clientId: String,
@@ -171,6 +180,7 @@ data class CreateReviewRequest(
     val imageUrls: List<String> = emptyList()
 )
 
+@Serializable
 data class CreatePaymentRequest(
     val bookingId: String,
     val clientId: String,
@@ -179,6 +189,7 @@ data class CreatePaymentRequest(
     val method: String
 )
 
+@Serializable
 data class ProviderLocationDto(
     val providerId: String,
     val latitude: Double,
@@ -187,6 +198,7 @@ data class ProviderLocationDto(
     val updatedAt: String
 )
 
+@Serializable
 data class ServiceAreaDto(
     val providerId: String,
     val centerLatitude: Double,

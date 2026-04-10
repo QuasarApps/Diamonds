@@ -194,6 +194,7 @@ enum class PaymentMethod {
  * SYNCED: Confirmed on server
  * FAILED: Sync failed, retry pending
  * CANCELLED: User cancelled operation
+ * CONFLICT: Server has a different version; needs manual resolution
  */
 @Serializable
 enum class SyncStatus {
@@ -201,7 +202,8 @@ enum class SyncStatus {
     PENDING,
     SYNCED,
     FAILED,
-    CANCELLED
+    CANCELLED,
+    CONFLICT
 }
 
 /**

@@ -144,7 +144,8 @@ fun SyncQueueEntity.toDomain(): SyncOperation = SyncOperation(
     retryCount = retryCount,
     createdAt = createdAt,
     lastAttemptAt = lastAttemptAt,
-    error = error
+    error = error,
+    serverPayload = serverPayload
 )
 
 // Domain to Entity

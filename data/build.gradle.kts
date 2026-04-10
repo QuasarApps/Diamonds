@@ -2,6 +2,8 @@ plugins {
     id("com.android.library")
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
 }
 
 android {
@@ -57,6 +59,14 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
+    // Hilt WorkManager integration
+    implementation(libs.hilt.work)
+    kapt(libs.hilt.work.compiler)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

@@ -15,6 +15,7 @@ compose = "1.6.0"
 composeMaterial3 = "1.2.0"
 lifecycle = "2.7.0"
 hilt = "2.50"
+hiltWork = "1.1.0"
 room = "2.6.1"
 datastore = "1.0.0"
 workmanager = "2.9.1"
@@ -56,7 +57,9 @@ androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lif
 # Hilt
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.1.0" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltWork" }
+hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
+hilt-work-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltWork" }
 
 # Room
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

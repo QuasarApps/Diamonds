@@ -93,6 +93,10 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    // Hilt WorkManager integration
+    implementation(libs.hilt.work)
+    kapt(libs.hilt.work.compiler)
+
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 

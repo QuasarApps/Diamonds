@@ -9,8 +9,10 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
 import com.example.diamonds.data.mapper.toDomain
 import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.repository.EntityType
 import com.example.diamonds.domain.repository.ISyncRepository
 import com.example.diamonds.domain.repository.SyncOperation
+import com.example.diamonds.domain.repository.SyncOperationType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -19,16 +21,18 @@ import kotlin.math.min
 import com.example.diamonds.domain.model.SyncStatus as ModelSyncStatus
 
 /**
- * Manages sync queue and orchestrates retries with exponential backoff
- * Respects user cancellations; automatically retries failures
+ * Manages sync queue and orchestrates retries with exponential backoff.
+ * Dispatches operations to [IBackendService] based on operation and entity type.
+ * Respects user cancellations; automatically retries failures.
  */
 class SyncManager(
     db: AppDatabase,
-    @Suppress("unused") private val backendService: IBackendService,
+    private val backendService: IBackendService,
     private val connectivityObserver: ConnectivityObserver
 ) : ISyncRepository {
 
     private val syncQueueDao = db.syncQueueDao()
+    private val json = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
 
     override suspend fun queueOperation(operation: SyncOperation): Result<Unit> {
         return try {
@@ -42,7 +46,8 @@ class SyncManager(
                 retryCount = 0,
                 createdAt = LocalDateTime.now().toString(),
                 lastAttemptAt = null,
-                error = null
+                error = null,
+                serverPayload = null
             )
             syncQueueDao.insert(entity)
             Result.Success(Unit)
@@ -72,7 +77,6 @@ class SyncManager(
     override suspend fun cancelSyncOperation(operationId: String): Result<Unit> {
         return try {
             syncQueueDao.updateStatus(operationId, ModelSyncStatus.CANCELLED.name)
-            // Immediately remove cancelled operations (don't retry)
             delay(100)
             syncQueueDao.delete(operationId)
             Result.Success(Unit)
@@ -98,13 +102,48 @@ class SyncManager(
         }
     }
 
+    override suspend fun retryAllFailed(): Result<Unit> {
+        return try {
+            syncQueueDao.resetAllFailed()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun resolveConflict(operationId: String, useLocal: Boolean): Result<Unit> {
+        return try {
+            if (useLocal) {
+                syncQueueDao.updateStatus(operationId, ModelSyncStatus.PENDING.name)
+            } else {
+                syncQueueDao.delete(operationId)
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override fun observeFailedOperations(): Flow<List<SyncOperation>> =
+        syncQueueDao.observeFailedOperations().map { ops -> ops.map { it.toDomain() } }
+
+    override fun observeConflictOperations(): Flow<List<SyncOperation>> =
+        syncQueueDao.observeConflictOperations().map { ops -> ops.map { it.toDomain() } }
+
+    override suspend fun syncNow(): Result<Unit> {
+        return try {
+            processSyncQueue()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
     /**
-     * Process all queued operations. Called periodically or on connectivity change
+     * Process all queued operations. Called periodically or on connectivity change.
      */
     suspend fun processSyncQueue() {
-        if (!connectivityObserver.isOnline()) {
-            return // Don't process if offline
-        }
+        if (!connectivityObserver.isOnline()) return
 
         val operations = syncQueueDao.getQueuedOperations()
         for (operation in operations) {
@@ -112,41 +151,52 @@ class SyncManager(
                 syncQueueDao.delete(operation.id)
                 continue
             }
-
-            if (operation.status == ModelSyncStatus.PENDING.name || operation.status == ModelSyncStatus.FAILED.name) {
+            if (operation.status == ModelSyncStatus.PENDING.name ||
+                operation.status == ModelSyncStatus.FAILED.name
+            ) {
                 processOperation(operation)
             }
         }
-
-        // Cleanup old cancelled operations
         syncQueueDao.purgeCancelledOperations()
     }
 
     /**
-     * Process a single operation with exponential backoff
+     * Process a single operation with exponential backoff.
      */
     private suspend fun processOperation(operation: SyncQueueEntity) {
-        // Check if we should retry based on backoff
         if (operation.retryCount > 0 && operation.lastAttemptAt != null) {
             val backoffMinutes = calculateBackoff(operation.retryCount)
             val lastAttempt = LocalDateTime.parse(operation.lastAttemptAt)
             val nextRetry = lastAttempt.plusMinutes(backoffMinutes.toLong())
-            if (LocalDateTime.now() < nextRetry) {
-                return // Not time to retry yet
-            }
+            if (LocalDateTime.now() < nextRetry) return
+        }
+
+        if (operation.retryCount >= Constants.MAX_RETRY_ATTEMPTS) {
+            syncQueueDao.updateAfterRetry(
+                operation.id,
+                ModelSyncStatus.FAILED.name,
+                LocalDateTime.now().toString(),
+                "Max retry attempts (${Constants.MAX_RETRY_ATTEMPTS}) exceeded"
+            )
+            return
         }
 
         try {
-            // TODO: Send operation to backend based on operationType and entityType
-            // For now, this is a placeholder - actual implementation depends on
-            // specific operation type and backend service methods
+            val opType = SyncOperationType.valueOf(operation.operationType)
+            val entType = EntityType.valueOf(operation.entityType)
+            dispatchToBackend(opType, entType, operation.entityId, operation.payload)
 
-            // On success:
             syncQueueDao.updateStatus(operation.id, ModelSyncStatus.SYNCED.name)
-            delay(100)
+            delay(50)
             syncQueueDao.delete(operation.id)
+        } catch (e: ConflictException) {
+            syncQueueDao.markConflict(
+                operation.id,
+                e.serverPayload,
+                LocalDateTime.now().toString(),
+                "Conflict: ${e.message}"
+            )
         } catch (e: Exception) {
-            // Mark for retry (or permanently failed if max retries exceeded)
             syncQueueDao.updateAfterRetry(
                 operation.id,
                 ModelSyncStatus.FAILED.name,
@@ -156,11 +206,121 @@ class SyncManager(
         }
     }
 
-    /**
-     * Calculate exponential backoff: 1 min, 2 min, 4 min, 8 min, etc. (capped at 60 min)
-     */
+    // ── Backend dispatch ────────────────────────────────────────────────────
+
+    private suspend fun dispatchToBackend(
+        opType: SyncOperationType,
+        entType: EntityType,
+        entityId: String,
+        payload: String
+    ) {
+        when (entType) {
+            EntityType.BOOKING -> dispatchBooking(opType, entityId, payload)
+            EntityType.REVIEW -> dispatchReview(opType, payload)
+            EntityType.PAYMENT -> dispatchPayment(opType, payload)
+            EntityType.SERVICE -> dispatchService(opType, payload)
+            EntityType.PROFILE -> dispatchProfile(opType, payload)
+        }
+    }
+
+    private suspend fun dispatchBooking(
+        opType: SyncOperationType,
+        entityId: String,
+        payload: String
+    ) {
+        when (opType) {
+            SyncOperationType.CREATE -> {
+                val req =
+                    json.decodeFromString<com.example.diamonds.data.remote.backend.CreateBookingRequest>(
+                        payload
+                    )
+                backendService.createBooking(req)
+            }
+
+            SyncOperationType.UPDATE -> {
+                val dto =
+                    json.decodeFromString<com.example.diamonds.data.remote.backend.BookingDto>(
+                        payload
+                    )
+                backendService.updateBookingStatus(entityId, dto.status)
+            }
+
+            SyncOperationType.CANCEL -> backendService.cancelBooking(entityId)
+            SyncOperationType.DELETE -> backendService.cancelBooking(entityId)
+        }
+    }
+
+    private suspend fun dispatchReview(opType: SyncOperationType, payload: String) {
+        when (opType) {
+            SyncOperationType.CREATE, SyncOperationType.UPDATE -> {
+                val req =
+                    json.decodeFromString<com.example.diamonds.data.remote.backend.CreateReviewRequest>(
+                        payload
+                    )
+                backendService.createReview(req)
+            }
+
+            else -> { /* Reviews can't be deleted */
+            }
+        }
+    }
+
+    private suspend fun dispatchPayment(opType: SyncOperationType, payload: String) {
+        when (opType) {
+            SyncOperationType.CREATE -> {
+                val req =
+                    json.decodeFromString<com.example.diamonds.data.remote.backend.CreatePaymentRequest>(
+                        payload
+                    )
+                backendService.createPayment(req)
+            }
+
+            else -> { /* Payments are immutable */
+            }
+        }
+    }
+
+    private suspend fun dispatchService(opType: SyncOperationType, payload: String) {
+        when (opType) {
+            SyncOperationType.CREATE, SyncOperationType.UPDATE -> {
+                val dto =
+                    json.decodeFromString<com.example.diamonds.data.remote.backend.ServiceDto>(
+                        payload
+                    )
+                backendService.createService(dto)
+            }
+
+            else -> { /* Service deletion not supported */
+            }
+        }
+    }
+
+    private suspend fun dispatchProfile(opType: SyncOperationType, payload: String) {
+        when (opType) {
+            SyncOperationType.UPDATE -> {
+                val dto = json.decodeFromString<com.example.diamonds.data.remote.backend.ClientDto>(
+                    payload
+                )
+                backendService.updateClient(dto)
+            }
+
+            else -> { /* Profile create/delete handled by auth flow */
+            }
+        }
+    }
+
+    // ── Backoff ─────────────────────────────────────────────────────────────
+
     private fun calculateBackoff(retryCount: Int): Int {
         val exponentialBackoff = Constants.INITIAL_BACKOFF_MINUTES * (1 shl retryCount)
         return min(exponentialBackoff, Constants.MAX_BACKOFF_MINUTES)
     }
 }
+
+/**
+ * Exception thrown when the server returns a conflict (e.g., version mismatch).
+ */
+class ConflictException(
+    message: String,
+    val serverPayload: String
+) : Exception(message)
