@@ -280,15 +280,15 @@ Most repositories use `@Singleton` since they're app-level singletons.
 
 ## Documentation Files
 
-| File | Purpose | Length |
-|------|---------|--------|
-| `README.md` | Project overview | ~100 lines |
-| `ARCHITECTURE.md` | Detailed architecture | 285 lines |
-| `DEVELOPMENT.md` | Dev setup & workflow | 400+ lines |
-| `ROADMAP.md` | 15-phase plan | ~300 lines |
+| File                        | Purpose                  | Length     |
+|-----------------------------|--------------------------|------------|
+| `README.md`                 | Project overview         | ~100 lines |
+| `ARCHITECTURE.md`           | Detailed architecture    | 285 lines  |
+| `DEVELOPMENT.md`            | Dev setup & workflow     | 400+ lines |
+| `ROADMAP.md`                | 20-phase plan            | ~650 lines |
 | `IMPLEMENTATION_SUMMARY.md` | What's done, what's left | ~200 lines |
-| `FILE_STRUCTURE.md` | Directory structure | ~200 lines |
-| `QUICK_REFERENCE.md` | This file | ~200 lines |
+| `FILE_STRUCTURE.md`         | Directory structure      | ~200 lines |
+| `QUICK_REFERENCE.md`        | This file                | ~200 lines |
 
 ## Resources
 

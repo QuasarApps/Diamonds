@@ -264,15 +264,16 @@ DTOs separate from domain models:
 
 ## Next Steps
 
-1. **Implement remaining repositories** (Client, Provider, Review, Payment, Auth, Service)
-2. **Add backend service implementation** (Firebase or REST)
-3. **Create screen ViewModels** (Booking, Profile, Search, etc.)
-4. **Build Compose screens** with Material 3
-5. **Add WorkManager SyncWorker** for background sync
-6. **Write comprehensive tests** (aim for 60%+ coverage)
-7. **Add Firebase integration** (Auth, FCM, etc.)
-8. **Integrate Stripe payments**
-9. **Set up CI/CD** for automated testing and builds
+1. **Phase 11**: Build in-app chat system (MessageRepository, ChatScreen, real-time Firestore
+   listener)
+2. **Phase 12**: Implement subscription and recurring bookings (RecurringBookingWorker,
+   SubscriptionRepository)
+3. **Phase 13**: Add multi-language support (strings.xml extraction, runtime locale switching, RTL)
+4. **Phase 14**: Add reverse reviews so cleaners can rate clients and locations
+5. **Phase 15**: Expand cleaning types, location types, and cleaner specializations
+6. **Phase 16**: Add error logging, Firebase Analytics, and crash reporting
+7. **Phase 17**: Achieve 60%+ test coverage and performance optimization
+8. **Phase 18**: Set up CI/CD and prepare for app store release
 
 ## Important Notes
 

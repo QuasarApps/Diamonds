@@ -128,15 +128,13 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 
 ## Next Steps
 
-- [ ] Implement Firebase authentication
-- [ ] Add Firebase Cloud Messaging for notifications
-- [ ] Integrate Google Maps for location services
-- [ ] Integrate Stripe payments
-- [ ] Build authentication screens (Login, Signup)
-- [ ] Build main booking flow (Search, Book, Track)
-- [ ] Add provider profile screens
-- [ ] Implement review/rating system
-- [ ] Setup CI/CD pipeline
+- [ ] Build in-app chat system (Phase 11)
+- [ ] Add subscription and recurring bookings (Phase 12)
+- [ ] Implement multi-language support (Phase 13)
+- [ ] Add reverse reviews - cleaner reviews customer (Phase 14)
+- [ ] Expand cleaning types, location types, and specializations (Phase 15)
+- [ ] Add error handling and analytics (Phase 16)
+- [ ] Setup CI/CD pipeline and release preparation (Phase 18)
 
 ## License
 

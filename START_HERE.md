@@ -37,35 +37,41 @@ ViewModel (state) → Repository (offline logic) → Room DB + Backend Service
 
 ---
 
-## What's Built (Phases 1-9)
+## What's Built (Phases 1-10)
 
-| Phase | Feature               | Status |
-|-------|-----------------------|--------|
-| 1     | Core Infrastructure   | ✅      |
-| 2     | Auth & Profiles       | ✅      |
-| 3     | Booking Flow          | ✅      |
-| 4     | Provider Dashboards   | ✅      |
-| 5     | Reviews & Ratings     | ✅      |
-| 6     | Payments              | ✅      |
-| 7     | Navigation & App Flow | ✅      |
-| 8     | Firebase Integration  | ✅      |
-| 9     | Maps & Location       | ✅      |
-| 10    | Sync & Offline        | ✅      |
+| Phase | Feature                       | Status |
+|-------|-------------------------------|--------|
+| 1     | Core Infrastructure           | ✅      |
+| 2     | Auth & Profiles               | ✅      |
+| 3     | Booking Flow                  | ✅      |
+| 4     | Provider Dashboards           | ✅      |
+| 5     | Reviews & Ratings             | ✅      |
+| 6     | Payments                      | ✅      |
+| 7     | Navigation & App Flow         | ✅      |
+| 8     | Firebase Integration          | ✅      |
+| 9     | Maps & Location               | ✅      |
+| 10    | Sync & Offline                | ✅      |
+| 11    | In-App Chat                   | ⏳      |
+| 12    | Recurring Bookings            | ⏳      |
+| 13    | Multi-Language                | ⏳      |
+| 14    | Reverse Reviews               | ⏳      |
+| 15    | Cleaning/Location Options     | ⏳      |
+| 16-20 | Error Handling through Launch | ⏳      |
 
 ---
 
 ## Documentation Map
 
-| File | What | Time |
-|------|------|------|
-| **README.md** | Tech stack & features | 5 min |
-| **ARCHITECTURE.md** | Design & data flow | 20 min |
-| **DEVELOPMENT.md** | Adding features | 20 min |
-| **QUICK_REFERENCE.md** | Code patterns | 10 min |
-| **ROADMAP.md** | 15-phase plan | 10 min |
-| **FILE_STRUCTURE.md** | File locations | 5 min |
-| **IMPLEMENTATION_SUMMARY.md** | Status & next steps | 10 min |
-| **PHASE1_VERIFICATION_CHECKLIST.md** | Completion checklist | 5 min |
+| File                                 | What                  | Time   |
+|--------------------------------------|-----------------------|--------|
+| **README.md**                        | Tech stack & features | 5 min  |
+| **ARCHITECTURE.md**                  | Design & data flow    | 20 min |
+| **DEVELOPMENT.md**                   | Adding features       | 20 min |
+| **QUICK_REFERENCE.md**               | Code patterns         | 10 min |
+| **ROADMAP.md**                       | 20-phase plan         | 10 min |
+| **FILE_STRUCTURE.md**                | File locations        | 5 min  |
+| **IMPLEMENTATION_SUMMARY.md**        | Status & next steps   | 10 min |
+| **PHASE1_VERIFICATION_CHECKLIST.md** | Completion checklist  | 5 min  |
 
 **Start**: README.md → ARCHITECTURE.md → DEVELOPMENT.md
 

@@ -8,7 +8,7 @@ Diamonds/
 ├── README.md                           # Project overview and quick start
 ├── ARCHITECTURE.md                     # High-level architecture (285 lines)
 ├── DEVELOPMENT.md                      # Development setup guide (400+ lines)
-├── ROADMAP.md                          # 15-phase implementation roadmap
+├── ROADMAP.md                          # 20-phase implementation roadmap
 ├── IMPLEMENTATION_SUMMARY.md           # What's implemented and what's next
 ├── FILE_STRUCTURE.md                   # This file
 │
@@ -72,7 +72,10 @@ Diamonds/
 │       │   ├── ServiceRepository.kt    # ✅ Service listings (offline-read)
 │       │   ├── BookingRepository.kt    # ✅ Booking CRUD (offline-read, online-write)
 │       │   ├── ReviewRepository.kt     # ✅ Reviews (offline-read, online-write)
-│       │   └── PaymentRepository.kt    # ✅ Payments (offline-read, online-write)
+│       │   ├── PaymentRepository.kt    # ✅ Payments (offline-read, online-write)
+│       │   ├── NotificationRepository.kt # ✅ Phase 8: Notifications
+│       │   ├── LocationRepository.kt   # ✅ Phase 9: Location & tracking
+│       │   └── SubscriptionRepository.kt # Phase 12: Recurring bookings (planned)
 │       │
 │       ├── mapper/
 │       │   └── Mappers.kt              # Entity ↔ Domain ↔ DTO conversions

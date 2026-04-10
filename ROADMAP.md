@@ -314,7 +314,7 @@ Maps integration and location services.
 
 ---
 
-e## Phase 10: Sync & Offline Features ✅ COMPLETE
+## Phase 10: Sync & Offline Features ✅ COMPLETE
 Complete offline-first implementation and sync.
 
 ### Tasks
@@ -369,7 +369,284 @@ Complete offline-first implementation and sync.
 
 ---
 
-## Phase 11: Error Handling & Analytics
+## Phase 11: In-App Chat System
+
+Real-time messaging between clients and cleaners.
+
+### Tasks
+
+- [ ] Define Message and Conversation domain models in DomainModels.kt
+- [ ] Add IMessageRepository interface to Repositories.kt
+- [ ] Create MessageEntity and ConversationEntity in Room with DAO
+- [ ] Add Room migration v5 to v6 for messages and conversations tables
+- [ ] Implement MessageRepository with local caching and sync support
+- [ ] Add Firestore conversations collection to FirebaseBackendService
+- [ ] Add real-time message listener (similar to FirestoreBookingListener)
+- [ ] Add chat endpoints and DTOs to IBackendService and BackendServiceStub
+- [ ] Build ChatViewModel (load conversation, send message, mark as read)
+- [ ] Build ConversationListScreen - list of all active conversations
+- [ ] Build ChatScreen - message bubbles, input bar, send button, timestamps
+- [ ] Add unread message badge on bottom nav and top bar
+- [ ] Add push notification support for new messages via FCM
+- [ ] Wire chat routes in Screen.kt and AppShell.kt
+- [ ] Seed demo chat conversations for demo accounts
+
+### New Files
+
+- `ui/chat/ChatViewModel.kt` - Chat and conversation state management
+- `ui/chat/ConversationListScreen.kt` - List of all conversations per user
+- `ui/chat/ChatScreen.kt` - Full messaging screen with bubbles and input bar
+- `data/repository/MessageRepository.kt` - Message persistence and sync
+
+### Modified Files
+
+- `core/domain/model/DomainModels.kt` - Message, Conversation models
+- `core/domain/repository/Repositories.kt` - IMessageRepository interface
+- `data/local/entity/Entities.kt` - MessageEntity, ConversationEntity
+- `data/local/dao/Daos.kt` - MessageDao, ConversationDao
+- `data/local/AppDatabase.kt` - Version 6, MIGRATION_5_6
+- `data/remote/backend/IBackendService.kt` - Chat endpoints and DTOs
+- `data/remote/backend/BackendServiceStub.kt` - Seeded demo conversations
+- `data/remote/backend/FirebaseBackendService.kt` - Firestore chat collections
+- `app/fcm/DiamondsFcmService.kt` - New message push notification handling
+- `ui/navigation/Screen.kt` - Chat and ConversationList routes
+- `ui/shell/AppShell.kt` - Chat composable destinations, unread badge
+
+### Tests
+
+- [ ] Message repository tests
+- [ ] Chat ViewModel tests
+- [ ] Real-time listener tests
+
+**Estimated Duration**: 2-3 weeks
+
+---
+
+## Phase 12: Subscription and Recurring Bookings
+
+Allow clients to set up recurring cleaning schedules.
+
+### Tasks
+
+- [ ] Define RecurringBooking and SubscriptionPlan domain models
+- [ ] Add ISubscriptionRepository interface
+- [ ] Create RecurringBookingEntity and SubscriptionEntity in Room with DAO
+- [ ] Add Room migration v6 to v7 for recurring bookings and subscriptions tables
+- [ ] Implement SubscriptionRepository with local and remote sync
+- [ ] Add subscription and recurring booking endpoints to IBackendService and BackendServiceStub
+- [ ] Add Firestore subscriptions and recurringBookings collections to FirebaseBackendService
+- [ ] Build RecurringBookingViewModel (create, pause, cancel, modify schedule)
+- [ ] Build RecurringBookingSetupScreen - frequency picker (daily/weekly/fortnightly/monthly), day
+  selector, time, provider
+- [ ] Build SubscriptionManagementScreen - list active plans, pause/cancel controls, next booking
+  date
+- [ ] Integrate recurring bookings into BookingHistoryScreen with a distinct badge/label
+- [ ] Auto-generate upcoming bookings from recurring schedules via WorkManager job
+- [ ] Handle payment for recurring bookings (charge on each occurrence)
+- [ ] Add notification reminders before each recurring booking
+- [ ] Seed demo recurring bookings for demo accounts
+
+### New Files
+
+- `ui/subscription/RecurringBookingViewModel.kt` - Recurring booking state management
+- `ui/subscription/RecurringBookingSetupScreen.kt` - Schedule setup screen
+- `ui/subscription/SubscriptionManagementScreen.kt` - Active plans management screen
+- `data/repository/SubscriptionRepository.kt` - Subscription persistence and sync
+- `data/worker/RecurringBookingWorker.kt` - WorkManager job for auto-generating bookings
+
+### Modified Files
+
+- `core/domain/model/DomainModels.kt` - RecurringBooking, SubscriptionPlan models
+- `core/domain/repository/Repositories.kt` - ISubscriptionRepository interface
+- `data/local/entity/Entities.kt` - RecurringBookingEntity, SubscriptionEntity
+- `data/local/dao/Daos.kt` - RecurringBookingDao, SubscriptionDao
+- `data/local/AppDatabase.kt` - Version 7, MIGRATION_6_7
+- `data/remote/backend/IBackendService.kt` - Subscription endpoints and DTOs
+- `data/remote/backend/BackendServiceStub.kt` - Seeded demo recurring bookings
+- `data/remote/backend/FirebaseBackendService.kt` - Firestore subscription collections
+- `ui/navigation/Screen.kt` - RecurringBookingSetup, SubscriptionManagement routes
+- `ui/shell/AppShell.kt` - Subscription composable destinations
+- `ui/booking/BookingsListScreen.kt` - Recurring booking badge/label
+
+### Tests
+
+- [ ] Recurring booking generation tests
+- [ ] Subscription repository tests
+- [ ] WorkManager scheduling tests
+
+**Estimated Duration**: 2-3 weeks
+
+---
+
+## Phase 13: Multi-Language Support
+
+Full internationalisation and localisation of the app.
+
+### Tasks
+
+- [ ] Audit all hardcoded strings across all screens and components
+- [ ] Extract all UI strings into res/values/strings.xml
+- [ ] Create locale resource directories (values-fr, values-es, values-pt, values-ar as initial
+  targets)
+- [ ] Add LanguagePreference to PreferencesDataStore
+- [ ] Build in-app language selector accessible from Profile and Settings screen
+- [ ] Apply locale dynamically at runtime without requiring app restart
+- [ ] Handle RTL layout support for Arabic and other RTL languages
+- [ ] Localise date, time, and currency formats per locale
+- [ ] Translate strings for all initial supported languages
+- [ ] Update SignupScreen and ProfileScreen to show and store preferred language
+- [ ] Add locale to user profile synced with backend
+
+### New Files
+
+- `ui/settings/LanguageSelectorScreen.kt` - In-app language picker screen
+- `res/values-fr/strings.xml` - French translations
+- `res/values-es/strings.xml` - Spanish translations
+- `res/values-pt/strings.xml` - Portuguese translations
+- `res/values-ar/strings.xml` - Arabic translations
+
+### Modified Files
+
+- `res/values/strings.xml` - All hardcoded UI strings extracted here
+- `data/local/preferences/PreferencesDataStore.kt` - LanguagePreference storage
+- `ui/navigation/Screen.kt` - LanguageSelector route
+- `ui/shell/AppShell.kt` - Language selector destination
+- `app/MainActivity.kt` - Dynamic locale application on startup
+- `core/domain/model/DomainModels.kt` - LanguagePreference model
+- `app/AndroidManifest.xml` - RTL support declaration
+
+### Tests
+
+- [ ] String resource completeness tests (no missing keys per locale)
+- [ ] RTL layout tests
+- [ ] Date and time formatting tests per locale
+
+**Estimated Duration**: 2 weeks
+
+---
+
+## Phase 14: Reverse Reviews (Cleaner Reviews Customer)
+
+Allow cleaners to review clients and their locations after a job.
+
+### Tasks
+
+- [ ] Extend Review domain model to support direction: CLIENT_REVIEWS_PROVIDER and
+  PROVIDER_REVIEWS_CLIENT
+- [ ] Add reviewDirection field to ReviewEntity and update Room migration v7 to v8
+- [ ] Update IBackendService, BackendServiceStub, and FirebaseBackendService for bidirectional
+  reviews
+- [ ] Update ReviewRepository to handle both review directions
+- [ ] Build ClientReviewViewModel - load booking context, check if cleaner has already reviewed
+- [ ] Build LeaveClientReviewScreen - star picker, written feedback, optional location tags (e.g.
+  Easy parking, Clear instructions, Pet-friendly)
+- [ ] Build ClientRatingsScreen - customer average rating and review history visible to cleaners
+- [ ] Show client rating badge on BookingRequestCard in CleanerBookingRequestsScreen
+- [ ] Add Review Client button in CleanerScheduleScreen for COMPLETED bookings
+- [ ] Prevent duplicate reverse reviews (same guard as forward reviews)
+- [ ] Seed demo reverse review data for demo accounts
+
+### New Files
+
+- `ui/review/ClientReviewViewModel.kt` - Reverse review state management
+- `ui/review/LeaveClientReviewScreen.kt` - Cleaner reviews client screen
+- `ui/review/ClientRatingsScreen.kt` - Client rating profile visible to cleaners
+
+### Modified Files
+
+- `core/domain/model/DomainModels.kt` - ReviewDirection enum, updated Review model
+- `data/local/entity/Entities.kt` - reviewDirection column on ReviewEntity
+- `data/local/AppDatabase.kt` - Version 8, MIGRATION_7_8
+- `data/mapper/Mappers.kt` - ReviewDirection mappers
+- `data/remote/backend/IBackendService.kt` - Bidirectional review endpoints
+- `data/remote/backend/BackendServiceStub.kt` - Seeded reverse reviews
+- `data/remote/backend/FirebaseBackendService.kt` - Firestore reverse review support
+- `ui/navigation/Screen.kt` - LeaveClientReview, ClientRatings routes
+- `ui/shell/AppShell.kt` - Reverse review composable destinations
+- `ui/cleaner/CleanerScheduleScreen.kt` - Review Client button on completed bookings
+- `ui/cleaner/CleanerBookingRequestsScreen.kt` - Client rating badge on request cards
+
+### Tests
+
+- [ ] Bidirectional review logic tests
+- [ ] Duplicate review prevention tests
+- [ ] Client rating display tests
+
+**Estimated Duration**: 1-2 weeks
+
+---
+
+## Phase 15: Detailed Cleaning and Location Options
+
+Richer service configuration for both clients and cleaners.
+
+### Tasks
+
+#### Cleaning Types (Client side)
+
+- [ ] Define expanded CleaningType enum: Standard, Deep Clean, End of Tenancy, Post-Construction,
+  Carpet and Upholstery, Window Cleaning, Oven and Appliance, Move-In/Move-Out, Office/Commercial
+- [ ] Update BookingFormScreen with a visual grid chip selector for cleaning types
+- [ ] Store and sync selected cleaning type with bookings
+
+#### Location Types (Client side)
+
+- [ ] Define LocationType model: Apartment, House, Studio, Office, Retail, Warehouse,
+  Airbnb/Short-Term Rental, Other
+- [ ] Add location type selector to BookingFormScreen and CustomerProfileScreen
+- [ ] Include room count, bathroom count, and approximate square footage inputs
+- [ ] Allow clients to save multiple named locations (e.g. Home, Office) in their profile
+
+#### Areas of Specialization (Cleaner side)
+
+- [ ] Define Specialization model mirroring the expanded cleaning types above
+- [ ] Update ServiceManagementScreen to allow cleaners to select and rank their specializations
+- [ ] Show specialization badges on ProviderSearchScreen provider cards
+- [ ] Update FilterSheet to filter providers by specialization
+- [ ] Update CleanerProfileScreen to display specializations prominently
+- [ ] Sync specializations with backend and Firestore
+
+#### General
+
+- [ ] Update IBackendService DTOs, BackendServiceStub, and FirebaseBackendService for new fields
+- [ ] Add Room migration v8 to v9 for new columns on bookings, client profiles, and provider
+  profiles
+- [ ] Update search and matching logic to factor in cleaning type and location type compatibility
+- [ ] Seed rich demo data using the expanded types
+
+### New Files
+
+- `ui/components/CleaningTypeSelector.kt` - Reusable grid chip selector for cleaning types
+- `ui/components/LocationTypeSelector.kt` - Location type and room detail input component
+- `ui/profile/SavedLocationsScreen.kt` - Client saved locations management screen
+
+### Modified Files
+
+- `core/domain/model/DomainModels.kt` - CleaningType enum, LocationType model, Specialization model
+- `data/local/entity/Entities.kt` - New columns for cleaning type, location type, specializations
+- `data/local/AppDatabase.kt` - Version 9, MIGRATION_8_9
+- `data/remote/backend/IBackendService.kt` - Updated DTOs with new fields
+- `data/remote/backend/BackendServiceStub.kt` - Rich seeded demo data with expanded types
+- `data/remote/backend/FirebaseBackendService.kt` - Firestore support for new fields
+- `ui/booking/BookingFormScreen.kt` - CleaningTypeSelector and LocationTypeSelector integration
+- `ui/booking/ProviderSearchScreen.kt` - Specialization badges on provider cards
+- `ui/booking/BookingViewModel.kt` - CleaningType and LocationType in form state
+- `ui/components/FilterSheet.kt` - Specialization filter option
+- `ui/cleaner/ServiceManagementScreen.kt` - Specialization selection and ranking
+- `ui/cleaner/CleanerProfileScreen.kt` - Specializations section
+- `ui/customer/CustomerProfileScreen.kt` - Saved locations section
+
+### Tests
+
+- [ ] Cleaning type selection and persistence tests
+- [ ] Location type and room detail tests
+- [ ] Specialization filter and search tests
+
+**Estimated Duration**: 2-3 weeks
+
+---
+
+## Phase 16: Error Handling & Analytics
 Comprehensive error handling and monitoring.
 
 ### Tasks
@@ -392,7 +669,7 @@ Comprehensive error handling and monitoring.
 
 ---
 
-## Phase 12: Testing & Optimization
+## Phase 17: Testing & Optimization
 Comprehensive testing, optimization, and release prep.
 
 ### Tasks
@@ -418,7 +695,7 @@ Comprehensive testing, optimization, and release prep.
 
 ---
 
-## Phase 13: Release Preparation
+## Phase 18: Release Preparation
 Finalization and app store submission.
 
 ### Tasks
@@ -437,7 +714,7 @@ Finalization and app store submission.
 
 ---
 
-## Phase 14: Beta Testing & Refinement
+## Phase 19: Beta Testing & Refinement
 Beta testing with real users.
 
 ### Tasks
@@ -454,7 +731,7 @@ Beta testing with real users.
 
 ---
 
-## Phase 15: Launch
+## Phase 20: Launch
 App store submission and monitoring.
 
 ### Tasks
@@ -473,21 +750,24 @@ App store submission and monitoring.
 
 **Total Estimated Timeline**: 5-7 months
 
-### Current Status: **Phase 1-10 Complete
-** ✅ (Authentication, Booking, Provider Mgmt, Reviews, Payments, Navigation & App Flow, Firebase Integration, Maps & Location, Sync & Offline Features)
+### Current Status: **Phase 1-10 Complete**
+
+(Authentication, Booking, Provider Mgmt, Reviews, Payments, Navigation & App Flow, Firebase
+Integration, Maps & Location, Sync & Offline Features)
 
 ### Next Immediate Steps:
 
-1. Begin Phase 11 (Error Handling & Analytics)
-2. Continue with Phase 12 (Testing & Optimization)
-3. Start Phase 13 (Release Preparation)
+1. Begin Phase 11 (In-App Chat System)
+2. Continue with Phase 12 (Subscription and Recurring Bookings)
+3. Start Phase 13 (Multi-Language Support)
 
 ### Architecture Strengths
-- ✅ Modular structure for parallel development
-- ✅ Offline-first foundation
-- ✅ Flexible backend abstraction
-- ✅ Comprehensive testing patterns
-- ✅ Clean separation of concerns
+
+- Modular structure for parallel development
+- Offline-first foundation
+- Flexible backend abstraction
+- Comprehensive testing patterns
+- Clean separation of concerns
 
 ### Risk Areas to Monitor
 - Network handling complexity
@@ -499,9 +779,6 @@ App store submission and monitoring.
 ### Future Enhancements
 - [ ] Machine learning for provider matching
 - [ ] Predictive scheduling
-- [ ] In-app chat system
-- [ ] Subscription/recurring bookings
-- [ ] Multi-language support
 - [ ] Advanced analytics dashboard
 - [ ] Admin panel for moderation
 - [ ] A/B testing framework
