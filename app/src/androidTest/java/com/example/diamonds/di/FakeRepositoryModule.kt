@@ -4,6 +4,7 @@ import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
 import com.example.diamonds.domain.repository.IClientRepository
 import com.example.diamonds.domain.repository.ILocationRepository
+import com.example.diamonds.domain.repository.IMessageRepository
 import com.example.diamonds.domain.repository.INotificationRepository
 import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
@@ -67,4 +68,8 @@ object FakeRepositoryModule {
     @Singleton
     @Provides
     fun provideFakeSyncRepository(): ISyncRepository = FakeSyncRepository()
+
+    @Singleton
+    @Provides
+    fun provideFakeMessageRepository(): IMessageRepository = FakeMessageRepository()
 }

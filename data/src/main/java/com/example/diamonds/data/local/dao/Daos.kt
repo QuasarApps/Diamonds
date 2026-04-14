@@ -7,6 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.diamonds.data.local.entity.BookingEntity
 import com.example.diamonds.data.local.entity.ClientEntity
+import com.example.diamonds.data.local.entity.ConversationEntity
+import com.example.diamonds.data.local.entity.MessageEntity
 import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
@@ -219,5 +221,66 @@ interface ProviderLocationDao {
 
     @Query("DELETE FROM provider_locations WHERE providerId = :providerId")
     suspend fun delete(providerId: String)
+}
+
+@Dao
+interface ConversationDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(conversation: ConversationEntity)
+
+    @Query("SELECT * FROM conversations WHERE id = :id")
+    suspend fun getById(id: String): ConversationEntity?
+
+    @Query("SELECT * FROM conversations WHERE bookingId = :bookingId LIMIT 1")
+    suspend fun getByBookingId(bookingId: String): ConversationEntity?
+
+    @Query("SELECT * FROM conversations WHERE clientId = :userId OR providerId = :userId ORDER BY updatedAt DESC")
+    suspend fun getForUser(userId: String): List<ConversationEntity>
+
+    @Query("SELECT * FROM conversations WHERE clientId = :userId OR providerId = :userId ORDER BY updatedAt DESC")
+    fun observeForUser(userId: String): Flow<List<ConversationEntity>>
+
+    @Query("SELECT SUM(unreadCount) FROM conversations WHERE (clientId = :userId OR providerId = :userId)")
+    fun observeTotalUnreadForUser(userId: String): Flow<Int?>
+
+    @Query("UPDATE conversations SET unreadCount = 0 WHERE id = :conversationId")
+    suspend fun resetUnreadCount(conversationId: String)
+
+    @Query("UPDATE conversations SET lastMessage = :lastMessage, lastMessageAt = :lastMessageAt, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateLastMessage(
+        id: String,
+        lastMessage: String,
+        lastMessageAt: String,
+        updatedAt: String
+    )
+
+    @Query("UPDATE conversations SET unreadCount = unreadCount + 1, lastMessage = :lastMessage, lastMessageAt = :lastMessageAt, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun incrementUnreadAndUpdateLastMessage(
+        id: String,
+        lastMessage: String,
+        lastMessageAt: String,
+        updatedAt: String
+    )
+
+    @Query("DELETE FROM conversations WHERE id = :id")
+    suspend fun delete(id: String)
+}
+
+@Dao
+interface MessageDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(message: MessageEntity)
+
+    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt ASC")
+    suspend fun getForConversation(conversationId: String): List<MessageEntity>
+
+    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt ASC")
+    fun observeForConversation(conversationId: String): Flow<List<MessageEntity>>
+
+    @Query("UPDATE messages SET isRead = 1 WHERE conversationId = :conversationId AND senderId != :userId")
+    suspend fun markAllReadInConversation(conversationId: String, userId: String)
+
+    @Query("DELETE FROM messages WHERE conversationId = :conversationId")
+    suspend fun deleteForConversation(conversationId: String)
 }
 

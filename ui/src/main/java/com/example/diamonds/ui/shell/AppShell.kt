@@ -53,6 +53,9 @@ import com.example.diamonds.ui.booking.ProviderRatingsScreen
 import com.example.diamonds.ui.booking.ProviderSearchScreen
 import com.example.diamonds.ui.booking.ReviewScreen
 import com.example.diamonds.ui.booking.ServiceListScreen
+import com.example.diamonds.ui.chat.ChatScreen
+import com.example.diamonds.ui.chat.ChatViewModel
+import com.example.diamonds.ui.chat.ConversationListScreen
 import com.example.diamonds.ui.cleaner.CleanerBookingRequestsScreen
 import com.example.diamonds.ui.cleaner.CleanerEarningsScreen
 import com.example.diamonds.ui.cleaner.CleanerProfileScreen
@@ -101,6 +104,7 @@ private object TabGraph {
     const val CompanyEarnings = "graph/company/earnings"
     const val CompanyProfile = "graph/company/profile"
     const val Notifications = "graph/notifications"
+    const val Chat = "graph/chat"
 }
 
 /** Map each bottom-tab [Screen] to its nested graph route. */
@@ -118,6 +122,7 @@ private fun graphRouteForTab(tabRoute: String): String = when (tabRoute) {
     Screen.CompanyTeam.route -> TabGraph.CompanyTeam
     Screen.CompanyEarnings.route -> TabGraph.CompanyEarnings
     Screen.CompanyProfile.route -> TabGraph.CompanyProfile
+    Screen.ConversationList.route -> TabGraph.Chat
     else -> tabRoute
 }
 
@@ -169,6 +174,8 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("sync_status") -> "Sync Status"
         route.startsWith("customer/map") -> "Pick Location"
         route.startsWith("customer/tracking") -> "Track Cleaner"
+        route.startsWith("chat/conversations") -> "Messages"
+        route.startsWith("chat/") -> "Chat"
         else -> appName
     }
 }
@@ -181,12 +188,14 @@ private const val NAV_ANIM_DURATION = 300
 fun AppShell(
     onLogout: () -> Unit,
     viewModel: AppShellViewModel = hiltViewModel(),
-    notificationViewModel: NotificationViewModel = hiltViewModel()
+    notificationViewModel: NotificationViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel()
 ) {
     val session by viewModel.session.collectAsState()
     val isOnline by viewModel.isOnline.collectAsState()
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
     val pendingSyncCount by viewModel.pendingSyncCount.collectAsState()
+    val unreadMessageCount by chatViewModel.unreadMessageCount.collectAsState()
     val s = session ?: return
 
     val tabs = tabsForSession(s)
@@ -271,6 +280,22 @@ fun AppShell(
                                 }
                             }) {
                                 Text("⏳ $pendingSyncCount")
+                            }
+                        }
+                        // Chat icon with unread message badge
+                        IconButton(onClick = {
+                            navController.navigate(TabGraph.Chat) {
+                                launchSingleTop = true
+                            }
+                        }) {
+                            BadgedBox(
+                                badge = {
+                                    if (unreadMessageCount > 0) {
+                                        Badge { Text(if (unreadMessageCount > 99) "99+" else "$unreadMessageCount") }
+                                    }
+                                }
+                            ) {
+                                Text("💬", fontSize = 20.sp)
                             }
                         }
                         // Notification bell with unread badge
@@ -610,6 +635,22 @@ fun AppShell(
                             },
                             onTrackCleaner = { bookingId ->
                                 navController.navigate(Screen.ProviderTracking().route(bookingId))
+                            },
+                            onOpenChat = { params ->
+                                chatViewModel.openOrCreateConversation(
+                                    bookingId = params.bookingId,
+                                    clientId = params.clientId,
+                                    clientName = params.clientName,
+                                    providerId = params.providerId,
+                                    providerName = params.providerName,
+                                    onReady = { conversationId ->
+                                        navController.navigate(
+                                            Screen.Chat().route(conversationId)
+                                        ) {
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                )
                             }
                         )
                     }
@@ -920,6 +961,36 @@ fun AppShell(
                     }
                     composable(Screen.NotificationPreferences.route) {
                         NotificationPreferencesScreen()
+                    }
+                }
+
+                // ════════════════════════════════════════════════════════════
+                // CHAT (shared overlay graph, accessible from all tabs via top bar)
+                // ════════════════════════════════════════════════════════════
+
+                navigation(
+                    route = TabGraph.Chat,
+                    startDestination = Screen.ConversationList.route
+                ) {
+                    composable(Screen.ConversationList.route) {
+                        ConversationListScreen(
+                            onConversationSelected = { convId ->
+                                navController.navigate(Screen.Chat().route(convId))
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.Chat().route,
+                        arguments = listOf(navArgument("conversationId") {
+                            type = NavType.StringType
+                        })
+                    ) { entry ->
+                        val convId =
+                            entry.arguments?.getString("conversationId") ?: return@composable
+                        ChatScreen(
+                            conversationId = convId,
+                            currentUserId = s.userId
+                        )
                     }
                 }
 

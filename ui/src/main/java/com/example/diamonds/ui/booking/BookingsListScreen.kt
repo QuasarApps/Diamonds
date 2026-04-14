@@ -167,12 +167,21 @@ private fun BookingSummaryCard(item: BookingWithDetails, onClick: () -> Unit) {
 // ── Booking Detail ────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
+data class OpenChatParams(
+    val bookingId: String,
+    val clientId: String,
+    val clientName: String,
+    val providerId: String,
+    val providerName: String
+)
+
 @Composable
 fun BookingDetailScreen(
     bookingId: String,
     onCancelled: () -> Unit,
     onLeaveReview: (bookingId: String, providerId: String) -> Unit = { _, _ -> },
     onTrackCleaner: (bookingId: String) -> Unit = {},
+    onOpenChat: (OpenChatParams) -> Unit = {},
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsState()
@@ -304,6 +313,27 @@ fun BookingDetailScreen(
                     .fillMaxWidth()
                     .height(52.dp)
             ) { Text("🗺️  Track Cleaner", fontSize = 15.sp) }
+        }
+
+        // Chat button — available for all non-cancelled bookings
+        val canChat = booking.status != BookingStatus.CANCELLED
+        if (canChat && state.provider != null) {
+            OutlinedButton(
+                onClick = {
+                    onOpenChat(
+                        OpenChatParams(
+                            bookingId = bookingId,
+                            clientId = booking.clientId,
+                            clientName = "You",  // Session name would be better, but not available here
+                            providerId = booking.providerId,
+                            providerName = state.provider!!.name
+                        )
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) { Text("💬  Chat with Cleaner", fontSize = 15.sp) }
         }
 
         if (booking.status == BookingStatus.COMPLETED && state.provider != null) {

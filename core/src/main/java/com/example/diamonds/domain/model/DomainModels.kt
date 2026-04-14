@@ -244,6 +244,40 @@ data class NotificationPreferences(
     val promotions: Boolean = true
 )
 
+// ── Chat & Messaging ──────────────────────────────────────────────────────────
+
+/**
+ * A single chat message sent within a [Conversation].
+ */
+@Serializable
+data class Message(
+    val id: String,
+    val conversationId: String,
+    val senderId: String,
+    val senderName: String,
+    val body: String,
+    val isRead: Boolean = false,
+    val createdAt: String
+)
+
+/**
+ * A conversation thread between a client and a provider,
+ * linked to a specific booking.
+ */
+@Serializable
+data class Conversation(
+    val id: String,
+    val bookingId: String,
+    val clientId: String,
+    val clientName: String,
+    val providerId: String,
+    val providerName: String,
+    val lastMessage: String = "",
+    val lastMessageAt: String = "",
+    val unreadCount: Int = 0,
+    val updatedAt: String
+)
+
 // ── Location & Maps ────────────────────────────────────────────────────────────
 
 /**

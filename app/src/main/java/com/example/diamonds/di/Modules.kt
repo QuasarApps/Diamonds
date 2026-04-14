@@ -15,6 +15,7 @@ import com.example.diamonds.data.repository.AuthRepository
 import com.example.diamonds.data.repository.BookingRepository
 import com.example.diamonds.data.repository.ClientRepository
 import com.example.diamonds.data.repository.LocationRepository
+import com.example.diamonds.data.repository.MessageRepository
 import com.example.diamonds.data.repository.NotificationRepository
 import com.example.diamonds.data.repository.PaymentRepository
 import com.example.diamonds.data.repository.ProviderRepository
@@ -26,6 +27,7 @@ import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
 import com.example.diamonds.domain.repository.IClientRepository
 import com.example.diamonds.domain.repository.ILocationRepository
+import com.example.diamonds.domain.repository.IMessageRepository
 import com.example.diamonds.domain.repository.INotificationRepository
 import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
@@ -208,5 +210,15 @@ object RepositoryModule {
         fusedLocationClient: FusedLocationProviderClient
     ): ILocationRepository {
         return LocationRepository(db, backendService, connectivityObserver, fusedLocationClient)
+    }
+
+    @Singleton
+    @Provides
+    fun provideMessageRepository(
+        db: AppDatabase,
+        backendService: IBackendService,
+        connectivityObserver: ConnectivityObserver
+    ): IMessageRepository {
+        return MessageRepository(db, backendService, connectivityObserver)
     }
 }

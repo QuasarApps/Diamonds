@@ -3,7 +3,9 @@ package com.example.diamonds.domain.repository
 import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.GeoLocation
+import com.example.diamonds.domain.model.Message
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationPreferences
 import com.example.diamonds.domain.model.Payment
@@ -181,6 +183,41 @@ interface ILocationRepository {
 
     /** Calculate the straight-line (Haversine) distance in km between two points. */
     fun calculateDistance(from: GeoLocation, to: GeoLocation): Double
+}
+
+/**
+ * Repository for in-app chat messages and conversations.
+ */
+interface IMessageRepository {
+    /** Get or create a conversation for a given booking between client and provider. */
+    suspend fun getOrCreateConversation(
+        bookingId: String,
+        clientId: String,
+        clientName: String,
+        providerId: String,
+        providerName: String
+    ): Result<Conversation>
+
+    /** List all conversations for a user (by userId). */
+    suspend fun getConversationsForUser(userId: String): Result<List<Conversation>>
+
+    /** Observe conversations for a user in real-time. */
+    fun observeConversationsForUser(userId: String): Flow<List<Conversation>>
+
+    /** Get all messages in a conversation. */
+    suspend fun getMessages(conversationId: String): Result<List<Message>>
+
+    /** Observe messages in a conversation in real-time. */
+    fun observeMessages(conversationId: String): Flow<List<Message>>
+
+    /** Send a message in a conversation. */
+    suspend fun sendMessage(message: Message): Result<Message>
+
+    /** Mark all messages in a conversation as read for a given userId. */
+    suspend fun markConversationRead(conversationId: String, userId: String): Result<Unit>
+
+    /** Total unread message count across all conversations for a user. */
+    fun observeUnreadMessageCount(userId: String): Flow<Int>
 }
 
 /**

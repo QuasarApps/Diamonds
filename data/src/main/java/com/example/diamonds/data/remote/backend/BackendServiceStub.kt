@@ -493,4 +493,202 @@ class BackendServiceStub : IBackendService {
             ?: return Result.Error(Exception("Service area for $providerId not found"))
         return Result.Success(area)
     }
+
+    // ── Chat / Messaging ─────────────────────────────────────────────────────
+
+    private val conversationStore = mutableListOf(
+        ConversationDto(
+            id = "conv1",
+            bookingId = "b1",
+            clientId = "demo_customer",
+            clientName = "Demo Customer",
+            providerId = "p1",
+            providerName = "Maria Garcia",
+            lastMessage = "See you at 9am!",
+            lastMessageAt = "2026-03-10T08:45:00",
+            unreadCount = 0,
+            updatedAt = "2026-03-10T08:45:00"
+        ),
+        ConversationDto(
+            id = "conv2",
+            bookingId = "b2",
+            clientId = "demo_customer",
+            clientName = "Demo Customer",
+            providerId = "p2",
+            providerName = "James Okafor",
+            lastMessage = "I'll bring the eco-friendly products.",
+            lastMessageAt = "2026-04-02T10:20:00",
+            unreadCount = 1,
+            updatedAt = "2026-04-02T10:20:00"
+        ),
+        ConversationDto(
+            id = "conv3",
+            bookingId = "j1",
+            clientId = "client_carol",
+            clientName = "Carol Martinez",
+            providerId = "p1",
+            providerName = "Maria Garcia",
+            lastMessage = "Great, see you then!",
+            lastMessageAt = "2026-04-06T18:00:00",
+            unreadCount = 0,
+            updatedAt = "2026-04-06T18:00:00"
+        )
+    )
+
+    private val messageStore = mutableListOf(
+        // conv1 – Demo Customer & Maria Garcia (booking b1)
+        MessageDto(
+            id = "msg1",
+            conversationId = "conv1",
+            senderId = "demo_customer",
+            senderName = "Demo Customer",
+            body = "Hi Maria, just confirming tomorrow's standard apartment clean at 9am.",
+            isRead = true,
+            createdAt = "2026-03-10T08:30:00"
+        ),
+        MessageDto(
+            id = "msg2", conversationId = "conv1", senderId = "p1", senderName = "Maria Garcia",
+            body = "Hi! Yes, confirmed. I'll bring all my own supplies. Any specific areas to focus on?",
+            isRead = true, createdAt = "2026-03-10T08:35:00"
+        ),
+        MessageDto(
+            id = "msg3",
+            conversationId = "conv1",
+            senderId = "demo_customer",
+            senderName = "Demo Customer",
+            body = "Please pay extra attention to the kitchen and bathroom tiles.",
+            isRead = true,
+            createdAt = "2026-03-10T08:40:00"
+        ),
+        MessageDto(
+            id = "msg4", conversationId = "conv1", senderId = "p1", senderName = "Maria Garcia",
+            body = "Of course! Not a problem. See you at 9am!",
+            isRead = true, createdAt = "2026-03-10T08:45:00"
+        ),
+
+        // conv2 – Demo Customer & James Okafor (booking b2)
+        MessageDto(
+            id = "msg5",
+            conversationId = "conv2",
+            senderId = "demo_customer",
+            senderName = "Demo Customer",
+            body = "Hello James, we're moving in on the 15th. Can you do a thorough clean?",
+            isRead = true,
+            createdAt = "2026-04-02T10:00:00"
+        ),
+        MessageDto(
+            id = "msg6", conversationId = "conv2", senderId = "p2", senderName = "James Okafor",
+            body = "Absolutely! Move-in cleans are my specialty. I'll bring eco-friendly products.",
+            isRead = true, createdAt = "2026-04-02T10:15:00"
+        ),
+        MessageDto(
+            id = "msg7", conversationId = "conv2", senderId = "p2", senderName = "James Okafor",
+            body = "I'll bring the eco-friendly products.",
+            isRead = false, createdAt = "2026-04-02T10:20:00"
+        ),
+
+        // conv3 – Carol & Maria (booking j1)
+        MessageDto(
+            id = "msg8",
+            conversationId = "conv3",
+            senderId = "client_carol",
+            senderName = "Carol Martinez",
+            body = "Hi Maria, I've left a key under the mat.",
+            isRead = true,
+            createdAt = "2026-04-06T17:50:00"
+        ),
+        MessageDto(
+            id = "msg9", conversationId = "conv3", senderId = "p1", senderName = "Maria Garcia",
+            body = "Perfect, thank you Carol. I'll lock up when done.",
+            isRead = true, createdAt = "2026-04-06T17:55:00"
+        ),
+        MessageDto(
+            id = "msg10",
+            conversationId = "conv3",
+            senderId = "client_carol",
+            senderName = "Carol Martinez",
+            body = "Great, see you then!",
+            isRead = true,
+            createdAt = "2026-04-06T18:00:00"
+        )
+    )
+
+    override suspend fun getOrCreateConversation(request: CreateConversationRequest): Result<ConversationDto> {
+        delay(300)
+        val existing = conversationStore.find { it.bookingId == request.bookingId }
+        if (existing != null) return Result.Success(existing)
+        val new = ConversationDto(
+            id = "conv${System.currentTimeMillis()}",
+            bookingId = request.bookingId,
+            clientId = request.clientId,
+            clientName = request.clientName,
+            providerId = request.providerId,
+            providerName = request.providerName,
+            lastMessage = "",
+            lastMessageAt = "",
+            unreadCount = 0,
+            updatedAt = System.currentTimeMillis().toString()
+        )
+        conversationStore.add(new)
+        return Result.Success(new)
+    }
+
+    override suspend fun getConversationsForUser(userId: String): Result<List<ConversationDto>> {
+        delay(400)
+        return Result.Success(
+            conversationStore
+                .filter { it.clientId == userId || it.providerId == userId }
+                .sortedByDescending { it.updatedAt }
+        )
+    }
+
+    override suspend fun getMessages(conversationId: String): Result<List<MessageDto>> {
+        delay(300)
+        return Result.Success(messageStore.filter { it.conversationId == conversationId }
+            .sortedBy { it.createdAt })
+    }
+
+    override suspend fun sendMessage(message: SendMessageRequest): Result<MessageDto> {
+        delay(200)
+        val dto = MessageDto(
+            id = message.id,
+            conversationId = message.conversationId,
+            senderId = message.senderId,
+            senderName = message.senderName,
+            body = message.body,
+            isRead = false,
+            createdAt = message.createdAt
+        )
+        messageStore.add(dto)
+        // Update conversation's lastMessage
+        val convIdx = conversationStore.indexOfFirst { it.id == message.conversationId }
+        if (convIdx >= 0) {
+            val conv = conversationStore[convIdx]
+            conversationStore[convIdx] = conv.copy(
+                lastMessage = message.body,
+                lastMessageAt = message.createdAt,
+                updatedAt = message.createdAt
+            )
+        }
+        return Result.Success(dto)
+    }
+
+    override suspend fun markConversationRead(
+        conversationId: String,
+        userId: String
+    ): Result<Unit> {
+        delay(100)
+        // Mark all messages from others as read
+        val idxList = messageStore.indices.filter {
+            messageStore[it].conversationId == conversationId && messageStore[it].senderId != userId
+        }
+        idxList.forEach { i -> messageStore[i] = messageStore[i].copy(isRead = true) }
+        // Reset unread count on conversation
+        val convIdx = conversationStore.indexOfFirst { it.id == conversationId }
+        if (convIdx >= 0) {
+            conversationStore[convIdx] = conversationStore[convIdx].copy(unreadCount = 0)
+        }
+        return Result.Success(Unit)
+    }
 }
+

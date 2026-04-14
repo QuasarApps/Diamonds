@@ -1,0 +1,150 @@
+package com.example.diamonds.data.repository
+
+import com.example.diamonds.data.connectivity.ConnectivityObserver
+import com.example.diamonds.data.local.AppDatabase
+import com.example.diamonds.data.mapper.toDomain
+import com.example.diamonds.data.mapper.toEntity
+import com.example.diamonds.data.remote.backend.CreateConversationRequest
+import com.example.diamonds.data.remote.backend.IBackendService
+import com.example.diamonds.data.remote.backend.SendMessageRequest
+import com.example.diamonds.domain.model.Conversation
+import com.example.diamonds.domain.model.Message
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.repository.IMessageRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+class MessageRepository @Inject constructor(
+    private val db: AppDatabase,
+    private val backendService: IBackendService,
+    private val connectivityObserver: ConnectivityObserver
+) : IMessageRepository {
+
+    private val conversationDao = db.conversationDao()
+    private val messageDao = db.messageDao()
+
+    override suspend fun getOrCreateConversation(
+        bookingId: String,
+        clientId: String,
+        clientName: String,
+        providerId: String,
+        providerName: String
+    ): Result<Conversation> {
+        // Check cache first
+        val cached = conversationDao.getByBookingId(bookingId)
+        if (cached != null) return Result.Success(cached.toDomain())
+
+        return try {
+            if (!connectivityObserver.isOnline()) {
+                return Result.Error(Exception("No internet connection"))
+            }
+            val result = backendService.getOrCreateConversation(
+                CreateConversationRequest(bookingId, clientId, clientName, providerId, providerName)
+            )
+            if (result is Result.Success) {
+                val conversation = result.data.toDomain()
+                conversationDao.upsert(conversation.toEntity())
+                Result.Success(conversation)
+            } else if (result is Result.Error) {
+                result
+            } else {
+                Result.Error(Exception("Unexpected result state"))
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun getConversationsForUser(userId: String): Result<List<Conversation>> {
+        // Refresh from backend if online
+        if (connectivityObserver.isOnline()) {
+            try {
+                val result = backendService.getConversationsForUser(userId)
+                if (result is Result.Success) {
+                    result.data.forEach { dto ->
+                        conversationDao.upsert(dto.toDomain().toEntity())
+                    }
+                }
+            } catch (_: Exception) { /* fall through to cache */
+            }
+        }
+        val cached = conversationDao.getForUser(userId)
+        return Result.Success(cached.map { it.toDomain() })
+    }
+
+    override fun observeConversationsForUser(userId: String): Flow<List<Conversation>> {
+        return conversationDao.observeForUser(userId).map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun getMessages(conversationId: String): Result<List<Message>> {
+        // Refresh from backend if online
+        if (connectivityObserver.isOnline()) {
+            try {
+                val result = backendService.getMessages(conversationId)
+                if (result is Result.Success) {
+                    result.data.forEach { dto -> messageDao.insert(dto.toDomain().toEntity()) }
+                }
+            } catch (_: Exception) { /* fall through to cache */
+            }
+        }
+        val cached = messageDao.getForConversation(conversationId)
+        return Result.Success(cached.map { it.toDomain() })
+    }
+
+    override fun observeMessages(conversationId: String): Flow<List<Message>> {
+        return messageDao.observeForConversation(conversationId)
+            .map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun sendMessage(message: Message): Result<Message> {
+        return try {
+            // Insert locally immediately for instant UI feedback
+            messageDao.insert(message.toEntity())
+            // Update conversation last message
+            conversationDao.incrementUnreadAndUpdateLastMessage(
+                id = message.conversationId,
+                lastMessage = message.body,
+                lastMessageAt = message.createdAt,
+                updatedAt = message.createdAt
+            )
+
+            // Sync to backend if online
+            if (connectivityObserver.isOnline()) {
+                backendService.sendMessage(
+                    SendMessageRequest(
+                        id = message.id,
+                        conversationId = message.conversationId,
+                        senderId = message.senderId,
+                        senderName = message.senderName,
+                        body = message.body,
+                        createdAt = message.createdAt
+                    )
+                )
+            }
+            Result.Success(message)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun markConversationRead(
+        conversationId: String,
+        userId: String
+    ): Result<Unit> {
+        return try {
+            messageDao.markAllReadInConversation(conversationId, userId)
+            conversationDao.resetUnreadCount(conversationId)
+            if (connectivityObserver.isOnline()) {
+                backendService.markConversationRead(conversationId, userId)
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override fun observeUnreadMessageCount(userId: String): Flow<Int> {
+        return conversationDao.observeTotalUnreadForUser(userId).map { it ?: 0 }
+    }
+}

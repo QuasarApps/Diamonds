@@ -1,6 +1,6 @@
 # Implementation Status & Next Steps
 
-**Status**: Phases 1-10 ✅ Complete | **Completion**: 50% of 20-phase roadmap
+**Status**: Phases 1-11 ✅ Complete | **Completion**: 55% of 20-phase roadmap
 
 ---
 
@@ -103,17 +103,33 @@
 - Room migration v4→v5 for serverPayload column
 - @Serializable annotations on DTOs for JSON deserialization in sync dispatch
 
+### Phase 11: In-App Chat System ✅
+
+- Message and Conversation domain models (core/domain/model/DomainModels.kt)
+- IMessageRepository interface with full CRUD and Flow observables
+- MessageEntity + ConversationEntity Room entities with MessageDao and ConversationDao
+- Room migration v5→v6 for messages and conversations tables
+- MessageRepository with local-first caching + online backend sync
+- ChatViewModel with ConversationListUiState + ChatUiState, unread count StateFlow
+- ConversationListScreen — avatar initials, last-message preview, unread badge per convo
+- ChatScreen — own/other message bubbles, timestamps, read receipts (✓/✓✓), send button
+- Unread message badge on 💬 icon in AppShell top bar (taps navigate to ConversationList)
+- "💬 Chat with Cleaner" button in BookingDetailScreen (non-cancelled bookings)
+- Firestore collections stubs in FirebaseBackendService (conversations + messages)
+- Seeded demo conversations (conv1-conv3) with 10 seed messages across 3 bookings
+- Chat routes: ConversationList + Chat(conversationId) wired in Screen.kt and AppShell
+
 ---
 
 ## Metrics
 
 | Item                | Count   |
 |---------------------|---------|
-| Production LOC      | 15,500+ |
-| UI Screens          | 38+     |
-| ViewModels          | 15      |
-| Repository Impls    | 9       |
-| Database Entities   | 9       |
+| Production LOC      | 17,000+ |
+| UI Screens          | 41+     |
+| ViewModels          | 16      |
+| Repository Impls    | 10      |
+| Database Entities   | 11      |
 | Demo Accounts       | 5       |
 | Documentation Files | 8       |
 | Modules             | 5       |
@@ -122,7 +138,6 @@
 
 ## What's NOT Done Yet
 
-**Phase 11**: In-App Chat System  
 **Phase 12**: Subscription & Recurring Bookings  
 **Phase 13**: Multi-Language Support  
 **Phase 14**: Reverse Reviews (Cleaner Reviews Customer)  

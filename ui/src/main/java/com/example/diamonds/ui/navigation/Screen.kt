@@ -93,4 +93,14 @@ sealed class Screen(val route: String) {
         Screen("customer/tracking/{bookingId}") {
         fun route(id: String) = "customer/tracking/$id"
     }
+
+    // ── Chat & Messaging ───────────────────────────────────────────────────
+    /** List of all conversations for the current user. */
+    data object ConversationList : Screen("chat/conversations")
+
+    /** Open a specific chat thread. Requires conversationId as a nav arg. */
+    data class Chat(val conversationId: String = "{conversationId}") :
+        Screen("chat/{conversationId}") {
+        fun route(id: String) = "chat/$id"
+    }
 }

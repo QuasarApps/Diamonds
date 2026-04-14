@@ -58,6 +58,13 @@ interface IBackendService {
     suspend fun getProviderLocation(providerId: String): Result<ProviderLocationDto>
     suspend fun updateProviderLocation(location: ProviderLocationDto): Result<Unit>
     suspend fun getServiceArea(providerId: String): Result<ServiceAreaDto>
+
+    // Chat / Messaging
+    suspend fun getOrCreateConversation(request: CreateConversationRequest): Result<ConversationDto>
+    suspend fun getConversationsForUser(userId: String): Result<List<ConversationDto>>
+    suspend fun getMessages(conversationId: String): Result<List<MessageDto>>
+    suspend fun sendMessage(message: SendMessageRequest): Result<MessageDto>
+    suspend fun markConversationRead(conversationId: String, userId: String): Result<Unit>
 }
 
 // DTO classes for API communication (separate from domain models)
@@ -206,3 +213,46 @@ data class ServiceAreaDto(
     val radiusKm: Double
 )
 
+@Serializable
+data class ConversationDto(
+    val id: String,
+    val bookingId: String,
+    val clientId: String,
+    val clientName: String,
+    val providerId: String,
+    val providerName: String,
+    val lastMessage: String = "",
+    val lastMessageAt: String = "",
+    val unreadCount: Int = 0,
+    val updatedAt: String
+)
+
+@Serializable
+data class MessageDto(
+    val id: String,
+    val conversationId: String,
+    val senderId: String,
+    val senderName: String,
+    val body: String,
+    val isRead: Boolean = false,
+    val createdAt: String
+)
+
+@Serializable
+data class CreateConversationRequest(
+    val bookingId: String,
+    val clientId: String,
+    val clientName: String,
+    val providerId: String,
+    val providerName: String
+)
+
+@Serializable
+data class SendMessageRequest(
+    val id: String,
+    val conversationId: String,
+    val senderId: String,
+    val senderName: String,
+    val body: String,
+    val createdAt: String
+)

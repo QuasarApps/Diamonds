@@ -141,3 +141,28 @@ data class ProviderLocationEntity(
     val updatedAt: String
 )
 
+@Entity(tableName = "conversations")
+data class ConversationEntity(
+    @PrimaryKey val id: String,
+    val bookingId: String,
+    val clientId: String,
+    val clientName: String,
+    val providerId: String,
+    val providerName: String,
+    val lastMessage: String = "",
+    val lastMessageAt: String = "",
+    val unreadCount: Int = 0,
+    val updatedAt: String
+)
+
+@Entity(tableName = "messages")
+data class MessageEntity(
+    @PrimaryKey val id: String,
+    val conversationId: String,
+    val senderId: String,
+    val senderName: String,
+    val body: String,
+    val isRead: Boolean = false,
+    val createdAt: String
+)
+

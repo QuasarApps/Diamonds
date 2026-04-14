@@ -8,6 +8,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.diamonds.data.local.dao.BookingDao
 import com.example.diamonds.data.local.dao.ClientDao
+import com.example.diamonds.data.local.dao.ConversationDao
+import com.example.diamonds.data.local.dao.MessageDao
 import com.example.diamonds.data.local.dao.NotificationDao
 import com.example.diamonds.data.local.dao.PaymentDao
 import com.example.diamonds.data.local.dao.ProviderDao
@@ -17,6 +19,8 @@ import com.example.diamonds.data.local.dao.ServiceDao
 import com.example.diamonds.data.local.dao.SyncQueueDao
 import com.example.diamonds.data.local.entity.BookingEntity
 import com.example.diamonds.data.local.entity.ClientEntity
+import com.example.diamonds.data.local.entity.ConversationEntity
+import com.example.diamonds.data.local.entity.MessageEntity
 import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
@@ -35,9 +39,11 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
         PaymentEntity::class,
         SyncQueueEntity::class,
         NotificationEntity::class,
-        ProviderLocationEntity::class
+        ProviderLocationEntity::class,
+        ConversationEntity::class,
+        MessageEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -50,6 +56,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun syncQueueDao(): SyncQueueDao
     abstract fun notificationDao(): NotificationDao
     abstract fun providerLocationDao(): ProviderLocationDao
+    abstract fun conversationDao(): ConversationDao
+    abstract fun messageDao(): MessageDao
 
     companion object {
         @Volatile
@@ -108,6 +116,41 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v5 → v6: add conversations and messages tables for in-app chat. */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS conversations (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        bookingId TEXT NOT NULL,
+                        clientId TEXT NOT NULL,
+                        clientName TEXT NOT NULL,
+                        providerId TEXT NOT NULL,
+                        providerName TEXT NOT NULL,
+                        lastMessage TEXT NOT NULL DEFAULT '',
+                        lastMessageAt TEXT NOT NULL DEFAULT '',
+                        unreadCount INTEGER NOT NULL DEFAULT 0,
+                        updatedAt TEXT NOT NULL
+                    )
+                """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS messages (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        conversationId TEXT NOT NULL,
+                        senderId TEXT NOT NULL,
+                        senderName TEXT NOT NULL,
+                        body TEXT NOT NULL,
+                        isRead INTEGER NOT NULL DEFAULT 0,
+                        createdAt TEXT NOT NULL
+                    )
+                """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -115,7 +158,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "diamonds_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6
+                    )
                     .build()
                 INSTANCE = instance
                 instance

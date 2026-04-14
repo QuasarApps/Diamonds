@@ -4,7 +4,9 @@ import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.GeoLocation
+import com.example.diamonds.domain.model.Message
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationPreferences
 import com.example.diamonds.domain.model.NotificationType
@@ -24,6 +26,7 @@ import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
 import com.example.diamonds.domain.repository.IClientRepository
 import com.example.diamonds.domain.repository.ILocationRepository
+import com.example.diamonds.domain.repository.IMessageRepository
 import com.example.diamonds.domain.repository.INotificationRepository
 import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
@@ -449,3 +452,87 @@ class FakeSyncRepository : ISyncRepository {
 
     override suspend fun syncNow(): Result<Unit> = Result.Success(Unit)
 }
+
+class FakeMessageRepository : IMessageRepository {
+    private val conversations = mutableListOf<Conversation>()
+    private val messages = mutableListOf<Message>()
+
+    override suspend fun getOrCreateConversation(
+        bookingId: String,
+        clientId: String,
+        clientName: String,
+        providerId: String,
+        providerName: String
+    ): Result<Conversation> {
+        val existing = conversations.find { it.bookingId == bookingId }
+        if (existing != null) return Result.Success(existing)
+
+        val conv = Conversation(
+            id = "conv-$bookingId",
+            bookingId = bookingId,
+            clientId = clientId,
+            clientName = clientName,
+            providerId = providerId,
+            providerName = providerName,
+            lastMessage = "",
+            lastMessageAt = "",
+            unreadCount = 0,
+            updatedAt = System.currentTimeMillis().toString()
+        )
+        conversations.add(conv)
+        return Result.Success(conv)
+    }
+
+    override suspend fun getConversationsForUser(userId: String): Result<List<Conversation>> {
+        return Result.Success(
+            conversations.filter { it.clientId == userId || it.providerId == userId }
+        )
+    }
+
+    override fun observeConversationsForUser(userId: String): Flow<List<Conversation>> {
+        return flowOf(
+            conversations.filter { it.clientId == userId || it.providerId == userId }
+        )
+    }
+
+    override suspend fun getMessages(conversationId: String): Result<List<Message>> {
+        return Result.Success(messages.filter { it.conversationId == conversationId })
+    }
+
+    override fun observeMessages(conversationId: String): Flow<List<Message>> {
+        return flowOf(messages.filter { it.conversationId == conversationId })
+    }
+
+    override suspend fun sendMessage(message: Message): Result<Message> {
+        messages.add(message)
+        // Update conversation
+        val convIdx = conversations.indexOfFirst { it.id == message.conversationId }
+        if (convIdx >= 0) {
+            val conv = conversations[convIdx]
+            conversations[convIdx] = conv.copy(
+                lastMessage = message.body,
+                lastMessageAt = message.createdAt,
+                updatedAt = message.createdAt
+            )
+        }
+        return Result.Success(message)
+    }
+
+    override suspend fun markConversationRead(
+        conversationId: String,
+        userId: String
+    ): Result<Unit> {
+        val convIdx = conversations.indexOfFirst { it.id == conversationId }
+        if (convIdx >= 0) {
+            conversations[convIdx] = conversations[convIdx].copy(unreadCount = 0)
+        }
+        return Result.Success(Unit)
+    }
+
+    override fun observeUnreadMessageCount(userId: String): Flow<Int> {
+        return flowOf(conversations.filter {
+            it.clientId == userId || it.providerId == userId
+        }.sumOf { it.unreadCount })
+    }
+}
+

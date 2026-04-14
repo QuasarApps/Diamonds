@@ -289,6 +289,91 @@ class FirebaseBackendService : IBackendService {
                 ?: throw Exception("Service area not found")
         }
 
+    // ── Chat / Messaging ─────────────────────────────────────────────────────
+
+    private val conversationsCol = db.collection("conversations")
+    private val messagesCol = db.collection("messages")
+
+    override suspend fun getOrCreateConversation(request: CreateConversationRequest): Result<ConversationDto> =
+        firestoreCall {
+            // Check if conversation for this booking already exists
+            val existing = conversationsCol
+                .whereEqualTo("bookingId", request.bookingId)
+                .get().await()
+            if (!existing.isEmpty) {
+                return@firestoreCall existing.toObjects(ConversationDto::class.java).first()
+            }
+            val id = conversationsCol.document().id
+            val timestamp = java.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()
+            ).format(java.util.Date())
+            val dto = ConversationDto(
+                id = id,
+                bookingId = request.bookingId,
+                clientId = request.clientId,
+                clientName = request.clientName,
+                providerId = request.providerId,
+                providerName = request.providerName,
+                lastMessage = "",
+                lastMessageAt = "",
+                unreadCount = 0,
+                updatedAt = timestamp
+            )
+            conversationsCol.document(id).set(dto).await()
+            dto
+        }
+
+    override suspend fun getConversationsForUser(userId: String): Result<List<ConversationDto>> =
+        firestoreCall {
+            val asClient = conversationsCol.whereEqualTo("clientId", userId).get().await()
+            val asProvider = conversationsCol.whereEqualTo("providerId", userId).get().await()
+            (asClient.toObjects(ConversationDto::class.java) +
+                    asProvider.toObjects(ConversationDto::class.java))
+                .distinctBy { it.id }
+                .sortedByDescending { it.updatedAt }
+        }
+
+    override suspend fun getMessages(conversationId: String): Result<List<MessageDto>> =
+        firestoreCall {
+            val snap = messagesCol
+                .whereEqualTo("conversationId", conversationId)
+                .orderBy("createdAt", Query.Direction.ASCENDING)
+                .get().await()
+            snap.toObjects(MessageDto::class.java)
+        }
+
+    override suspend fun sendMessage(message: SendMessageRequest): Result<MessageDto> =
+        firestoreCall {
+            val dto = MessageDto(
+                id = message.id,
+                conversationId = message.conversationId,
+                senderId = message.senderId,
+                senderName = message.senderName,
+                body = message.body,
+                isRead = false,
+                createdAt = message.createdAt
+            )
+            messagesCol.document(message.id).set(dto).await()
+            // Update conversation last message
+            conversationsCol.document(message.conversationId).update(
+                mapOf(
+                    "lastMessage" to message.body,
+                    "lastMessageAt" to message.createdAt,
+                    "updatedAt" to message.createdAt
+                )
+            ).await()
+            dto
+        }
+
+    override suspend fun markConversationRead(
+        conversationId: String,
+        userId: String
+    ): Result<Unit> =
+        firestoreCall {
+            // Reset unread count
+            conversationsCol.document(conversationId).update("unreadCount", 0).await()
+        }
+
     // ── Helper ───────────────────────────────────────────────────────────────
 
     /**

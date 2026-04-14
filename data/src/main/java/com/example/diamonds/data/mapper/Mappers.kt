@@ -2,6 +2,8 @@ package com.example.diamonds.data.mapper
 
 import com.example.diamonds.data.local.entity.BookingEntity
 import com.example.diamonds.data.local.entity.ClientEntity
+import com.example.diamonds.data.local.entity.ConversationEntity
+import com.example.diamonds.data.local.entity.MessageEntity
 import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
@@ -11,6 +13,8 @@ import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
 import com.example.diamonds.data.remote.backend.BookingDto
 import com.example.diamonds.data.remote.backend.ClientDto
+import com.example.diamonds.data.remote.backend.ConversationDto
+import com.example.diamonds.data.remote.backend.MessageDto
 import com.example.diamonds.data.remote.backend.PaymentDto
 import com.example.diamonds.data.remote.backend.ProviderDto
 import com.example.diamonds.data.remote.backend.ReviewDto
@@ -19,7 +23,9 @@ import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Client
+import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.GeoLocation
+import com.example.diamonds.domain.model.Message
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationType
 import com.example.diamonds.domain.model.Payment
@@ -346,3 +352,73 @@ fun ProviderLocation.toEntity(): ProviderLocationEntity = ProviderLocationEntity
     updatedAt = updatedAt
 )
 
+// ── Conversation & Message ────────────────────────────────────────────────────
+
+fun ConversationEntity.toDomain(): Conversation = Conversation(
+    id = id,
+    bookingId = bookingId,
+    clientId = clientId,
+    clientName = clientName,
+    providerId = providerId,
+    providerName = providerName,
+    lastMessage = lastMessage,
+    lastMessageAt = lastMessageAt,
+    unreadCount = unreadCount,
+    updatedAt = updatedAt
+)
+
+fun Conversation.toEntity(): ConversationEntity = ConversationEntity(
+    id = id,
+    bookingId = bookingId,
+    clientId = clientId,
+    clientName = clientName,
+    providerId = providerId,
+    providerName = providerName,
+    lastMessage = lastMessage,
+    lastMessageAt = lastMessageAt,
+    unreadCount = unreadCount,
+    updatedAt = updatedAt
+)
+
+fun ConversationDto.toDomain(): Conversation = Conversation(
+    id = id,
+    bookingId = bookingId,
+    clientId = clientId,
+    clientName = clientName,
+    providerId = providerId,
+    providerName = providerName,
+    lastMessage = lastMessage,
+    lastMessageAt = lastMessageAt,
+    unreadCount = unreadCount,
+    updatedAt = updatedAt
+)
+
+fun MessageEntity.toDomain(): Message = Message(
+    id = id,
+    conversationId = conversationId,
+    senderId = senderId,
+    senderName = senderName,
+    body = body,
+    isRead = isRead,
+    createdAt = createdAt
+)
+
+fun Message.toEntity(): MessageEntity = MessageEntity(
+    id = id,
+    conversationId = conversationId,
+    senderId = senderId,
+    senderName = senderName,
+    body = body,
+    isRead = isRead,
+    createdAt = createdAt
+)
+
+fun MessageDto.toDomain(): Message = Message(
+    id = id,
+    conversationId = conversationId,
+    senderId = senderId,
+    senderName = senderName,
+    body = body,
+    isRead = isRead,
+    createdAt = createdAt
+)
