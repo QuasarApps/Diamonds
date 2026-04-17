@@ -8,6 +8,7 @@ import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
 import com.example.diamonds.data.local.entity.ProviderLocationEntity
+import com.example.diamonds.data.local.entity.RecurringBookingEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
@@ -17,6 +18,7 @@ import com.example.diamonds.data.remote.backend.ConversationDto
 import com.example.diamonds.data.remote.backend.MessageDto
 import com.example.diamonds.data.remote.backend.PaymentDto
 import com.example.diamonds.data.remote.backend.ProviderDto
+import com.example.diamonds.data.remote.backend.RecurringBookingDto
 import com.example.diamonds.data.remote.backend.ReviewDto
 import com.example.diamonds.data.remote.backend.ServiceDto
 import com.example.diamonds.domain.model.Booking
@@ -33,6 +35,9 @@ import com.example.diamonds.domain.model.PaymentMethod
 import com.example.diamonds.domain.model.PaymentStatus
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ProviderLocation
+import com.example.diamonds.domain.model.RecurringBooking
+import com.example.diamonds.domain.model.RecurringBookingStatus
+import com.example.diamonds.domain.model.RecurringFrequency
 import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceCategory
@@ -422,3 +427,66 @@ fun MessageDto.toDomain(): Message = Message(
     isRead = isRead,
     createdAt = createdAt
 )
+
+// ── Recurring Booking mappers ──────────────────────────────────────────────
+
+fun RecurringBookingEntity.toDomain(): RecurringBooking = RecurringBooking(
+    id = id,
+    clientId = clientId,
+    providerId = providerId,
+    providerName = providerName,
+    serviceId = serviceId,
+    serviceName = serviceName,
+    frequency = RecurringFrequency.valueOf(frequency),
+    preferredDay = preferredDay,
+    preferredTime = preferredTime,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    totalPrice = totalPrice,
+    status = RecurringBookingStatus.valueOf(status),
+    nextBookingDate = nextBookingDate,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun RecurringBooking.toEntity(): RecurringBookingEntity = RecurringBookingEntity(
+    id = id,
+    clientId = clientId,
+    providerId = providerId,
+    providerName = providerName,
+    serviceId = serviceId,
+    serviceName = serviceName,
+    frequency = frequency.name,
+    preferredDay = preferredDay,
+    preferredTime = preferredTime,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    totalPrice = totalPrice,
+    status = status.name,
+    nextBookingDate = nextBookingDate,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
+fun RecurringBookingDto.toDomain(): RecurringBooking = RecurringBooking(
+    id = id,
+    clientId = clientId,
+    providerId = providerId,
+    providerName = providerName,
+    serviceId = serviceId,
+    serviceName = serviceName,
+    frequency = RecurringFrequency.valueOf(frequency),
+    preferredDay = preferredDay,
+    preferredTime = preferredTime,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    totalPrice = totalPrice,
+    status = RecurringBookingStatus.valueOf(status),
+    nextBookingDate = nextBookingDate,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+

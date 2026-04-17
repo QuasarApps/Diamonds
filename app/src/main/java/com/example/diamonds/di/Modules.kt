@@ -21,6 +21,7 @@ import com.example.diamonds.data.repository.PaymentRepository
 import com.example.diamonds.data.repository.ProviderRepository
 import com.example.diamonds.data.repository.ReviewRepository
 import com.example.diamonds.data.repository.ServiceRepository
+import com.example.diamonds.data.repository.SubscriptionRepository
 import com.example.diamonds.data.sync.ConnectivitySyncTrigger
 import com.example.diamonds.data.sync.SyncManager
 import com.example.diamonds.domain.repository.IAuthRepository
@@ -33,6 +34,7 @@ import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
+import com.example.diamonds.domain.repository.ISubscriptionRepository
 import com.example.diamonds.domain.repository.ISyncRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -220,5 +222,15 @@ object RepositoryModule {
         connectivityObserver: ConnectivityObserver
     ): IMessageRepository {
         return MessageRepository(db, backendService, connectivityObserver)
+    }
+
+    @Singleton
+    @Provides
+    fun provideSubscriptionRepository(
+        db: AppDatabase,
+        backendService: IBackendService,
+        connectivityObserver: ConnectivityObserver
+    ): ISubscriptionRepository {
+        return SubscriptionRepository(db, backendService, connectivityObserver)
     }
 }

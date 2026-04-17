@@ -690,5 +690,110 @@ class BackendServiceStub : IBackendService {
         }
         return Result.Success(Unit)
     }
-}
 
+    // ── Recurring Bookings ────────────────────────────────────────────────
+
+    private val recurringBookingStore = mutableListOf(
+        RecurringBookingDto(
+            id = "rb1", clientId = "c1", providerId = "p1", providerName = "Maria Garcia",
+            serviceId = "s1", serviceName = "Apartment Deep Clean",
+            frequency = "WEEKLY", preferredDay = 3, preferredTime = "09:00",
+            address = "123 Main St, Apt 4B", latitude = 40.7128, longitude = -74.0060,
+            totalPrice = 120.0, status = "ACTIVE", nextBookingDate = "2026-04-23",
+            createdAt = "2026-03-01", updatedAt = "2026-04-10"
+        ),
+        RecurringBookingDto(
+            id = "rb2", clientId = "c1", providerId = "p4", providerName = "Daniel Choi",
+            serviceId = "s5", serviceName = "Carpet Steam Clean",
+            frequency = "MONTHLY", preferredDay = 15, preferredTime = "14:00",
+            address = "456 Oak Ave", latitude = 40.7200, longitude = -74.0100,
+            totalPrice = 180.0, status = "ACTIVE", nextBookingDate = "2026-05-15",
+            createdAt = "2026-02-15", updatedAt = "2026-04-01"
+        ),
+        RecurringBookingDto(
+            id = "rb3", clientId = "c1", providerId = "p2", providerName = "James Wilson",
+            serviceId = "s3", serviceName = "Office Cleaning",
+            frequency = "FORTNIGHTLY", preferredDay = 1, preferredTime = "08:00",
+            address = "789 Business Park", latitude = 40.7300, longitude = -73.9900,
+            totalPrice = 200.0, status = "PAUSED", nextBookingDate = "2026-04-28",
+            createdAt = "2026-01-10", updatedAt = "2026-03-20"
+        )
+    )
+
+    override suspend fun createRecurringBooking(request: CreateRecurringBookingRequest): Result<RecurringBookingDto> {
+        delay(400)
+        val now =
+            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+        val dto = RecurringBookingDto(
+            id = "rb${recurringBookingStore.size + 1}_${System.currentTimeMillis()}",
+            clientId = request.clientId,
+            providerId = request.providerId,
+            providerName = request.providerName,
+            serviceId = request.serviceId,
+            serviceName = request.serviceName,
+            frequency = request.frequency,
+            preferredDay = request.preferredDay,
+            preferredTime = request.preferredTime,
+            address = request.address,
+            latitude = request.latitude,
+            longitude = request.longitude,
+            totalPrice = request.totalPrice,
+            status = "ACTIVE",
+            nextBookingDate = now, // first occurrence ASAP
+            createdAt = now,
+            updatedAt = now
+        )
+        recurringBookingStore.add(dto)
+        return Result.Success(dto)
+    }
+
+    override suspend fun getRecurringBooking(id: String): Result<RecurringBookingDto> {
+        delay(200)
+        val rb = recurringBookingStore.find { it.id == id }
+            ?: return Result.Error(Exception("Recurring booking not found"))
+        return Result.Success(rb)
+    }
+
+    override suspend fun getRecurringBookingsForClient(clientId: String): Result<List<RecurringBookingDto>> {
+        delay(300)
+        return Result.Success(recurringBookingStore.filter { it.clientId == clientId })
+    }
+
+    override suspend fun updateRecurringBookingStatus(
+        id: String,
+        status: String
+    ): Result<RecurringBookingDto> {
+        delay(300)
+        val idx = recurringBookingStore.indexOfFirst { it.id == id }
+        if (idx < 0) return Result.Error(Exception("Recurring booking not found"))
+        val now =
+            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+        recurringBookingStore[idx] =
+            recurringBookingStore[idx].copy(status = status, updatedAt = now)
+        return Result.Success(recurringBookingStore[idx])
+    }
+
+    override suspend fun updateRecurringBookingSchedule(
+        id: String,
+        preferredDay: Int,
+        preferredTime: String
+    ): Result<RecurringBookingDto> {
+        delay(300)
+        val idx = recurringBookingStore.indexOfFirst { it.id == id }
+        if (idx < 0) return Result.Error(Exception("Recurring booking not found"))
+        val now =
+            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+        recurringBookingStore[idx] = recurringBookingStore[idx].copy(
+            preferredDay = preferredDay, preferredTime = preferredTime, updatedAt = now
+        )
+        return Result.Success(recurringBookingStore[idx])
+    }
+
+    override suspend fun advanceRecurringBookingDate(id: String, newDate: String): Result<Unit> {
+        delay(100)
+        val idx = recurringBookingStore.indexOfFirst { it.id == id }
+        if (idx < 0) return Result.Error(Exception("Recurring booking not found"))
+        recurringBookingStore[idx] = recurringBookingStore[idx].copy(nextBookingDate = newDate)
+        return Result.Success(Unit)
+    }
+}

@@ -374,6 +374,87 @@ class FirebaseBackendService : IBackendService {
             conversationsCol.document(conversationId).update("unreadCount", 0).await()
         }
 
+    // ── Recurring Bookings (Firestore) ────────────────────────────────────
+
+    private val recurringBookingsCol get() = db.collection("recurringBookings")
+
+    override suspend fun createRecurringBooking(request: CreateRecurringBookingRequest): Result<RecurringBookingDto> =
+        firestoreCall {
+            val doc = recurringBookingsCol.document()
+            val now = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(java.util.Date())
+            val dto = RecurringBookingDto(
+                id = doc.id,
+                clientId = request.clientId,
+                providerId = request.providerId,
+                providerName = request.providerName,
+                serviceId = request.serviceId,
+                serviceName = request.serviceName,
+                frequency = request.frequency,
+                preferredDay = request.preferredDay,
+                preferredTime = request.preferredTime,
+                address = request.address,
+                latitude = request.latitude,
+                longitude = request.longitude,
+                totalPrice = request.totalPrice,
+                status = "ACTIVE",
+                nextBookingDate = now,
+                createdAt = now,
+                updatedAt = now
+            )
+            doc.set(dto).await()
+            dto
+        }
+
+    override suspend fun getRecurringBooking(id: String): Result<RecurringBookingDto> =
+        firestoreCall {
+            recurringBookingsCol.document(id).get().await()
+                .toObject(RecurringBookingDto::class.java)!!
+        }
+
+    override suspend fun getRecurringBookingsForClient(clientId: String): Result<List<RecurringBookingDto>> =
+        firestoreCall {
+            recurringBookingsCol.whereEqualTo("clientId", clientId).get().await()
+                .toObjects(RecurringBookingDto::class.java)
+        }
+
+    override suspend fun updateRecurringBookingStatus(
+        id: String,
+        status: String
+    ): Result<RecurringBookingDto> =
+        firestoreCall {
+            val now = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(java.util.Date())
+            recurringBookingsCol.document(id).update(mapOf("status" to status, "updatedAt" to now))
+                .await()
+            recurringBookingsCol.document(id).get().await()
+                .toObject(RecurringBookingDto::class.java)!!
+        }
+
+    override suspend fun updateRecurringBookingSchedule(
+        id: String,
+        preferredDay: Int,
+        preferredTime: String
+    ): Result<RecurringBookingDto> =
+        firestoreCall {
+            val now = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(java.util.Date())
+            recurringBookingsCol.document(id).update(
+                mapOf(
+                    "preferredDay" to preferredDay,
+                    "preferredTime" to preferredTime,
+                    "updatedAt" to now
+                )
+            ).await()
+            recurringBookingsCol.document(id).get().await()
+                .toObject(RecurringBookingDto::class.java)!!
+        }
+
+    override suspend fun advanceRecurringBookingDate(id: String, newDate: String): Result<Unit> =
+        firestoreCall {
+            recurringBookingsCol.document(id).update("nextBookingDate", newDate).await()
+        }
+
     // ── Helper ───────────────────────────────────────────────────────────────
 
     /**

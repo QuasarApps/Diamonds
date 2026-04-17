@@ -14,6 +14,7 @@ import com.example.diamonds.data.local.dao.NotificationDao
 import com.example.diamonds.data.local.dao.PaymentDao
 import com.example.diamonds.data.local.dao.ProviderDao
 import com.example.diamonds.data.local.dao.ProviderLocationDao
+import com.example.diamonds.data.local.dao.RecurringBookingDao
 import com.example.diamonds.data.local.dao.ReviewDao
 import com.example.diamonds.data.local.dao.ServiceDao
 import com.example.diamonds.data.local.dao.SyncQueueDao
@@ -25,6 +26,7 @@ import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
 import com.example.diamonds.data.local.entity.ProviderLocationEntity
+import com.example.diamonds.data.local.entity.RecurringBookingEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
@@ -41,9 +43,10 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
         NotificationEntity::class,
         ProviderLocationEntity::class,
         ConversationEntity::class,
-        MessageEntity::class
+        MessageEntity::class,
+        RecurringBookingEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -58,6 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun providerLocationDao(): ProviderLocationDao
     abstract fun conversationDao(): ConversationDao
     abstract fun messageDao(): MessageDao
+    abstract fun recurringBookingDao(): RecurringBookingDao
 
     companion object {
         @Volatile
@@ -151,6 +155,35 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v6 → v7: add recurring_bookings table for subscription / recurring booking support. */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS recurring_bookings (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        clientId TEXT NOT NULL,
+                        providerId TEXT NOT NULL,
+                        providerName TEXT NOT NULL,
+                        serviceId TEXT NOT NULL,
+                        serviceName TEXT NOT NULL,
+                        frequency TEXT NOT NULL,
+                        preferredDay INTEGER NOT NULL,
+                        preferredTime TEXT NOT NULL,
+                        address TEXT NOT NULL,
+                        latitude REAL,
+                        longitude REAL,
+                        totalPrice REAL NOT NULL,
+                        status TEXT NOT NULL,
+                        nextBookingDate TEXT NOT NULL,
+                        createdAt TEXT NOT NULL,
+                        updatedAt TEXT NOT NULL
+                    )
+                """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -163,7 +196,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_2_3,
                         MIGRATION_3_4,
                         MIGRATION_4_5,
-                        MIGRATION_5_6
+                        MIGRATION_5_6,
+                        MIGRATION_6_7
                     )
                     .build()
                 INSTANCE = instance

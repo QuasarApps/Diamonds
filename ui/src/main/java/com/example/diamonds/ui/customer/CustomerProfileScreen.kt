@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -26,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.repository.UserSession
 
 /**
@@ -37,6 +35,7 @@ fun CustomerProfileScreen(
     session: UserSession,
     onPaymentHistory: () -> Unit,
     onMyBookings: () -> Unit,
+    onSubscriptions: () -> Unit = {},
     onSignOut: () -> Unit
 ) {
     Column(
@@ -104,6 +103,13 @@ fun CustomerProfileScreen(
             onClick  = onPaymentHistory
         )
 
+        ProfileLinkCard(
+            icon = "🔄",
+            title = "Recurring Bookings",
+            subtitle = "Manage your scheduled cleaning plans",
+            onClick = onSubscriptions
+        )
+
         HorizontalDivider()
 
         // ── Account info ──────────────────────────────────────────────────
@@ -122,7 +128,9 @@ fun CustomerProfileScreen(
         // ── Sign out ──────────────────────────────────────────────────────
         OutlinedButton(
             onClick  = onSignOut,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
             colors   = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error
             )

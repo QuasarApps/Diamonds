@@ -57,6 +57,16 @@ sealed class Screen(val route: String) {
     }
     data object PaymentHistory : Screen("customer/payments")
 
+    // ── Subscription / Recurring Bookings ──────────────────────────────────
+    data class RecurringBookingSetup(
+        val providerId: String = "{providerId}",
+        val serviceId: String = "{serviceId}"
+    ) : Screen("customer/recurring/{providerId}/{serviceId}") {
+        fun route(pid: String, sid: String) = "customer/recurring/$pid/$sid"
+    }
+
+    data object SubscriptionManagement : Screen("customer/subscriptions")
+
     // ── Cleaner tab destinations ───────────────────────────────────────────
     data object CleanerDashboard       : Screen("cleaner/dashboard")
     data object CleanerRequests        : Screen("cleaner/requests")

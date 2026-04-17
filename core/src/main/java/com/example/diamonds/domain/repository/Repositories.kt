@@ -12,6 +12,8 @@ import com.example.diamonds.domain.model.Payment
 import com.example.diamonds.domain.model.PaymentStatus
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ProviderLocation
+import com.example.diamonds.domain.model.RecurringBooking
+import com.example.diamonds.domain.model.RecurringBookingStatus
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
@@ -221,6 +223,31 @@ interface IMessageRepository {
 }
 
 /**
+ * Repository for recurring bookings (subscriptions).
+ */
+interface ISubscriptionRepository {
+    suspend fun createRecurringBooking(recurringBooking: RecurringBooking): Result<RecurringBooking>
+    suspend fun getRecurringBooking(id: String): Result<RecurringBooking>
+    suspend fun getRecurringBookingsForClient(clientId: String): Result<List<RecurringBooking>>
+    suspend fun updateRecurringBookingStatus(
+        id: String,
+        status: RecurringBookingStatus
+    ): Result<RecurringBooking>
+
+    suspend fun updateSchedule(
+        id: String,
+        preferredDay: Int,
+        preferredTime: String
+    ): Result<RecurringBooking>
+
+    fun observeRecurringBookingsForClient(clientId: String): Flow<List<RecurringBooking>>
+
+    /** Get all active recurring bookings whose nextBookingDate is today or earlier (for the worker). */
+    suspend fun getActiveRecurringBookingsDue(todayIso: String): Result<List<RecurringBooking>>
+    suspend fun advanceNextBookingDate(id: String, newDate: String): Result<Unit>
+}
+
+/**
  * User role for role-based access control.
  *
  * The app has a single entry point but operates in two distinct modes:
@@ -288,5 +315,5 @@ enum class SyncOperationType {
  * Entity types that can be synced
  */
 enum class EntityType {
-    BOOKING, REVIEW, PAYMENT, SERVICE, PROFILE
+    BOOKING, REVIEW, PAYMENT, SERVICE, PROFILE, RECURRING_BOOKING
 }

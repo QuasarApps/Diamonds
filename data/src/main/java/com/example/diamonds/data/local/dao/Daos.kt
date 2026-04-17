@@ -13,6 +13,7 @@ import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.entity.PaymentEntity
 import com.example.diamonds.data.local.entity.ProviderEntity
 import com.example.diamonds.data.local.entity.ProviderLocationEntity
+import com.example.diamonds.data.local.entity.RecurringBookingEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
@@ -282,5 +283,35 @@ interface MessageDao {
 
     @Query("DELETE FROM messages WHERE conversationId = :conversationId")
     suspend fun deleteForConversation(conversationId: String)
+}
+
+@Dao
+interface RecurringBookingDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(recurringBooking: RecurringBookingEntity)
+
+    @Query("SELECT * FROM recurring_bookings WHERE id = :id")
+    suspend fun getById(id: String): RecurringBookingEntity?
+
+    @Query("SELECT * FROM recurring_bookings WHERE clientId = :clientId ORDER BY createdAt DESC")
+    suspend fun getForClient(clientId: String): List<RecurringBookingEntity>
+
+    @Query("SELECT * FROM recurring_bookings WHERE clientId = :clientId ORDER BY createdAt DESC")
+    fun observeForClient(clientId: String): Flow<List<RecurringBookingEntity>>
+
+    @Query("UPDATE recurring_bookings SET status = :status, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateStatus(id: String, status: String, updatedAt: String)
+
+    @Query("UPDATE recurring_bookings SET preferredDay = :day, preferredTime = :time, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateSchedule(id: String, day: Int, time: String, updatedAt: String)
+
+    @Query("UPDATE recurring_bookings SET nextBookingDate = :newDate, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun advanceNextBookingDate(id: String, newDate: String, updatedAt: String)
+
+    @Query("SELECT * FROM recurring_bookings WHERE status = 'ACTIVE' AND nextBookingDate <= :todayIso")
+    suspend fun getActiveDue(todayIso: String): List<RecurringBookingEntity>
+
+    @Query("DELETE FROM recurring_bookings WHERE id = :id")
+    suspend fun delete(id: String)
 }
 

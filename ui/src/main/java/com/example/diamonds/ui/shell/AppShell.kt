@@ -80,6 +80,8 @@ import com.example.diamonds.ui.notification.NotificationViewModel
 import com.example.diamonds.ui.payment.PaymentHistoryScreen
 import com.example.diamonds.ui.payment.PaymentScreen
 import com.example.diamonds.ui.payment.PaymentSuccessScreen
+import com.example.diamonds.ui.subscription.RecurringBookingSetupScreen
+import com.example.diamonds.ui.subscription.SubscriptionManagementScreen
 import com.example.diamonds.ui.sync.SyncStatusScreen
 
 /** Deep-link URI scheme used for in-app links and push notifications. */
@@ -693,6 +695,7 @@ fun AppShell(
                         CustomerProfileScreen(
                             session = s,
                             onPaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
+                            onSubscriptions = { navController.navigate(Screen.SubscriptionManagement.route) },
                             onMyBookings = {
                                 navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -707,6 +710,24 @@ fun AppShell(
                     }
                     composable(Screen.PaymentHistory.route) {
                         PaymentHistoryScreen()
+                    }
+                    composable(Screen.SubscriptionManagement.route) {
+                        SubscriptionManagementScreen()
+                    }
+                    composable(
+                        route = Screen.RecurringBookingSetup().route,
+                        arguments = listOf(
+                            navArgument("providerId") { type = NavType.StringType },
+                            navArgument("serviceId") { type = NavType.StringType }
+                        )
+                    ) { entry ->
+                        val pid = entry.arguments?.getString("providerId") ?: return@composable
+                        val sid = entry.arguments?.getString("serviceId") ?: return@composable
+                        RecurringBookingSetupScreen(
+                            providerId = pid,
+                            serviceId = sid,
+                            onSuccess = { navController.popBackStack() }
+                        )
                     }
                 }
 

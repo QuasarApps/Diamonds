@@ -220,6 +220,8 @@ class SyncManager(
             EntityType.PAYMENT -> dispatchPayment(opType, payload)
             EntityType.SERVICE -> dispatchService(opType, payload)
             EntityType.PROFILE -> dispatchProfile(opType, payload)
+            EntityType.RECURRING_BOOKING -> { /* handled by SubscriptionRepository directly */
+            }
         }
     }
 

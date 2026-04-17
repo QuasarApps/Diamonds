@@ -166,3 +166,24 @@ data class MessageEntity(
     val createdAt: String
 )
 
+@Entity(tableName = "recurring_bookings")
+data class RecurringBookingEntity(
+    @PrimaryKey val id: String,
+    val clientId: String,
+    val providerId: String,
+    val providerName: String,
+    val serviceId: String,
+    val serviceName: String,
+    val frequency: String, // RecurringFrequency enum
+    val preferredDay: Int,
+    val preferredTime: String,
+    val address: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val totalPrice: Double,
+    val status: String, // RecurringBookingStatus enum
+    val nextBookingDate: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+

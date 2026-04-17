@@ -65,6 +65,23 @@ interface IBackendService {
     suspend fun getMessages(conversationId: String): Result<List<MessageDto>>
     suspend fun sendMessage(message: SendMessageRequest): Result<MessageDto>
     suspend fun markConversationRead(conversationId: String, userId: String): Result<Unit>
+
+    // Recurring Bookings
+    suspend fun createRecurringBooking(request: CreateRecurringBookingRequest): Result<RecurringBookingDto>
+    suspend fun getRecurringBooking(id: String): Result<RecurringBookingDto>
+    suspend fun getRecurringBookingsForClient(clientId: String): Result<List<RecurringBookingDto>>
+    suspend fun updateRecurringBookingStatus(
+        id: String,
+        status: String
+    ): Result<RecurringBookingDto>
+
+    suspend fun updateRecurringBookingSchedule(
+        id: String,
+        preferredDay: Int,
+        preferredTime: String
+    ): Result<RecurringBookingDto>
+
+    suspend fun advanceRecurringBookingDate(id: String, newDate: String): Result<Unit>
 }
 
 // DTO classes for API communication (separate from domain models)
@@ -256,3 +273,41 @@ data class SendMessageRequest(
     val body: String,
     val createdAt: String
 )
+
+@Serializable
+data class RecurringBookingDto(
+    val id: String,
+    val clientId: String,
+    val providerId: String,
+    val providerName: String,
+    val serviceId: String,
+    val serviceName: String,
+    val frequency: String,
+    val preferredDay: Int,
+    val preferredTime: String,
+    val address: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val totalPrice: Double,
+    val status: String,
+    val nextBookingDate: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+@Serializable
+data class CreateRecurringBookingRequest(
+    val clientId: String,
+    val providerId: String,
+    val providerName: String,
+    val serviceId: String,
+    val serviceName: String,
+    val frequency: String,
+    val preferredDay: Int,
+    val preferredTime: String,
+    val address: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val totalPrice: Double
+)
+

@@ -321,3 +321,48 @@ data class TrackingState(
     val isActive: Boolean = false
 )
 
+// ── Recurring Bookings & Subscriptions ─────────────────────────────────────
+
+/**
+ * How often a recurring booking repeats.
+ */
+@Serializable
+enum class RecurringFrequency {
+    DAILY, WEEKLY, FORTNIGHTLY, MONTHLY
+}
+
+/**
+ * Lifecycle status of a recurring booking.
+ */
+@Serializable
+enum class RecurringBookingStatus {
+    ACTIVE, PAUSED, CANCELLED
+}
+
+/**
+ * A recurring booking schedule set up by a client.
+ */
+@Serializable
+data class RecurringBooking(
+    val id: String,
+    val clientId: String,
+    val providerId: String,
+    val providerName: String,
+    val serviceId: String,
+    val serviceName: String,
+    val frequency: RecurringFrequency,
+    /** Day of the week (1=Mon … 7=Sun) for WEEKLY / FORTNIGHTLY; day-of-month for MONTHLY. */
+    val preferredDay: Int,
+    /** Preferred time in "HH:mm" 24-hour format. */
+    val preferredTime: String,
+    val address: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val totalPrice: Double,
+    val status: RecurringBookingStatus = RecurringBookingStatus.ACTIVE,
+    /** ISO date of the next booking that will be auto-generated. */
+    val nextBookingDate: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+

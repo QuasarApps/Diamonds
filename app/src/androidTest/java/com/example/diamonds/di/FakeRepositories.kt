@@ -15,6 +15,8 @@ import com.example.diamonds.domain.model.PaymentMethod
 import com.example.diamonds.domain.model.PaymentStatus
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ProviderLocation
+import com.example.diamonds.domain.model.RecurringBooking
+import com.example.diamonds.domain.model.RecurringBookingStatus
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
@@ -32,6 +34,7 @@ import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
+import com.example.diamonds.domain.repository.ISubscriptionRepository
 import com.example.diamonds.domain.repository.ISyncRepository
 import com.example.diamonds.domain.repository.SyncOperation
 import com.example.diamonds.domain.repository.UserRole
@@ -536,3 +539,58 @@ class FakeMessageRepository : IMessageRepository {
     }
 }
 
+class FakeSubscriptionRepository : ISubscriptionRepository {
+    private val store = mutableListOf<RecurringBooking>()
+
+    override suspend fun createRecurringBooking(recurringBooking: RecurringBooking): Result<RecurringBooking> {
+        store.add(recurringBooking)
+        return Result.Success(recurringBooking)
+    }
+
+    override suspend fun getRecurringBooking(id: String): Result<RecurringBooking> {
+        val rb = store.find { it.id == id }
+            ?: return Result.Error(Exception("Not found"))
+        return Result.Success(rb)
+    }
+
+    override suspend fun getRecurringBookingsForClient(clientId: String): Result<List<RecurringBooking>> {
+        return Result.Success(store.filter { it.clientId == clientId })
+    }
+
+    override suspend fun updateRecurringBookingStatus(
+        id: String,
+        status: RecurringBookingStatus
+    ): Result<RecurringBooking> {
+        val idx = store.indexOfFirst { it.id == id }
+        if (idx < 0) return Result.Error(Exception("Not found"))
+        store[idx] = store[idx].copy(status = status)
+        return Result.Success(store[idx])
+    }
+
+    override suspend fun updateSchedule(
+        id: String,
+        preferredDay: Int,
+        preferredTime: String
+    ): Result<RecurringBooking> {
+        val idx = store.indexOfFirst { it.id == id }
+        if (idx < 0) return Result.Error(Exception("Not found"))
+        store[idx] = store[idx].copy(preferredDay = preferredDay, preferredTime = preferredTime)
+        return Result.Success(store[idx])
+    }
+
+    override fun observeRecurringBookingsForClient(clientId: String): Flow<List<RecurringBooking>> {
+        return flowOf(store.filter { it.clientId == clientId })
+    }
+
+    override suspend fun getActiveRecurringBookingsDue(todayIso: String): Result<List<RecurringBooking>> {
+        return Result.Success(
+            store.filter { it.status == RecurringBookingStatus.ACTIVE && it.nextBookingDate <= todayIso }
+        )
+    }
+
+    override suspend fun advanceNextBookingDate(id: String, newDate: String): Result<Unit> {
+        val idx = store.indexOfFirst { it.id == id }
+        if (idx >= 0) store[idx] = store[idx].copy(nextBookingDate = newDate)
+        return Result.Success(Unit)
+    }
+}

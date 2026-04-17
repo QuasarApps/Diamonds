@@ -1,7 +1,7 @@
 # START HERE 👋
 
 **Diamonds** - Offline-first home cleaning marketplace app  
-**Status**: Phases 1-10 ✅ Complete | **Modules**: 5 | **LOC**: 15,500+ | **Screens**: 38+
+**Status**: Phases 1-12 ✅ Complete | **Modules**: 5 | **LOC**: 16,500+ | **Screens**: 40+
 
 ---
 
@@ -51,8 +51,8 @@ ViewModel (state) → Repository (offline logic) → Room DB + Backend Service
 | 8     | Firebase Integration          | ✅      |
 | 9     | Maps & Location               | ✅      |
 | 10    | Sync & Offline                | ✅      |
-| 11    | In-App Chat                   | ⏳      |
-| 12    | Recurring Bookings            | ⏳      |
+| 11    | In-App Chat                   | ✅      |
+| 12    | Recurring Bookings            | ✅      |
 | 13    | Multi-Language                | ⏳      |
 | 14    | Reverse Reviews               | ⏳      |
 | 15    | Cleaning/Location Options     | ⏳      |
