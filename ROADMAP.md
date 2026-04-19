@@ -617,7 +617,189 @@ Allow cleaners to review clients and their locations after a job.
 
 ---
 
-## Phase 15: Detailed Cleaning and Location Options
+## Phase 15: Help, Support & Claims System
+
+Comprehensive contextual help, cancellations, booking edits, refunds, and post-service claims for
+both customers and providers — integrated directly into booking and review flows.
+
+### Domain Models (`:core/domain/model/DomainModels.kt`)
+
+- `SupportTicketType` enum: `PRE_BOOKING`, `POST_BOOKING_PRE_SERVICE`, `DURING_SERVICE`,
+  `POST_SERVICE`, `SAFETY_EMERGENCY`, `ORDER_ISSUE`, `SATISFACTION`
+- `SupportTicketStatus` enum: `OPEN`, `IN_PROGRESS`, `AWAITING_RESPONSE`, `RESOLVED`, `CLOSED`
+- `ClaimType` enum (customer): `INCOMPLETE_SERVICE`, `UNSATISFACTORY_SERVICE`, `PROPERTY_DAMAGE`,
+  `INAPPROPRIATE_BEHAVIOR_PROVIDER`
+- `ClaimType` enum (provider): `DANGEROUS_PROPERTY`, `EXCEEDINGLY_DIRTY`,
+  `INAPPROPRIATE_BEHAVIOR_CLIENT`
+- `ClaimStatus` enum: `SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `RESOLVED`
+- `CancellationReason` enum: `CHANGED_MIND`, `FOUND_ANOTHER`, `SCHEDULING_CONFLICT`, `PRICE_ISSUE`,
+  `OTHER`
+- `SupportTicket` data class: `id`, `userId`, `userRole`, `bookingId?`, `type`, `status`, `subject`,
+  `description`, `conversationId?`, `createdAt`, `updatedAt`
+- `Claim` data class: `id`, `bookingId`, `filedByUserId`, `filedByRole`, `claimType`, `status`,
+  `description`, `evidenceImageUrls: List<String>`, `resolutionNotes?`, `refundAmount?`, `createdAt`,
+  `updatedAt`
+- Add `SUPPORT_UPDATE` and `CLAIM_UPDATE` to existing `NotificationType` enum
+
+### Contextual Help Matrix
+
+| Booking Status | Customer Actions                                    | Provider Actions                                  |
+|----------------|-----------------------------------------------------|---------------------------------------------------|
+| PENDING        | Edit address/service type, Cancel+Refund, Chat, FAQ | —                                                 |
+| ACCEPTED       | Cancel+Refund, Chat provider, FAQ                   | —                                                 |
+| IN_PROGRESS    | 🚨 Safety SOS, Chat provider, Report issue          | —                                                 |
+| COMPLETED      | File claim, Leave review, Contact support           | File claim (dangerous/dirty/inappropriate client) |
+| CANCELLED      | Refund status, Contact support                      | —                                                 |
+| NO_SHOW        | File claim, Request refund, Contact support         | —                                                 |
+
+### Tasks
+
+#### Cancellation & Refund
+
+- [ ] Add `requestCancellation(bookingId, reason): Result<Booking>` — validates status is PENDING or
+  ACCEPTED (not yet IN_PROGRESS); transitions booking to CANCELLED
+- [ ] Add `requestRefund(bookingId): Result<Payment>` — updates PaymentStatus to REFUNDED on
+  associated payment
+- [ ] Build CancelBookingScreen — reason picker (radio list of CancellationReason), refund
+  confirmation summary, "Confirm Cancellation" button
+- [ ] Show inline "Cancel Booking" button on BookingDetailScreen when status is PENDING or ACCEPTED
+
+#### Booking Edits (Pre-Confirmation)
+
+- [ ] Add `editBooking(bookingId, newAddress?, newServiceId?): Result<Booking>` — validates status
+  is
+  PENDING only (provider has not yet accepted)
+- [ ] Build EditBookingScreen — pre-populated address and service type fields, "Save Changes" button
+- [ ] Show inline "Edit Booking" button on BookingDetailScreen when status is PENDING
+
+#### Post-Service Claims (Customer)
+
+- [ ] Build FileClaimScreen — claim type selector chips (Incomplete, Unsatisfactory, Property
+  Damage,
+  Inappropriate Behavior), description text field, image evidence picker
+  (PickMultipleVisualMedia), submit button
+- [ ] Build ClaimDetailScreen — view claim status, resolution notes, refund amount if approved
+- [ ] Show "File a Claim" button on BookingDetailScreen when status is COMPLETED
+- [ ] Add "Having an issue?" link on ReviewScreen that navigates to FileClaimScreen
+
+#### Post-Service Claims (Provider)
+
+- [ ] Build provider-side FileClaimScreen — claim type chips (Dangerous Property, Exceedingly Dirty,
+  Inappropriate Client), description, evidence images
+- [ ] Show "Report Issue with Client" button on CleanerScheduleScreen for COMPLETED bookings
+- [ ] Add "Having an issue?" link on LeaveClientReviewScreen navigating to FileClaimScreen
+
+#### Support Tickets & Help Center
+
+- [ ] Build HelpCenterScreen — FAQ accordion list, "My Tickets" section with ticket history, "
+  Contact
+  Support" button (creates a support conversation via existing chat/message system)
+- [ ] Build ContextualHelpScreen — dynamically shows available actions based on booking status and
+  user role (see matrix above); each action is a card/button navigating to the appropriate screen
+- [ ] Add prominent "Help & Support" button/FAB on BookingDetailScreen → navigates to
+  ContextualHelpScreen(bookingId)
+- [ ] Add Help Center entry in CustomerProfileScreen and CleanerProfileScreen
+
+#### Safety & Emergency (During Service)
+
+- [ ] Add a prominent red "🚨 Emergency / Safety Help" button on ContextualHelpScreen when booking is
+  IN_PROGRESS
+- [ ] Creates an urgent SAFETY_EMERGENCY support ticket and optionally launches a phone dialer
+  intent
+  to local emergency services
+- [ ] Send push notification to support team (via existing FCM infrastructure)
+
+#### Data Layer
+
+- [ ] Create `SupportTicketEntity` Room entity (table `support_tickets`)
+- [ ] Create `ClaimEntity` Room entity (table `claims`, `evidenceImageUrls` stored as JSON string)
+- [ ] Create `SupportTicketDao` — insert, getByUser, getById, updateStatus, observeByUser
+- [ ] Create `ClaimDao` — insert, getByBooking, getByUser, getById, updateStatus, observeByUser
+- [ ] Add Room `MIGRATION_8_9` creating both tables; bump database version to 9
+- [ ] Add DTOs and endpoints to `IBackendService`: `SupportTicketDto`, `ClaimDto`,
+  `CreateSupportTicketRequest`, `FileClaimRequest`, `EditBookingRequest`,
+  `CancelBookingWithReasonRequest`
+- [ ] Implement stubs in `BackendServiceStub` with seeded demo claims and tickets
+- [ ] Implement Firestore collections in `FirebaseBackendService` (`support_tickets`, `claims`)
+- [ ] Create `ISupportRepository` interface in Repositories.kt
+- [ ] Create `SupportRepositoryImpl` in `data/repository/SupportRepository.kt`
+- [ ] Bind `ISupportRepository` in Hilt DI module
+
+#### Navigation
+
+- [ ] Add routes to Screen.kt: `HelpCenter`, `ContextualHelp(bookingId)`, `FileClaim(bookingId)`,
+  `ClaimDetail(claimId)`, `CancelBooking(bookingId)`, `EditBooking(bookingId)`,
+  `SupportTicketDetail(ticketId)`
+- [ ] Wire all new composable destinations in AppShell.kt
+
+### New Files
+
+- `ui/support/HelpCenterScreen.kt` — FAQ, ticket history, contact support
+- `ui/support/HelpCenterViewModel.kt` — Help center state management
+- `ui/support/ContextualHelpScreen.kt` — Dynamic help actions based on booking status + role
+- `ui/support/ContextualHelpViewModel.kt` — Loads booking, determines available actions
+- `ui/support/FileClaimScreen.kt` — Claim submission form with evidence upload
+- `ui/support/FileClaimViewModel.kt` — Claim filing state management
+- `ui/support/ClaimDetailScreen.kt` — Claim status and resolution view
+- `ui/support/ClaimDetailViewModel.kt` — Claim detail state management
+- `ui/support/CancelBookingScreen.kt` — Cancellation reason picker and refund confirmation
+- `ui/support/CancelBookingViewModel.kt` — Cancellation + refund logic
+- `ui/support/EditBookingScreen.kt` — Edit address and service type for PENDING bookings
+- `ui/support/EditBookingViewModel.kt` — Booking edit state management
+- `data/repository/SupportRepository.kt` — ISupportRepository implementation
+
+### Modified Files
+
+- `core/domain/model/DomainModels.kt` — SupportTicket, Claim, all new enums, NotificationType
+  additions
+- `core/domain/repository/Repositories.kt` — ISupportRepository interface
+- `data/local/entity/Entities.kt` — SupportTicketEntity, ClaimEntity
+- `data/local/dao/Daos.kt` — SupportTicketDao, ClaimDao
+- `data/local/AppDatabase.kt` — Version 9, MIGRATION_8_9, new DAOs registered
+- `data/remote/backend/IBackendService.kt` — Support/claim DTOs and endpoints
+- `data/remote/backend/BackendServiceStub.kt` — Seeded demo claims and support tickets
+- `data/remote/backend/FirebaseBackendService.kt` — Firestore support_tickets and claims collections
+- `data/mapper/Mappers.kt` — SupportTicket and Claim entity↔domain mappers
+- `ui/navigation/Screen.kt` — 7 new routes
+- `ui/shell/AppShell.kt` — New composable destinations, title mappings
+- `ui/booking/BookingsListScreen.kt` (BookingDetailScreen) — Help FAB, Cancel/Edit/Claim buttons
+  (contextual by status)
+- `ui/review/ReviewScreen.kt` — "Having an issue?" link → FileClaim
+- `ui/review/LeaveClientReviewScreen.kt` — "Having an issue?" link → FileClaim (provider side)
+- `ui/cleaner/CleanerScheduleScreen.kt` — "Report Issue with Client" button on completed bookings
+- `ui/customer/CustomerProfileScreen.kt` — Help Center quick-link card
+- `ui/cleaner/CleanerProfileScreen.kt` — Help Center quick-link card
+- `app/di/Modules.kt` — ISupportRepository binding
+
+### Implementation Order
+
+1. Domain models and enums (core)
+2. Room entities, DAOs, migration (data)
+3. Backend DTOs, endpoints, stubs (data)
+4. Repository interface + implementation (core + data)
+5. DI wiring (app)
+6. CancelBookingScreen + EditBookingScreen (simplest flows)
+7. FileClaimScreen + ClaimDetailScreen
+8. ContextualHelpScreen (ties everything together)
+9. HelpCenterScreen (FAQ + ticket history)
+10. Safety/emergency flow
+11. Integration into BookingDetailScreen, review screens, profile screens
+12. Seed demo data and test
+
+### Tests
+
+- [ ] Cancellation validation tests (only PENDING/ACCEPTED allowed)
+- [ ] Edit booking validation tests (only PENDING allowed)
+- [ ] Claim filing and status transition tests
+- [ ] Contextual help action resolution tests (correct actions per status + role)
+- [ ] Refund processing tests
+- [ ] Support ticket creation and chat integration tests
+
+**Estimated Duration**: 2-3 weeks
+
+---
+
+## Phase 16: Detailed Cleaning and Location Options
 
 Richer service configuration for both clients and cleaners.
 
@@ -650,7 +832,7 @@ Richer service configuration for both clients and cleaners.
 #### General
 
 - [ ] Update IBackendService DTOs, BackendServiceStub, and FirebaseBackendService for new fields
-- [ ] Add Room migration v8 to v9 for new columns on bookings, client profiles, and provider
+- [ ] Add Room migration v9 to v10 for new columns on bookings, client profiles, and provider
   profiles
 - [ ] Update search and matching logic to factor in cleaning type and location type compatibility
 - [ ] Seed rich demo data using the expanded types
@@ -665,7 +847,7 @@ Richer service configuration for both clients and cleaners.
 
 - `core/domain/model/DomainModels.kt` - CleaningType enum, LocationType model, Specialization model
 - `data/local/entity/Entities.kt` - New columns for cleaning type, location type, specializations
-- `data/local/AppDatabase.kt` - Version 9, MIGRATION_8_9
+- `data/local/AppDatabase.kt` - Version 10, MIGRATION_9_10
 - `data/remote/backend/IBackendService.kt` - Updated DTOs with new fields
 - `data/remote/backend/BackendServiceStub.kt` - Rich seeded demo data with expanded types
 - `data/remote/backend/FirebaseBackendService.kt` - Firestore support for new fields
@@ -687,7 +869,7 @@ Richer service configuration for both clients and cleaners.
 
 ---
 
-## Phase 16: Error Handling & Analytics
+## Phase 17: Error Handling & Analytics
 Comprehensive error handling and monitoring.
 
 ### Tasks
@@ -710,7 +892,7 @@ Comprehensive error handling and monitoring.
 
 ---
 
-## Phase 17: Testing & Optimization
+## Phase 18: Testing & Optimization
 Comprehensive testing, optimization, and release prep.
 
 ### Tasks
@@ -736,7 +918,7 @@ Comprehensive testing, optimization, and release prep.
 
 ---
 
-## Phase 18: Release Preparation
+## Phase 19: Release Preparation
 Finalization and app store submission.
 
 ### Tasks
@@ -755,7 +937,7 @@ Finalization and app store submission.
 
 ---
 
-## Phase 19: Beta Testing & Refinement
+## Phase 20: Beta Testing & Refinement
 Beta testing with real users.
 
 ### Tasks
@@ -772,7 +954,7 @@ Beta testing with real users.
 
 ---
 
-## Phase 20: Launch
+## Phase 21: Launch
 App store submission and monitoring.
 
 ### Tasks
@@ -799,9 +981,9 @@ Reverse Reviews)
 
 ### Next Immediate Steps:
 
-1. Begin Phase 15 (Detailed Cleaning and Location Options)
-2. Continue with Phase 16 (Error Handling & Analytics)
-3. Start Phase 17 (Testing & Optimization)
+1. Begin Phase 15 (Help, Support & Claims System)
+2. Continue with Phase 16 (Detailed Cleaning and Location Options)
+3. Start Phase 17 (Error Handling & Analytics)
 
 ### Architecture Strengths
 
