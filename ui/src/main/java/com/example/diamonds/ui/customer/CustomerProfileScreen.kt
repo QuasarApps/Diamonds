@@ -36,6 +36,7 @@ fun CustomerProfileScreen(
     onPaymentHistory: () -> Unit,
     onMyBookings: () -> Unit,
     onSubscriptions: () -> Unit = {},
+    onLanguage: () -> Unit = {},
     onSignOut: () -> Unit
 ) {
     Column(
@@ -108,6 +109,13 @@ fun CustomerProfileScreen(
             title = "Recurring Bookings",
             subtitle = "Manage your scheduled cleaning plans",
             onClick = onSubscriptions
+        )
+
+        ProfileLinkCard(
+            icon = "🌐",
+            title = "Language",
+            subtitle = "Change app language",
+            onClick = onLanguage
         )
 
         HorizontalDivider()

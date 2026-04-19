@@ -59,6 +59,7 @@ import com.example.diamonds.ui.components.PullToRefreshLayout
 fun CleanerProfileScreen(
     session: UserSession,
     onManageServices: () -> Unit,
+    onLanguage: () -> Unit = {},
     viewModel: CleanerProfileViewModel = hiltViewModel()
 ) {
     val state       by viewModel.profileState.collectAsState()
@@ -193,6 +194,30 @@ fun CleanerProfileScreen(
                     )
                 } else {
                     Text("Save Changes")
+                }
+            }
+
+            HorizontalDivider()
+
+            // ── Language ──────────────────────────────────────────────────
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onLanguage
+            ) {
+                Row(
+                    Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("🌐", fontSize = 24.sp)
+                    Spacer(Modifier.width(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Language", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(
+                            "Change app language", fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text("›", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 

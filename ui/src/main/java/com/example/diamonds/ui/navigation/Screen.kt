@@ -93,6 +93,7 @@ sealed class Screen(val route: String) {
     data object Notifications : Screen("notifications")
     data object NotificationPreferences : Screen("notifications/preferences")
     data object SyncStatus : Screen("sync_status")
+    data object LanguageSelector : Screen("settings/language")
 
     // ── Map & Location ─────────────────────────────────────────────────────
     /** Pick an address on a map during the booking flow. */

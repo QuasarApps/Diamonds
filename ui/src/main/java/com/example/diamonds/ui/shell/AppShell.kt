@@ -80,6 +80,7 @@ import com.example.diamonds.ui.notification.NotificationViewModel
 import com.example.diamonds.ui.payment.PaymentHistoryScreen
 import com.example.diamonds.ui.payment.PaymentScreen
 import com.example.diamonds.ui.payment.PaymentSuccessScreen
+import com.example.diamonds.ui.settings.LanguageSelectorScreen
 import com.example.diamonds.ui.subscription.RecurringBookingSetupScreen
 import com.example.diamonds.ui.subscription.SubscriptionManagementScreen
 import com.example.diamonds.ui.sync.SyncStatusScreen
@@ -178,6 +179,7 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("customer/tracking") -> "Track Cleaner"
         route.startsWith("chat/conversations") -> "Messages"
         route.startsWith("chat/") -> "Chat"
+        route.startsWith("settings/language") -> "Language"
         else -> appName
     }
 }
@@ -696,6 +698,7 @@ fun AppShell(
                             session = s,
                             onPaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
                             onSubscriptions = { navController.navigate(Screen.SubscriptionManagement.route) },
+                            onLanguage = { navController.navigate(Screen.LanguageSelector.route) },
                             onMyBookings = {
                                 navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -819,7 +822,8 @@ fun AppShell(
                     ) {
                         CleanerProfileScreen(
                             session = s,
-                            onManageServices = { navController.navigate(Screen.CleanerServiceManage.route) }
+                            onManageServices = { navController.navigate(Screen.CleanerServiceManage.route) },
+                            onLanguage = { navController.navigate(Screen.LanguageSelector.route) }
                         )
                     }
                     composable(Screen.CleanerServiceManage.route) {
@@ -924,7 +928,8 @@ fun AppShell(
                     ) {
                         CleanerProfileScreen(
                             session = s,
-                            onManageServices = { navController.navigate(Screen.CompanyServiceManage.route) }
+                            onManageServices = { navController.navigate(Screen.CompanyServiceManage.route) },
+                            onLanguage = { navController.navigate(Screen.LanguageSelector.route) }
                         )
                     }
                     composable(Screen.CompanyServiceManage.route) {
@@ -1020,6 +1025,13 @@ fun AppShell(
                 // ════════════════════════════════════════════════════════════
                 composable(Screen.SyncStatus.route) {
                     SyncStatusScreen()
+                }
+
+                // ════════════════════════════════════════════════════════════
+                // LANGUAGE SELECTOR (accessible from profile screens)
+                // ════════════════════════════════════════════════════════════
+                composable(Screen.LanguageSelector.route) {
+                    LanguageSelectorScreen()
                 }
             }
         }

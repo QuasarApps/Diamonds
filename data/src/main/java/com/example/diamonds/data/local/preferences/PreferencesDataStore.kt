@@ -27,6 +27,9 @@ class PreferencesDataStore(private val context: Context) {
         // FCM
         private val FCM_TOKEN_KEY = stringPreferencesKey("fcm_token")
 
+        // Language
+        private val LANGUAGE_KEY = stringPreferencesKey("language")
+
         // Notification preferences
         private val NOTIF_PUSH_ENABLED = booleanPreferencesKey("notif_push_enabled")
         private val NOTIF_BOOKING_UPDATES = booleanPreferencesKey("notif_booking_updates")
@@ -121,6 +124,19 @@ class PreferencesDataStore(private val context: Context) {
             prefs[NOTIF_BOOKING_UPDATES] = preferences.bookingUpdates
             prefs[NOTIF_PAYMENT_ALERTS] = preferences.paymentAlerts
             prefs[NOTIF_PROMOTIONS] = preferences.promotions
+        }
+    }
+
+    // ── Language Preference ──────────────────────────────────────────────────
+
+    fun observeLanguage(): Flow<String> =
+        context.preferencesDataStore.data.map { prefs ->
+            prefs[LANGUAGE_KEY] ?: "en"
+        }
+
+    suspend fun saveLanguage(languageCode: String) {
+        context.preferencesDataStore.edit { prefs ->
+            prefs[LANGUAGE_KEY] = languageCode
         }
     }
 }

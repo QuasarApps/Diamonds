@@ -1,0 +1,190 @@
+<resources>
+    <string name="app_name">Diamonds</string>
+    <string name="app_name_pro">Diamonds Pro</string>
+
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="sign_up">إنشاء حساب</string>
+    <string name="sign_out">تسجيل الخروج</string>
+    <string name="sign_in_to_continue">سجّل الدخول للمتابعة</string>
+    <string name="create_account">إنشاء حساب</string>
+    <string name="join_diamonds">انضم إلى Diamonds اليوم</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="confirm_password">تأكيد كلمة المرور</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="forgot_password">نسيت كلمة المرور؟</string>
+    <string name="reset_password">إعادة تعيين كلمة المرور</string>
+    <string name="reset_email_prompt">أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.</string>
+    <string name="reset_email_sent">تم إرسال بريد إعادة التعيين!</string>
+    <string name="send">إرسال</string>
+    <string name="cancel">إلغاء</string>
+    <string name="dont_have_account">ليس لديك حساب؟</string>
+    <string name="already_have_account">لديك حساب بالفعل؟</string>
+    <string name="i_want_to">أريد…</string>
+    <string name="customer">عميل</string>
+    <string name="cleaner">عامل نظافة</string>
+    <string name="company">شركة</string>
+    <string name="book_cleaners">حجز عمال نظافة</string>
+    <string name="offer_services">تقديم خدمات التنظيف</string>
+    <string name="manage_team">إدارة فريق التنظيف</string>
+    <string name="independent">مستقل</string>
+    <string name="employed">موظف</string>
+
+    <string name="demo_accounts">حسابات تجريبية</string>
+    <string name="tap_to_autofill">اضغط للملء التلقائي</string>
+
+    <string name="home">الرئيسية</string>
+    <string name="bookings">الحجوزات</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="my_profile">ملفي الشخصي</string>
+    <string name="my_account">حسابي</string>
+    <string name="account">الحساب</string>
+
+    <string name="find_a_cleaner">البحث عن عامل نظافة</string>
+    <string name="services">الخدمات</string>
+    <string name="book_service">حجز خدمة</string>
+    <string name="booking_confirmed">تم تأكيد الحجز</string>
+    <string name="booking_details">تفاصيل الحجز</string>
+    <string name="leave_a_review">اترك تقييمًا</string>
+    <string name="ratings_and_reviews">التقييمات والمراجعات</string>
+    <string name="secure_payment">دفع آمن</string>
+    <string name="payment_successful">تم الدفع بنجاح</string>
+    <string name="payment_history">سجل المدفوعات</string>
+    <string name="my_bookings">حجوزاتي</string>
+    <string name="view_all_bookings">عرض كل سجل الحجوزات</string>
+    <string name="view_receipts">عرض الإيصالات وسجل المعاملات</string>
+    <string name="recurring_bookings">حجوزات متكررة</string>
+    <string name="manage_scheduled_plans">إدارة خطط التنظيف المجدولة</string>
+    <string name="pay_now">💳 ادفع الآن</string>
+    <string name="chat_with_cleaner">💬 محادثة مع عامل النظافة</string>
+    <string name="track_cleaner">🗺️ تتبع عامل النظافة</string>
+    <string name="pick_on_map">📍 اختر على الخريطة</string>
+
+    <string name="pending">قيد الانتظار</string>
+    <string name="accepted">مقبول</string>
+    <string name="in_progress">قيد التنفيذ</string>
+    <string name="completed">مكتمل</string>
+    <string name="cancelled">ملغى</string>
+    <string name="declined">مرفوض</string>
+
+    <string name="booking_requests">طلبات الحجز</string>
+    <string name="my_schedule">جدولي</string>
+    <string name="earnings">الأرباح</string>
+    <string name="manage_services">إدارة الخدمات</string>
+    <string name="edit_service">تعديل الخدمة</string>
+    <string name="dashboard">لوحة التحكم</string>
+    <string name="accept">قبول</string>
+    <string name="decline">رفض</string>
+    <string name="start_job">بدء العمل</string>
+    <string name="complete_job">إنهاء العمل</string>
+    <string name="today">اليوم</string>
+    <string name="upcoming">القادمة</string>
+    <string name="todays_jobs">أعمال اليوم</string>
+    <string name="weekly_earnings">الأرباح الأسبوعية</string>
+    <string name="pending_requests">طلبات معلقة</string>
+
+    <string name="overview">نظرة عامة</string>
+    <string name="all_bookings">جميع الحجوزات</string>
+    <string name="my_team">فريقي</string>
+    <string name="revenue">الإيرادات</string>
+    <string name="company_profile">ملف الشركة</string>
+    <string name="team_size">حجم الفريق</string>
+    <string name="active_jobs">أعمال نشطة</string>
+
+    <string name="card_number">رقم البطاقة</string>
+    <string name="card_holder">حامل البطاقة</string>
+    <string name="expiry">تاريخ الانتهاء</string>
+    <string name="cvv">CVV</string>
+    <string name="pay">ادفع</string>
+    <string name="skip_payment_demo">تخطي الدفع (تجريبي)</string>
+    <string name="payment_declined">تم رفض الدفع. يرجى المحاولة مرة أخرى.</string>
+    <string name="view_bookings">عرض الحجوزات</string>
+    <string name="back_to_home">العودة للرئيسية</string>
+
+    <string name="poor">سيء</string>
+    <string name="fair">مقبول</string>
+    <string name="good">جيد</string>
+    <string name="very_good">جيد جدًا</string>
+    <string name="excellent">ممتاز</string>
+    <string name="write_a_review">اكتب تقييمًا (اختياري)</string>
+    <string name="submit_review">إرسال التقييم</string>
+    <string name="already_reviewed">لقد قمت بتقييم هذا الحجز بالفعل</string>
+
+    <string name="notifications">الإشعارات</string>
+    <string name="notification_settings">إعدادات الإشعارات</string>
+    <string name="push_notifications">إشعارات الدفع</string>
+    <string name="booking_updates">تحديثات الحجوزات</string>
+    <string name="payment_alerts">تنبيهات الدفع</string>
+    <string name="promotions">العروض</string>
+    <string name="no_notifications">لا توجد إشعارات بعد</string>
+
+    <string name="messages">الرسائل</string>
+    <string name="chat">المحادثة</string>
+    <string name="type_a_message">اكتب رسالة…</string>
+    <string name="no_conversations">لا توجد محادثات بعد</string>
+
+    <string name="sync_status">حالة المزامنة</string>
+    <string name="pending_tab">معلق</string>
+    <string name="failed">فشل</string>
+    <string name="conflicts">تعارضات</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="retry_all">إعادة محاولة الكل</string>
+    <string name="keep_local">الاحتفاظ بالمحلي</string>
+    <string name="use_server">استخدام الخادم</string>
+
+    <string name="pick_location">اختر الموقع</string>
+    <string name="search_address">ابحث عن عنوان…</string>
+    <string name="my_location">موقعي</string>
+    <string name="confirm_location">تأكيد الموقع</string>
+
+    <string name="setup_recurring">إعداد حجز متكرر</string>
+    <string name="manage_subscriptions">إدارة الاشتراكات</string>
+    <string name="daily">يومي</string>
+    <string name="weekly">أسبوعي</string>
+    <string name="fortnightly">كل أسبوعين</string>
+    <string name="monthly">شهري</string>
+    <string name="pause">إيقاف مؤقت</string>
+    <string name="resume">استئناف</string>
+    <string name="next_booking">الحجز التالي</string>
+
+    <string name="member_since">عضو منذ</string>
+    <string name="account_type">نوع الحساب</string>
+    <string name="bio">نبذة</string>
+    <string name="save">حفظ</string>
+    <string name="edit">تعديل</string>
+
+    <string name="language">اللغة</string>
+    <string name="choose_language">اختر اللغة</string>
+    <string name="language_english">English</string>
+    <string name="language_french">Français</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_portuguese">Português</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_changed">تم تغيير اللغة</string>
+    <string name="change_app_language">تغيير لغة التطبيق</string>
+
+    <string name="something_went_wrong">حدث خطأ ما</string>
+    <string name="try_again">حاول مرة أخرى</string>
+    <string name="no_internet">لا يوجد اتصال بالإنترنت</string>
+    <string name="no_internet_message">يرجى التحقق من اتصالك والمحاولة مرة أخرى.</string>
+    <string name="not_found">غير موجود</string>
+    <string name="offline_banner">أنت غير متصل. قد تكون بعض الميزات غير متاحة.</string>
+    <string name="go_back">رجوع</string>
+    <string name="loading">جارٍ التحميل…</string>
+
+    <string name="confirm">تأكيد</string>
+    <string name="are_you_sure">هل أنت متأكد؟</string>
+    <string name="sign_out_confirm">هل أنت متأكد أنك تريد تسجيل الخروج؟</string>
+    <string name="cancel_booking_confirm">هل أنت متأكد أنك تريد إلغاء هذا الحجز؟</string>
+
+    <string name="ok">حسنًا</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="close">إغلاق</string>
+    <string name="search">بحث</string>
+    <string name="filter">تصفية</string>
+    <string name="sort">ترتيب</string>
+    <string name="refresh">تحديث</string>
+    <string name="no_results">لم يتم العثور على نتائج</string>
+    <string name="per_hour">/ساعة</string>
+</resources>
