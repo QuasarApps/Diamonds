@@ -18,10 +18,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -267,6 +269,12 @@ fun AppShell(
         topBar = {
             TopAppBar(
                 title = { Text(title, fontWeight = FontWeight.SemiBold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = com.example.diamonds.ui.theme.BarBackground,
+                    titleContentColor = androidx.compose.ui.graphics.Color.White,
+                    navigationIconContentColor = androidx.compose.ui.graphics.Color.White,
+                    actionIconContentColor = androidx.compose.ui.graphics.Color.White
+                ),
                 navigationIcon = {
                     if (!atTabRoot) {
                         IconButton(onClick = { navController.popBackStack() }) {
@@ -283,7 +291,10 @@ fun AppShell(
                                     launchSingleTop = true
                                 }
                             }) {
-                                Text("⏳ $pendingSyncCount")
+                                Text(
+                                    "⏳ $pendingSyncCount",
+                                    color = androidx.compose.ui.graphics.Color.White
+                                )
                             }
                         }
                         // Chat icon with unread message badge
@@ -321,7 +332,12 @@ fun AppShell(
                                 )
                             }
                         }
-                        TextButton(onClick = { showSignOutDialog = true }) { Text("Sign Out") }
+                        TextButton(onClick = { showSignOutDialog = true }) {
+                            Text(
+                                "Sign Out",
+                                color = androidx.compose.ui.graphics.Color.White
+                            )
+                        }
                     }
                 }
             )
@@ -329,7 +345,10 @@ fun AppShell(
         bottomBar = {
             // Always show the bottom bar (it is the tab root concept now);
             // individual deep screens are inside the tab graph, not outside it.
-            NavigationBar {
+            NavigationBar(
+                containerColor = com.example.diamonds.ui.theme.BarBackground,
+                contentColor = androidx.compose.ui.graphics.Color.White
+            ) {
                 tabs.forEach { tab ->
                     val isSelected = tab.screen.route == selectedTabRoute
                     NavigationBarItem(
@@ -357,7 +376,14 @@ fun AppShell(
                             }
                         },
                         icon = { Text(tab.icon, fontSize = 20.sp) },
-                        label = { Text(tab.label, fontSize = 11.sp) }
+                        label = { Text(tab.label, fontSize = 11.sp) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = androidx.compose.ui.graphics.Color.White,
+                            selectedTextColor = androidx.compose.ui.graphics.Color.White,
+                            unselectedIconColor = androidx.compose.ui.graphics.Color(0xFFAAB8D0),
+                            unselectedTextColor = androidx.compose.ui.graphics.Color(0xFFAAB8D0),
+                            indicatorColor = androidx.compose.ui.graphics.Color(0xFF2A3F6A)
+                        )
                     )
                 }
             }
