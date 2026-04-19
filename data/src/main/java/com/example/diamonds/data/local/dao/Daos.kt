@@ -106,14 +106,23 @@ interface ReviewDao {
     @Query("SELECT * FROM reviews WHERE id = :id")
     suspend fun getById(id: String): ReviewEntity?
 
-    @Query("SELECT * FROM reviews WHERE providerId = :providerId ORDER BY createdAt DESC")
+    @Query("SELECT * FROM reviews WHERE providerId = :providerId AND reviewDirection = 'CLIENT_REVIEWS_PROVIDER' ORDER BY createdAt DESC")
     suspend fun getForProvider(providerId: String): List<ReviewEntity>
 
-    @Query("SELECT * FROM reviews WHERE providerId = :providerId ORDER BY createdAt DESC")
+    @Query("SELECT * FROM reviews WHERE providerId = :providerId AND reviewDirection = 'CLIENT_REVIEWS_PROVIDER' ORDER BY createdAt DESC")
     fun observeForProvider(providerId: String): Flow<List<ReviewEntity>>
 
     @Query("SELECT * FROM reviews WHERE bookingId = :bookingId LIMIT 1")
     suspend fun getForBooking(bookingId: String): ReviewEntity?
+
+    @Query("SELECT * FROM reviews WHERE bookingId = :bookingId AND reviewDirection = :direction LIMIT 1")
+    suspend fun getForBookingByDirection(bookingId: String, direction: String): ReviewEntity?
+
+    @Query("SELECT * FROM reviews WHERE clientId = :clientId AND reviewDirection = 'PROVIDER_REVIEWS_CLIENT' ORDER BY createdAt DESC")
+    suspend fun getForClient(clientId: String): List<ReviewEntity>
+
+    @Query("SELECT * FROM reviews WHERE clientId = :clientId AND reviewDirection = 'PROVIDER_REVIEWS_CLIENT' ORDER BY createdAt DESC")
+    fun observeForClient(clientId: String): Flow<List<ReviewEntity>>
 
     @Query("DELETE FROM reviews WHERE id = :id")
     suspend fun delete(id: String)

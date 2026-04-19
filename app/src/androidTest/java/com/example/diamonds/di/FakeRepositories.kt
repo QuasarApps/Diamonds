@@ -348,10 +348,22 @@ class FakeReviewRepository : IReviewRepository {
         Result.Success(reviews.filter { it.providerId == providerId })
 
     override suspend fun getReviewsForBooking(bookingId: String): Result<Review?> =
-        Result.Success(reviews.find { it.bookingId == bookingId })
+        Result.Success(reviews.find { it.bookingId == bookingId && it.direction == com.example.diamonds.domain.model.ReviewDirection.CLIENT_REVIEWS_PROVIDER })
+
+    override suspend fun getReviewsForClient(clientId: String): Result<List<Review>> =
+        Result.Success(reviews.filter { it.clientId == clientId && it.direction == com.example.diamonds.domain.model.ReviewDirection.PROVIDER_REVIEWS_CLIENT })
+
+    override suspend fun getReviewForBookingByDirection(
+        bookingId: String,
+        direction: com.example.diamonds.domain.model.ReviewDirection
+    ): Result<Review?> =
+        Result.Success(reviews.find { it.bookingId == bookingId && it.direction == direction })
 
     override fun observeReviewsForProvider(providerId: String): Flow<List<Review>> =
-        flowOf(reviews.filter { it.providerId == providerId })
+        flowOf(reviews.filter { it.providerId == providerId && it.direction == com.example.diamonds.domain.model.ReviewDirection.CLIENT_REVIEWS_PROVIDER })
+
+    override fun observeReviewsForClient(clientId: String): Flow<List<Review>> =
+        flowOf(reviews.filter { it.clientId == clientId && it.direction == com.example.diamonds.domain.model.ReviewDirection.PROVIDER_REVIEWS_CLIENT })
 }
 
 class FakeNotificationRepository : INotificationRepository {

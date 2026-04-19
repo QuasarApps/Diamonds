@@ -78,6 +78,20 @@ sealed class Screen(val route: String) {
         fun route(id: String) = "cleaner/services/edit/$id"
     }
 
+    /** Cleaner reviews a client after a completed booking. */
+    data class LeaveClientReview(
+        val bookingId: String = "{bookingId}",
+        val clientId: String = "{clientId}"
+    ) : Screen("cleaner/review-client/{bookingId}/{clientId}") {
+        fun route(bid: String, cid: String) = "cleaner/review-client/$bid/$cid"
+    }
+
+    /** View a client's ratings from all providers. */
+    data class ClientRatings(val clientId: String = "{clientId}") :
+        Screen("cleaner/client-ratings/{clientId}") {
+        fun route(id: String) = "cleaner/client-ratings/$id"
+    }
+
     // ── Company tab destinations ───────────────────────────────────────────
     data object CompanyDashboard  : Screen("company/dashboard")
     data object CompanyBookings   : Screen("company/bookings")

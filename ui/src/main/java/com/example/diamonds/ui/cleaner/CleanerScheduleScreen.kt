@@ -1,5 +1,6 @@
 package com.example.diamonds.ui.cleaner
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,8 @@ import com.example.diamonds.ui.components.PullToRefreshLayout
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CleanerScheduleScreen(
+    onReviewClient: ((bookingId: String, clientId: String) -> Unit)? = null,
+    onViewClientRatings: ((clientId: String) -> Unit)? = null,
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val state by viewModel.scheduleState.collectAsState()
@@ -102,7 +105,12 @@ fun CleanerScheduleScreen(
                 SectionHeader("Today")
             }
             items(state.todayJobs, key = { "today-${it.booking.id}" }) { item ->
-                ScheduledJobCard(item = item, viewModel = viewModel)
+                ScheduledJobCard(
+                    item = item,
+                    viewModel = viewModel,
+                    onReviewClient = onReviewClient,
+                    onViewClientRatings = onViewClientRatings
+                )
             }
         }
 
@@ -112,7 +120,12 @@ fun CleanerScheduleScreen(
                 SectionHeader("Upcoming")
             }
             items(state.upcomingJobs, key = { "upcoming-${it.booking.id}" }) { item ->
-                ScheduledJobCard(item = item, viewModel = viewModel)
+                ScheduledJobCard(
+                    item = item,
+                    viewModel = viewModel,
+                    onReviewClient = onReviewClient,
+                    onViewClientRatings = onViewClientRatings
+                )
             }
         }
             } // end else -> LazyColumn
@@ -131,7 +144,12 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun ScheduledJobCard(item: CleanerBookingItem, viewModel: CleanerViewModel) {
+private fun ScheduledJobCard(
+    item: CleanerBookingItem,
+    viewModel: CleanerViewModel,
+    onReviewClient: ((bookingId: String, clientId: String) -> Unit)? = null,
+    onViewClientRatings: ((clientId: String) -> Unit)? = null
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(2.dp)
@@ -140,11 +158,20 @@ private fun ScheduledJobCard(item: CleanerBookingItem, viewModel: CleanerViewMod
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                    Text(
-                        "Client: ${item.clientName}",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Client: ${item.clientName}",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (onViewClientRatings != null) {
+                            Text(
+                                " ⭐",
+                                fontSize = 13.sp,
+                                modifier = Modifier.clickable { onViewClientRatings(item.booking.clientId) }
+                            )
+                        }
+                    }
                 }
                 JobStatusPill(item.booking.status)
             }
@@ -196,6 +223,17 @@ private fun ScheduledJobCard(item: CleanerBookingItem, viewModel: CleanerViewMod
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Mark Complete")
+                    }
+                }
+                BookingStatus.COMPLETED -> {
+                    if (onReviewClient != null) {
+                        Spacer(Modifier.height(12.dp))
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = { onReviewClient(item.booking.id, item.booking.clientId) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("⭐ Review Client")
+                        }
                     }
                 }
                 else -> Unit

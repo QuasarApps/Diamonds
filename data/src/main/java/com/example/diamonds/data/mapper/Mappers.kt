@@ -39,6 +39,7 @@ import com.example.diamonds.domain.model.RecurringBooking
 import com.example.diamonds.domain.model.RecurringBookingStatus
 import com.example.diamonds.domain.model.RecurringFrequency
 import com.example.diamonds.domain.model.Review
+import com.example.diamonds.domain.model.ReviewDirection
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.domain.model.SyncStatus
@@ -124,6 +125,17 @@ fun ReviewEntity.toDomain(): Review = Review(
     imageUrls = try {
         kotlinx.serialization.json.Json.decodeFromString(imageUrls)
     } catch (e: Exception) {
+        emptyList()
+    },
+    direction = try {
+        ReviewDirection.valueOf(reviewDirection)
+    } catch (_: Exception) {
+        ReviewDirection.CLIENT_REVIEWS_PROVIDER
+    },
+    locationTags = try {
+        if (locationTags.isBlank()) emptyList()
+        else kotlinx.serialization.json.Json.decodeFromString(locationTags)
+    } catch (_: Exception) {
         emptyList()
     },
     syncStatus = SyncStatus.valueOf(syncStatus),
@@ -293,6 +305,12 @@ fun ReviewDto.toDomain(): Review = Review(
     rating = rating,
     comment = comment,
     imageUrls = imageUrls,
+    direction = try {
+        ReviewDirection.valueOf(direction)
+    } catch (_: Exception) {
+        ReviewDirection.CLIENT_REVIEWS_PROVIDER
+    },
+    locationTags = locationTags,
     syncStatus = SyncStatus.SYNCED,
     createdAt = createdAt,
     updatedAt = updatedAt

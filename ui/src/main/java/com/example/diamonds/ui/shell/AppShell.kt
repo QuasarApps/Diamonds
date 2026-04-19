@@ -82,6 +82,8 @@ import com.example.diamonds.ui.notification.NotificationViewModel
 import com.example.diamonds.ui.payment.PaymentHistoryScreen
 import com.example.diamonds.ui.payment.PaymentScreen
 import com.example.diamonds.ui.payment.PaymentSuccessScreen
+import com.example.diamonds.ui.review.ClientRatingsScreen
+import com.example.diamonds.ui.review.LeaveClientReviewScreen
 import com.example.diamonds.ui.settings.LanguageSelectorScreen
 import com.example.diamonds.ui.subscription.RecurringBookingSetupScreen
 import com.example.diamonds.ui.subscription.SubscriptionManagementScreen
@@ -157,6 +159,8 @@ private fun titleForRoute(route: String?, session: UserSession): String {
         route.startsWith("customer/booking")  -> "Booking Details"
         route.startsWith("customer/review")   -> "Leave a Review"
         route.startsWith("customer/ratings")  -> "Ratings & Reviews"
+        route.startsWith("cleaner/review-client") -> "Review Client"
+        route.startsWith("cleaner/client-ratings") -> "Client Ratings"
         route.startsWith("customer/pay/success") -> "Payment Successful"
         route.startsWith("customer/pay")      -> "Secure Payment"
         route.startsWith("customer/payments") -> "Payment History"
@@ -816,7 +820,38 @@ fun AppShell(
                         popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
                         popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
                     ) {
-                        CleanerScheduleScreen()
+                        CleanerScheduleScreen(
+                            onReviewClient = { bookingId, clientId ->
+                                navController.navigate(
+                                    Screen.LeaveClientReview().route(bookingId, clientId)
+                                )
+                            },
+                            onViewClientRatings = { clientId ->
+                                navController.navigate(Screen.ClientRatings().route(clientId))
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.LeaveClientReview().route,
+                        arguments = listOf(
+                            navArgument("bookingId") { type = NavType.StringType },
+                            navArgument("clientId") { type = NavType.StringType }
+                        )
+                    ) { entry ->
+                        val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                        val cid = entry.arguments?.getString("clientId") ?: return@composable
+                        LeaveClientReviewScreen(
+                            bookingId = bid,
+                            clientId = cid,
+                            onReviewSubmitted = { navController.popBackStack() }
+                        )
+                    }
+                    composable(
+                        route = Screen.ClientRatings().route,
+                        arguments = listOf(navArgument("clientId") { type = NavType.StringType })
+                    ) { entry ->
+                        val cid = entry.arguments?.getString("clientId") ?: return@composable
+                        ClientRatingsScreen(clientId = cid)
                     }
                 }
 

@@ -83,6 +83,8 @@ data class ReviewEntity(
     val rating: Int,
     val comment: String? = null,
     val imageUrls: String = "", // JSON array as string
+    val reviewDirection: String = "CLIENT_REVIEWS_PROVIDER", // ReviewDirection enum
+    val locationTags: String = "", // JSON array as string (for reverse reviews)
     val syncStatus: String, // SyncStatus enum
     val createdAt: String,
     val updatedAt: String,

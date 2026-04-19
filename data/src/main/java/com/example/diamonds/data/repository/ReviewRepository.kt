@@ -8,13 +8,15 @@ import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.domain.model.OfflineException
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Review
+import com.example.diamonds.domain.model.ReviewDirection
 import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.IReviewRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
- * Review repository - reads are cached, writes require online
+ * Review repository - reads are cached, writes require online.
+ * Supports bidirectional reviews (CLIENT_REVIEWS_PROVIDER and PROVIDER_REVIEWS_CLIENT).
  */
 class ReviewRepository(
     db: AppDatabase,
@@ -25,7 +27,6 @@ class ReviewRepository(
     private val reviewDao = db.reviewDao()
 
     override suspend fun createReview(review: Review): Result<Review> {
-        // WRITE: Require online
         if (!connectivityObserver.isOnline()) {
             return Result.Error(OfflineException("Review submission requires internet connection"))
         }
@@ -37,7 +38,9 @@ class ReviewRepository(
                 providerId = review.providerId,
                 rating = review.rating,
                 comment = review.comment,
-                imageUrls = review.imageUrls
+                imageUrls = review.imageUrls,
+                direction = review.direction.name,
+                locationTags = review.locationTags
             )
 
             val result = backendService.createReview(request)
@@ -56,13 +59,11 @@ class ReviewRepository(
     }
 
     override suspend fun getReviewsForProvider(providerId: String): Result<List<Review>> {
-        // READ: Check cache first
         val cached = reviewDao.getForProvider(providerId)
         if (cached.isNotEmpty()) {
             return Result.Success(cached.map { it.toDomain() })
         }
 
-        // Cache empty, fetch if online
         if (!connectivityObserver.isOnline()) {
             return Result.Error(OfflineException("Reviews not available offline"))
         }
@@ -84,23 +85,85 @@ class ReviewRepository(
     }
 
     override suspend fun getReviewsForBooking(bookingId: String): Result<Review?> {
-        // READ: Check cache first
         val cached = reviewDao.getForBooking(bookingId)
         if (cached != null) {
             return Result.Success(cached.toDomain())
         }
 
-        // Cache empty, fetch if online
         if (!connectivityObserver.isOnline()) {
-            return Result.Success(null) // No review yet is not an error
+            return Result.Success(null)
         }
 
-        // TODO: Implement fetch from backend
         return Result.Success(null)
+    }
+
+    override suspend fun getReviewsForClient(clientId: String): Result<List<Review>> {
+        val cached = reviewDao.getForClient(clientId)
+        if (cached.isNotEmpty()) {
+            return Result.Success(cached.map { it.toDomain() })
+        }
+
+        if (!connectivityObserver.isOnline()) {
+            return Result.Error(OfflineException("Reviews not available offline"))
+        }
+
+        return try {
+            val result = backendService.getReviewsForClient(clientId)
+            when (result) {
+                is Result.Success -> {
+                    val reviews =
+                        result.data.map { it.toDomain().copy(syncStatus = SyncStatus.SYNCED) }
+                    reviews.forEach { reviewDao.upsert(it.toEntity()) }
+                    Result.Success(reviews)
+                }
+
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun getReviewForBookingByDirection(
+        bookingId: String,
+        direction: ReviewDirection
+    ): Result<Review?> {
+        val cached = reviewDao.getForBookingByDirection(bookingId, direction.name)
+        if (cached != null) {
+            return Result.Success(cached.toDomain())
+        }
+
+        if (!connectivityObserver.isOnline()) {
+            return Result.Success(null)
+        }
+
+        return try {
+            val result = backendService.getReviewForBookingByDirection(bookingId, direction.name)
+            when (result) {
+                is Result.Success -> {
+                    result.data?.let { dto ->
+                        val review = dto.toDomain().copy(syncStatus = SyncStatus.SYNCED)
+                        reviewDao.upsert(review.toEntity())
+                        Result.Success(review)
+                    } ?: Result.Success(null)
+                }
+
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override fun observeReviewsForProvider(providerId: String): Flow<List<Review>> =
         reviewDao.observeForProvider(providerId).map { reviews ->
+            reviews.map { it.toDomain() }
+        }
+
+    override fun observeReviewsForClient(clientId: String): Flow<List<Review>> =
+        reviewDao.observeForClient(clientId).map { reviews ->
             reviews.map { it.toDomain() }
         }
 
@@ -114,7 +177,13 @@ class ReviewRepository(
             rating = rating,
             comment = comment,
             imageUrls = try {
-                if (imageUrls.isEmpty()) "" else imageUrls.joinToString(",", "[\"", "\"]") { "\"$it\"" }
+                if (imageUrls.isEmpty()) "" else "[${imageUrls.joinToString(",") { "\"$it\"" }}]"
+            } catch (e: Exception) {
+                ""
+            },
+            reviewDirection = direction.name,
+            locationTags = try {
+                if (locationTags.isEmpty()) "" else "[${locationTags.joinToString(",") { "\"$it\"" }}]"
             } catch (e: Exception) {
                 ""
             },

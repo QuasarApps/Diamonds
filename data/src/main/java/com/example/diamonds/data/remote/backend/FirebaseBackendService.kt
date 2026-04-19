@@ -223,6 +223,30 @@ class FirebaseBackendService : IBackendService {
         firestoreCall {
             val snap = reviewsCol
                 .whereEqualTo("bookingId", bookingId)
+                .whereEqualTo("direction", "CLIENT_REVIEWS_PROVIDER")
+                .limit(1)
+                .get().await()
+            snap.toObjects(ReviewDto::class.java).firstOrNull()
+        }
+
+    override suspend fun getReviewsForClient(clientId: String): Result<List<ReviewDto>> =
+        firestoreCall {
+            val snap = reviewsCol
+                .whereEqualTo("clientId", clientId)
+                .whereEqualTo("direction", "PROVIDER_REVIEWS_CLIENT")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get().await()
+            snap.toObjects(ReviewDto::class.java)
+        }
+
+    override suspend fun getReviewForBookingByDirection(
+        bookingId: String,
+        direction: String
+    ): Result<ReviewDto?> =
+        firestoreCall {
+            val snap = reviewsCol
+                .whereEqualTo("bookingId", bookingId)
+                .whereEqualTo("direction", direction)
                 .limit(1)
                 .get().await()
             snap.toObjects(ReviewDto::class.java).firstOrNull()

@@ -115,7 +115,13 @@ interface IReviewRepository {
     suspend fun createReview(review: Review): Result<Review>
     suspend fun getReviewsForProvider(providerId: String): Result<List<Review>>
     suspend fun getReviewsForBooking(bookingId: String): Result<Review?>
+    suspend fun getReviewsForClient(clientId: String): Result<List<Review>>
+    suspend fun getReviewForBookingByDirection(
+        bookingId: String,
+        direction: com.example.diamonds.domain.model.ReviewDirection
+    ): Result<Review?>
     fun observeReviewsForProvider(providerId: String): Flow<List<Review>>
+    fun observeReviewsForClient(clientId: String): Flow<List<Review>>
 }
 
 /**

@@ -349,6 +349,56 @@ class BackendServiceStub : IBackendService {
         ReviewDto(id="rv11", bookingId="p3e2", clientId="client_alice",  providerId="p3", rating=5, comment="Consistent high quality every week. Would not use anyone else for our office.", createdAt="2026-04-01", updatedAt="2026-04-01"),
         // ── p4 Daniel Choi ────────────────────────────────────────────────
         ReviewDto(id="rv12", bookingId="b1",   clientId="demo_customer", providerId="p4", rating=4, comment="Carpet looks brand new after the steam clean. Took a bit longer than quoted but worth it.", createdAt="2026-03-10", updatedAt="2026-03-10"),
+
+        // ── Reverse reviews (PROVIDER_REVIEWS_CLIENT) ─────────────────────
+        ReviewDto(
+            id = "rrv1",
+            bookingId = "e1",
+            clientId = "client_frank",
+            providerId = "p1",
+            rating = 5,
+            comment = "Frank was very welcoming and had everything prepared. Clear instructions.",
+            direction = "PROVIDER_REVIEWS_CLIENT",
+            locationTags = listOf("Clear instructions", "Easy parking"),
+            createdAt = "2026-04-06",
+            updatedAt = "2026-04-06"
+        ),
+        ReviewDto(
+            id = "rrv2",
+            bookingId = "e3",
+            clientId = "client_alice",
+            providerId = "p1",
+            rating = 4,
+            comment = "Nice apartment, but the entrance was a bit hard to find.",
+            direction = "PROVIDER_REVIEWS_CLIENT",
+            locationTags = listOf("Pet-friendly"),
+            createdAt = "2026-04-03",
+            updatedAt = "2026-04-03"
+        ),
+        ReviewDto(
+            id = "rrv3",
+            bookingId = "p2e1",
+            clientId = "client_carol",
+            providerId = "p2",
+            rating = 5,
+            comment = "Carol was extremely friendly and offered tea. Great client!",
+            direction = "PROVIDER_REVIEWS_CLIENT",
+            locationTags = listOf("Easy parking", "Clear instructions", "Pet-friendly"),
+            createdAt = "2026-04-05",
+            updatedAt = "2026-04-05"
+        ),
+        ReviewDto(
+            id = "rrv4",
+            bookingId = "b1",
+            clientId = "demo_customer",
+            providerId = "p4",
+            rating = 4,
+            comment = "Decent location but tight parking. Client was polite and easy to work with.",
+            direction = "PROVIDER_REVIEWS_CLIENT",
+            locationTags = listOf("Tight parking"),
+            createdAt = "2026-03-10",
+            updatedAt = "2026-03-10"
+        ),
     )
 
     // Mutable so created reviews can be appended
@@ -364,6 +414,8 @@ class BackendServiceStub : IBackendService {
             rating    = review.rating,
             comment   = review.comment,
             imageUrls = review.imageUrls,
+            direction = review.direction,
+            locationTags = review.locationTags,
             createdAt = System.currentTimeMillis().toString(),
             updatedAt = System.currentTimeMillis().toString()
         )
@@ -373,12 +425,25 @@ class BackendServiceStub : IBackendService {
 
     override suspend fun getReviewsForProvider(providerId: String): Result<List<ReviewDto>> {
         delay(300)
-        return Result.Success(reviewStore.filter { it.providerId == providerId })
+        return Result.Success(reviewStore.filter { it.providerId == providerId && it.direction == "CLIENT_REVIEWS_PROVIDER" })
     }
 
     override suspend fun getReviewsForBooking(bookingId: String): Result<ReviewDto?> {
         delay(200)
-        return Result.Success(reviewStore.find { it.bookingId == bookingId })
+        return Result.Success(reviewStore.find { it.bookingId == bookingId && it.direction == "CLIENT_REVIEWS_PROVIDER" })
+    }
+
+    override suspend fun getReviewsForClient(clientId: String): Result<List<ReviewDto>> {
+        delay(300)
+        return Result.Success(reviewStore.filter { it.clientId == clientId && it.direction == "PROVIDER_REVIEWS_CLIENT" })
+    }
+
+    override suspend fun getReviewForBookingByDirection(
+        bookingId: String,
+        direction: String
+    ): Result<ReviewDto?> {
+        delay(200)
+        return Result.Success(reviewStore.find { it.bookingId == bookingId && it.direction == direction })
     }
 
     // ── Payments ──────────────────────────────────────────────────────────────

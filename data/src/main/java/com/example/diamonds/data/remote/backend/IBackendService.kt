@@ -48,6 +48,11 @@ interface IBackendService {
     suspend fun createReview(review: CreateReviewRequest): Result<ReviewDto>
     suspend fun getReviewsForProvider(providerId: String): Result<List<ReviewDto>>
     suspend fun getReviewsForBooking(bookingId: String): Result<ReviewDto?>
+    suspend fun getReviewsForClient(clientId: String): Result<List<ReviewDto>>
+    suspend fun getReviewForBookingByDirection(
+        bookingId: String,
+        direction: String
+    ): Result<ReviewDto?>
 
     // Payments
     suspend fun createPayment(payment: CreatePaymentRequest): Result<PaymentDto>
@@ -161,6 +166,8 @@ data class ReviewDto(
     val rating: Int,
     val comment: String? = null,
     val imageUrls: List<String> = emptyList(),
+    val direction: String = "CLIENT_REVIEWS_PROVIDER",
+    val locationTags: List<String> = emptyList(),
     val createdAt: String,
     val updatedAt: String
 )
@@ -201,7 +208,9 @@ data class CreateReviewRequest(
     val providerId: String,
     val rating: Int,
     val comment: String? = null,
-    val imageUrls: List<String> = emptyList()
+    val imageUrls: List<String> = emptyList(),
+    val direction: String = "CLIENT_REVIEWS_PROVIDER",
+    val locationTags: List<String> = emptyList()
 )
 
 @Serializable

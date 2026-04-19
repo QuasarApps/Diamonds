@@ -137,7 +137,22 @@ enum class BookingStatus {
 }
 
 /**
- * Represents a review/rating left by a client for a provider
+ * Direction of a review: who is reviewing whom.
+ */
+@Serializable
+enum class ReviewDirection {
+    /** Client rates the provider after a completed booking. */
+    CLIENT_REVIEWS_PROVIDER,
+
+    /** Provider rates the client after a completed booking. */
+    PROVIDER_REVIEWS_CLIENT
+}
+
+/**
+ * Represents a review/rating for a completed booking.
+ *
+ * The [direction] field indicates whether this is a client reviewing a provider
+ * (the default, forward review) or a provider reviewing a client (reverse review).
  */
 @Serializable
 data class Review(
@@ -148,6 +163,9 @@ data class Review(
     val rating: Int, // 1-5
     val comment: String? = null,
     val imageUrls: List<String> = emptyList(),
+    val direction: ReviewDirection = ReviewDirection.CLIENT_REVIEWS_PROVIDER,
+    /** Optional location tags for reverse reviews (e.g. "Easy parking", "Pet-friendly"). */
+    val locationTags: List<String> = emptyList(),
     val syncStatus: SyncStatus = SyncStatus.READ_ONLY,
     val createdAt: String,
     val updatedAt: String
