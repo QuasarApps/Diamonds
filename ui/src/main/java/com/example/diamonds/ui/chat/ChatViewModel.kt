@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -175,8 +176,7 @@ class ChatViewModel @Inject constructor(
             }
 
             try {
-                val session = authRepository.getCurrentUserSession()
-                    .stateIn(viewModelScope, SharingStarted.Eagerly, null).value
+                val session = authRepository.getCurrentUserSession().first()
                 if (session == null) {
                     updateState { it.copy(errorMessage = "Session not found") }
                     return@launch
@@ -220,8 +220,7 @@ class ChatViewModel @Inject constructor(
 
     fun markRead(conversationId: String) {
         viewModelScope.launch {
-            val session = authRepository.getCurrentUserSession()
-                .stateIn(viewModelScope, SharingStarted.Eagerly, null).value ?: return@launch
+            val session = authRepository.getCurrentUserSession().first() ?: return@launch
             messageRepository.markConversationRead(conversationId, session.userId)
         }
     }

@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -403,6 +404,7 @@ fun AppShell(
         Column(
             Modifier
                 .padding(padding)
+                .consumeWindowInsets(padding)
                 .imePadding()
         ) {
             // ── Offline banner ──────────────────────────────────────────────

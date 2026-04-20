@@ -134,9 +134,12 @@ class CleanerViewModel @Inject constructor(
                         val todayJobs = active.filter { it.scheduledDate == today }
                         val upcomingJobs = active.filter { it.scheduledDate > today }
                             .sortedWith(compareBy({ it.scheduledDate }, { it.scheduledTime }))
+                        val overdueJobs = active.filter { it.scheduledDate < today }
+                            .sortedWith(compareByDescending<Booking> { it.scheduledDate }
+                                .thenByDescending { it.scheduledTime })
 
                         _scheduleState.value = CleanerScheduleUiState(
-                            todayJobs = todayJobs.map { it.enrichSafe() },
+                            todayJobs = (overdueJobs + todayJobs).map { it.enrichSafe() },
                             upcomingJobs = upcomingJobs.map { it.enrichSafe() }
                         )
                     }
