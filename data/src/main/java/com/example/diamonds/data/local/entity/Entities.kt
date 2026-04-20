@@ -189,3 +189,33 @@ data class RecurringBookingEntity(
     val updatedAt: String
 )
 
+@Entity(tableName = "support_tickets")
+data class SupportTicketEntity(
+    @PrimaryKey val id: String,
+    val userId: String,
+    val userRole: String,
+    val bookingId: String? = null,
+    val type: String, // SupportTicketType enum
+    val status: String, // SupportTicketStatus enum
+    val subject: String,
+    val description: String,
+    val conversationId: String? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+@Entity(tableName = "claims")
+data class ClaimEntity(
+    @PrimaryKey val id: String,
+    val bookingId: String,
+    val filedByUserId: String,
+    val filedByRole: String,
+    val claimType: String, // ClaimType enum
+    val status: String, // ClaimStatus enum
+    val description: String,
+    val evidenceImageUrls: String = "", // JSON array as string
+    val resolutionNotes: String? = null,
+    val refundAmount: Double? = null,
+    val createdAt: String,
+    val updatedAt: String
+)

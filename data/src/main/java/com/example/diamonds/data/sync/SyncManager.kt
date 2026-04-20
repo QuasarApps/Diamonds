@@ -222,6 +222,11 @@ class SyncManager(
             EntityType.PROFILE -> dispatchProfile(opType, payload)
             EntityType.RECURRING_BOOKING -> { /* handled by SubscriptionRepository directly */
             }
+            EntityType.SUPPORT_TICKET -> { /* handled by SupportRepository directly */
+            }
+
+            EntityType.CLAIM -> { /* handled by SupportRepository directly */
+            }
         }
     }
 

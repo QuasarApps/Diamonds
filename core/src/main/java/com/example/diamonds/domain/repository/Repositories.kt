@@ -2,9 +2,12 @@ package com.example.diamonds.domain.repository
 
 import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.CancellationReason
+import com.example.diamonds.domain.model.Claim
 import com.example.diamonds.domain.model.Client
 import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.GeoLocation
+import com.example.diamonds.domain.model.HelpArticle
 import com.example.diamonds.domain.model.Message
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationPreferences
@@ -19,6 +22,7 @@ import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceArea
 import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.domain.model.SupportTicket
 import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.UserRole.CLEANER
 import com.example.diamonds.domain.repository.UserRole.CUSTOMER
@@ -254,6 +258,38 @@ interface ISubscriptionRepository {
 }
 
 /**
+ * Repository for help, support tickets, and claims.
+ */
+interface ISupportRepository {
+    suspend fun createSupportTicket(ticket: SupportTicket): Result<SupportTicket>
+    suspend fun getSupportTicket(ticketId: String): Result<SupportTicket>
+    suspend fun getTicketsForUser(userId: String): Result<List<SupportTicket>>
+    fun observeTicketsForUser(userId: String): Flow<List<SupportTicket>>
+
+    suspend fun fileClaim(claim: Claim): Result<Claim>
+    suspend fun getClaim(claimId: String): Result<Claim>
+    suspend fun getClaimsForUser(userId: String): Result<List<Claim>>
+    suspend fun getClaimForBooking(bookingId: String): Result<Claim?>
+    fun observeClaimsForUser(userId: String): Flow<List<Claim>>
+
+    suspend fun cancelBookingWithReason(
+        bookingId: String,
+        reason: CancellationReason,
+        notes: String? = null
+    ): Result<Booking>
+
+    suspend fun editBooking(
+        bookingId: String,
+        newAddress: String? = null,
+        newServiceId: String? = null
+    ): Result<Booking>
+
+    suspend fun requestRefund(bookingId: String): Result<Payment>
+
+    suspend fun getHelpArticles(): Result<List<HelpArticle>>
+}
+
+/**
  * User role for role-based access control.
  *
  * The app has a single entry point but operates in two distinct modes:
@@ -321,5 +357,5 @@ enum class SyncOperationType {
  * Entity types that can be synced
  */
 enum class EntityType {
-    BOOKING, REVIEW, PAYMENT, SERVICE, PROFILE, RECURRING_BOOKING
+    BOOKING, REVIEW, PAYMENT, SERVICE, PROFILE, RECURRING_BOOKING, SUPPORT_TICKET, CLAIM
 }

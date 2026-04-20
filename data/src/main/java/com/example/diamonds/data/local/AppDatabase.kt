@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.diamonds.data.local.dao.BookingDao
+import com.example.diamonds.data.local.dao.ClaimDao
 import com.example.diamonds.data.local.dao.ClientDao
 import com.example.diamonds.data.local.dao.ConversationDao
 import com.example.diamonds.data.local.dao.MessageDao
@@ -17,8 +18,10 @@ import com.example.diamonds.data.local.dao.ProviderLocationDao
 import com.example.diamonds.data.local.dao.RecurringBookingDao
 import com.example.diamonds.data.local.dao.ReviewDao
 import com.example.diamonds.data.local.dao.ServiceDao
+import com.example.diamonds.data.local.dao.SupportTicketDao
 import com.example.diamonds.data.local.dao.SyncQueueDao
 import com.example.diamonds.data.local.entity.BookingEntity
+import com.example.diamonds.data.local.entity.ClaimEntity
 import com.example.diamonds.data.local.entity.ClientEntity
 import com.example.diamonds.data.local.entity.ConversationEntity
 import com.example.diamonds.data.local.entity.MessageEntity
@@ -29,6 +32,7 @@ import com.example.diamonds.data.local.entity.ProviderLocationEntity
 import com.example.diamonds.data.local.entity.RecurringBookingEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
+import com.example.diamonds.data.local.entity.SupportTicketEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
 
 @Database(
@@ -44,9 +48,11 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
         ProviderLocationEntity::class,
         ConversationEntity::class,
         MessageEntity::class,
-        RecurringBookingEntity::class
+        RecurringBookingEntity::class,
+        SupportTicketEntity::class,
+        ClaimEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -62,6 +68,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDao
     abstract fun messageDao(): MessageDao
     abstract fun recurringBookingDao(): RecurringBookingDao
+    abstract fun supportTicketDao(): SupportTicketDao
+    abstract fun claimDao(): ClaimDao
 
     companion object {
         @Volatile
@@ -192,6 +200,47 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v8 → v9: add support_tickets and claims tables for help & claims system. */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS support_tickets (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        userId TEXT NOT NULL,
+                        userRole TEXT NOT NULL,
+                        bookingId TEXT,
+                        type TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        subject TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        conversationId TEXT,
+                        createdAt TEXT NOT NULL,
+                        updatedAt TEXT NOT NULL
+                    )
+                """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS claims (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        bookingId TEXT NOT NULL,
+                        filedByUserId TEXT NOT NULL,
+                        filedByRole TEXT NOT NULL,
+                        claimType TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        evidenceImageUrls TEXT NOT NULL DEFAULT '',
+                        resolutionNotes TEXT,
+                        refundAmount REAL,
+                        createdAt TEXT NOT NULL,
+                        updatedAt TEXT NOT NULL
+                    )
+                """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -206,7 +255,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_4_5,
                         MIGRATION_5_6,
                         MIGRATION_6_7,
-                        MIGRATION_7_8
+                        MIGRATION_7_8,
+                        MIGRATION_8_9
                     )
                     .build()
                 INSTANCE = instance

@@ -203,6 +203,8 @@ private fun NotificationCard(
                             NotificationType.REVIEW -> MaterialTheme.colorScheme.secondaryContainer
                             NotificationType.PROMOTION -> MaterialTheme.colorScheme.errorContainer
                             NotificationType.SYSTEM -> MaterialTheme.colorScheme.surfaceVariant
+                            NotificationType.SUPPORT_UPDATE -> MaterialTheme.colorScheme.secondaryContainer
+                            NotificationType.CLAIM_UPDATE -> MaterialTheme.colorScheme.errorContainer
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -214,6 +216,8 @@ private fun NotificationCard(
                         NotificationType.REVIEW -> "⭐"
                         NotificationType.PROMOTION -> "🎉"
                         NotificationType.SYSTEM -> "ℹ️"
+                        NotificationType.SUPPORT_UPDATE -> "🎫"
+                        NotificationType.CLAIM_UPDATE -> "📝"
                     },
                     fontSize = 18.sp
                 )

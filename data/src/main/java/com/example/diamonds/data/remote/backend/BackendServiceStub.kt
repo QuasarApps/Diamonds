@@ -861,4 +861,174 @@ class BackendServiceStub : IBackendService {
         recurringBookingStore[idx] = recurringBookingStore[idx].copy(nextBookingDate = newDate)
         return Result.Success(Unit)
     }
+
+    // ── Support & Claims ───────────────────────────────────────────────────
+
+    private val supportTicketStore = mutableListOf(
+        SupportTicketDto(
+            id = "ticket-1", userId = "c1", userRole = "CUSTOMER", bookingId = "b1",
+            type = "POST_SERVICE", status = "RESOLVED", subject = "Missed bathroom",
+            description = "The cleaner forgot to clean the guest bathroom.",
+            createdAt = "2026-03-10", updatedAt = "2026-03-12"
+        ),
+        SupportTicketDto(
+            id = "ticket-2", userId = "c1", userRole = "CUSTOMER",
+            type = "ORDER_ISSUE", status = "OPEN", subject = "Cannot apply discount code",
+            description = "I have a 20% off code but the app won't accept it.",
+            createdAt = "2026-04-15", updatedAt = "2026-04-15"
+        )
+    )
+
+    private val claimStore = mutableListOf(
+        ClaimDto(
+            id = "claim-1", bookingId = "b3", filedByUserId = "c1", filedByRole = "CUSTOMER",
+            claimType = "UNSATISFACTORY_SERVICE", status = "APPROVED",
+            description = "Floor was still dirty after the service.",
+            resolutionNotes = "Full refund issued.", refundAmount = 120.0,
+            createdAt = "2026-02-20", updatedAt = "2026-02-25"
+        ),
+        ClaimDto(
+            id = "claim-2", bookingId = "b5", filedByUserId = "p1", filedByRole = "CLEANER",
+            claimType = "DANGEROUS_PROPERTY", status = "UNDER_REVIEW",
+            description = "Exposed wiring in the kitchen area. Unsafe to work.",
+            createdAt = "2026-04-01", updatedAt = "2026-04-02"
+        )
+    )
+
+    private val helpArticles = listOf(
+        HelpArticleDto(
+            "ha-1",
+            "How to book a cleaning",
+            "Browse providers, pick a service, choose a date and time, then confirm your booking.",
+            "booking",
+            listOf("booking", "getting-started")
+        ),
+        HelpArticleDto(
+            "ha-2",
+            "How to cancel a booking",
+            "Go to your booking detail screen, tap 'Cancel Booking', select a reason, and confirm.",
+            "booking",
+            listOf("booking", "cancel")
+        ),
+        HelpArticleDto(
+            "ha-3",
+            "Payment methods",
+            "We accept all major credit and debit cards. You can pay at checkout or skip payment in demo mode.",
+            "payment",
+            listOf("payment", "cards")
+        ),
+        HelpArticleDto(
+            "ha-4",
+            "How to file a claim",
+            "After a completed booking, tap 'File a Claim' on the booking detail screen. Describe the issue and attach photos if available.",
+            "claims",
+            listOf("claims", "refund")
+        ),
+        HelpArticleDto(
+            "ha-5",
+            "Safety during a service",
+            "If you feel unsafe at any point, use the Emergency button to contact local services and create an urgent support ticket.",
+            "safety",
+            listOf("safety", "emergency")
+        )
+    )
+
+    private fun now(): String =
+        java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+            .format(java.util.Date())
+
+    override suspend fun createSupportTicket(request: CreateSupportTicketRequest): Result<SupportTicketDto> {
+        delay(400)
+        val ticket = SupportTicketDto(
+            id = "ticket-${System.currentTimeMillis()}", userId = request.userId,
+            userRole = request.userRole, bookingId = request.bookingId,
+            type = request.type, status = "OPEN", subject = request.subject,
+            description = request.description, createdAt = now(), updatedAt = now()
+        )
+        supportTicketStore.add(ticket)
+        return Result.Success(ticket)
+    }
+
+    override suspend fun getSupportTicket(ticketId: String): Result<SupportTicketDto> {
+        delay(200)
+        val t = supportTicketStore.find { it.id == ticketId }
+            ?: return Result.Error(Exception("Ticket not found"))
+        return Result.Success(t)
+    }
+
+    override suspend fun getTicketsForUser(userId: String): Result<List<SupportTicketDto>> {
+        delay(300)
+        return Result.Success(supportTicketStore.filter { it.userId == userId })
+    }
+
+    override suspend fun fileClaim(request: FileClaimRequest): Result<ClaimDto> {
+        delay(400)
+        val claim = ClaimDto(
+            id = "claim-${System.currentTimeMillis()}", bookingId = request.bookingId,
+            filedByUserId = request.filedByUserId, filedByRole = request.filedByRole,
+            claimType = request.claimType, status = "SUBMITTED",
+            description = request.description, evidenceImageUrls = request.evidenceImageUrls,
+            createdAt = now(), updatedAt = now()
+        )
+        claimStore.add(claim)
+        return Result.Success(claim)
+    }
+
+    override suspend fun getClaim(claimId: String): Result<ClaimDto> {
+        delay(200)
+        val c = claimStore.find { it.id == claimId }
+            ?: return Result.Error(Exception("Claim not found"))
+        return Result.Success(c)
+    }
+
+    override suspend fun getClaimsForUser(userId: String): Result<List<ClaimDto>> {
+        delay(300)
+        return Result.Success(claimStore.filter { it.filedByUserId == userId })
+    }
+
+    override suspend fun getClaimForBooking(bookingId: String): Result<ClaimDto?> {
+        delay(200)
+        return Result.Success(claimStore.find { it.bookingId == bookingId })
+    }
+
+    override suspend fun cancelBookingWithReason(request: CancelBookingWithReasonRequest): Result<BookingDto> {
+        delay(400)
+        val idx = bookingStore.indexOfFirst { it.id == request.bookingId }
+        if (idx < 0) return Result.Error(Exception("Booking not found"))
+        val b = bookingStore[idx]
+        if (b.status != "PENDING" && b.status != "ACCEPTED") {
+            return Result.Error(Exception("Only PENDING or ACCEPTED bookings can be cancelled"))
+        }
+        bookingStore[idx] = b.copy(status = "CANCELLED", updatedAt = now())
+        return Result.Success(bookingStore[idx])
+    }
+
+    override suspend fun editBooking(request: EditBookingRequest): Result<BookingDto> {
+        delay(400)
+        val idx = bookingStore.indexOfFirst { it.id == request.bookingId }
+        if (idx < 0) return Result.Error(Exception("Booking not found"))
+        val b = bookingStore[idx]
+        if (b.status != "PENDING") {
+            return Result.Error(Exception("Only PENDING bookings can be edited"))
+        }
+        bookingStore[idx] = b.copy(
+            address = request.newAddress ?: b.address,
+            serviceId = request.newServiceId ?: b.serviceId,
+            updatedAt = now()
+        )
+        return Result.Success(bookingStore[idx])
+    }
+
+    override suspend fun requestRefund(bookingId: String): Result<PaymentDto> {
+        delay(400)
+        val idx = paymentStore.indexOfFirst { it.bookingId == bookingId }
+        if (idx < 0) return Result.Error(Exception("Payment not found for booking"))
+        paymentStore[idx] = paymentStore[idx].copy(status = "REFUNDED", updatedAt = now())
+        return Result.Success(paymentStore[idx])
+    }
+
+    override suspend fun getHelpArticles(): Result<List<HelpArticleDto>> {
+        delay(200)
+        return Result.Success(helpArticles)
+    }
 }

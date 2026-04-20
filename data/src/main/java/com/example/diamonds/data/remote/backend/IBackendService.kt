@@ -87,6 +87,19 @@ interface IBackendService {
     ): Result<RecurringBookingDto>
 
     suspend fun advanceRecurringBookingDate(id: String, newDate: String): Result<Unit>
+
+    // Support & Claims
+    suspend fun createSupportTicket(request: CreateSupportTicketRequest): Result<SupportTicketDto>
+    suspend fun getSupportTicket(ticketId: String): Result<SupportTicketDto>
+    suspend fun getTicketsForUser(userId: String): Result<List<SupportTicketDto>>
+    suspend fun fileClaim(request: FileClaimRequest): Result<ClaimDto>
+    suspend fun getClaim(claimId: String): Result<ClaimDto>
+    suspend fun getClaimsForUser(userId: String): Result<List<ClaimDto>>
+    suspend fun getClaimForBooking(bookingId: String): Result<ClaimDto?>
+    suspend fun cancelBookingWithReason(request: CancelBookingWithReasonRequest): Result<BookingDto>
+    suspend fun editBooking(request: EditBookingRequest): Result<BookingDto>
+    suspend fun requestRefund(bookingId: String): Result<PaymentDto>
+    suspend fun getHelpArticles(): Result<List<HelpArticleDto>>
 }
 
 // DTO classes for API communication (separate from domain models)
@@ -320,3 +333,78 @@ data class CreateRecurringBookingRequest(
     val totalPrice: Double
 )
 
+// ── Support & Claims DTOs ──────────────────────────────────────────────────
+
+@Serializable
+data class SupportTicketDto(
+    val id: String,
+    val userId: String,
+    val userRole: String,
+    val bookingId: String? = null,
+    val type: String,
+    val status: String,
+    val subject: String,
+    val description: String,
+    val conversationId: String? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+@Serializable
+data class ClaimDto(
+    val id: String,
+    val bookingId: String,
+    val filedByUserId: String,
+    val filedByRole: String,
+    val claimType: String,
+    val status: String,
+    val description: String,
+    val evidenceImageUrls: List<String> = emptyList(),
+    val resolutionNotes: String? = null,
+    val refundAmount: Double? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+@Serializable
+data class HelpArticleDto(
+    val id: String,
+    val title: String,
+    val body: String,
+    val category: String,
+    val tags: List<String> = emptyList()
+)
+
+@Serializable
+data class CreateSupportTicketRequest(
+    val userId: String,
+    val userRole: String,
+    val bookingId: String? = null,
+    val type: String,
+    val subject: String,
+    val description: String
+)
+
+@Serializable
+data class FileClaimRequest(
+    val bookingId: String,
+    val filedByUserId: String,
+    val filedByRole: String,
+    val claimType: String,
+    val description: String,
+    val evidenceImageUrls: List<String> = emptyList()
+)
+
+@Serializable
+data class CancelBookingWithReasonRequest(
+    val bookingId: String,
+    val reason: String,
+    val notes: String? = null
+)
+
+@Serializable
+data class EditBookingRequest(
+    val bookingId: String,
+    val newAddress: String? = null,
+    val newServiceId: String? = null
+)

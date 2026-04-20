@@ -479,6 +479,41 @@ class FirebaseBackendService : IBackendService {
             recurringBookingsCol.document(id).update("nextBookingDate", newDate).await()
         }
 
+    // ── Support & Claims (Firestore stubs) ────────────────────────────────
+
+    override suspend fun createSupportTicket(request: CreateSupportTicketRequest): Result<SupportTicketDto> =
+        Result.Error(Exception("Firebase support tickets not yet implemented"))
+
+    override suspend fun getSupportTicket(ticketId: String): Result<SupportTicketDto> =
+        Result.Error(Exception("Firebase support tickets not yet implemented"))
+
+    override suspend fun getTicketsForUser(userId: String): Result<List<SupportTicketDto>> =
+        Result.Error(Exception("Firebase support tickets not yet implemented"))
+
+    override suspend fun fileClaim(request: FileClaimRequest): Result<ClaimDto> =
+        Result.Error(Exception("Firebase claims not yet implemented"))
+
+    override suspend fun getClaim(claimId: String): Result<ClaimDto> =
+        Result.Error(Exception("Firebase claims not yet implemented"))
+
+    override suspend fun getClaimsForUser(userId: String): Result<List<ClaimDto>> =
+        Result.Error(Exception("Firebase claims not yet implemented"))
+
+    override suspend fun getClaimForBooking(bookingId: String): Result<ClaimDto?> =
+        Result.Error(Exception("Firebase claims not yet implemented"))
+
+    override suspend fun cancelBookingWithReason(request: CancelBookingWithReasonRequest): Result<BookingDto> =
+        Result.Error(Exception("Firebase cancel with reason not yet implemented"))
+
+    override suspend fun editBooking(request: EditBookingRequest): Result<BookingDto> =
+        Result.Error(Exception("Firebase edit booking not yet implemented"))
+
+    override suspend fun requestRefund(bookingId: String): Result<PaymentDto> =
+        Result.Error(Exception("Firebase refund not yet implemented"))
+
+    override suspend fun getHelpArticles(): Result<List<HelpArticleDto>> =
+        Result.Error(Exception("Firebase help articles not yet implemented"))
+
     // ── Helper ───────────────────────────────────────────────────────────────
 
     /**

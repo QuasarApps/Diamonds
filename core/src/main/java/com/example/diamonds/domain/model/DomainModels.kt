@@ -233,7 +233,9 @@ enum class NotificationType {
     PAYMENT,
     REVIEW,
     PROMOTION,
-    SYSTEM
+    SYSTEM,
+    SUPPORT_UPDATE,
+    CLAIM_UPDATE
 }
 
 /**
@@ -384,3 +386,71 @@ data class RecurringBooking(
     val updatedAt: String
 )
 
+// ── Help, Support & Claims ─────────────────────────────────────────────────
+
+@Serializable
+enum class SupportTicketType {
+    PRE_BOOKING, POST_BOOKING_PRE_SERVICE, DURING_SERVICE,
+    POST_SERVICE, SAFETY_EMERGENCY, ORDER_ISSUE, SATISFACTION
+}
+
+@Serializable
+enum class SupportTicketStatus {
+    OPEN, IN_PROGRESS, AWAITING_RESPONSE, RESOLVED, CLOSED
+}
+
+@Serializable
+enum class ClaimType {
+    INCOMPLETE_SERVICE, UNSATISFACTORY_SERVICE, PROPERTY_DAMAGE, INAPPROPRIATE_BEHAVIOR_PROVIDER,
+    DANGEROUS_PROPERTY, EXCEEDINGLY_DIRTY, INAPPROPRIATE_BEHAVIOR_CLIENT
+}
+
+@Serializable
+enum class ClaimStatus {
+    SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, RESOLVED
+}
+
+@Serializable
+enum class CancellationReason {
+    CHANGED_MIND, FOUND_ANOTHER, SCHEDULING_CONFLICT, PRICE_ISSUE, OTHER
+}
+
+@Serializable
+data class SupportTicket(
+    val id: String,
+    val userId: String,
+    val userRole: String,
+    val bookingId: String? = null,
+    val type: SupportTicketType,
+    val status: SupportTicketStatus = SupportTicketStatus.OPEN,
+    val subject: String,
+    val description: String,
+    val conversationId: String? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+@Serializable
+data class Claim(
+    val id: String,
+    val bookingId: String,
+    val filedByUserId: String,
+    val filedByRole: String,
+    val claimType: ClaimType,
+    val status: ClaimStatus = ClaimStatus.SUBMITTED,
+    val description: String,
+    val evidenceImageUrls: List<String> = emptyList(),
+    val resolutionNotes: String? = null,
+    val refundAmount: Double? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+@Serializable
+data class HelpArticle(
+    val id: String,
+    val title: String,
+    val body: String,
+    val category: String,
+    val tags: List<String> = emptyList()
+)

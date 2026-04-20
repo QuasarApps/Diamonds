@@ -439,6 +439,8 @@ private fun iconForEntityType(type: EntityType): String = when (type) {
     EntityType.SERVICE -> "🧹"
     EntityType.PROFILE -> "👤"
     EntityType.RECURRING_BOOKING -> "🔄"
+    EntityType.SUPPORT_TICKET -> "🎫"
+    EntityType.CLAIM -> "📝"
 }
 
 private fun statusBadge(status: SyncStatus): String = when (status) {

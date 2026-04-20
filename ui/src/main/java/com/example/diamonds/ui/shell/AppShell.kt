@@ -1094,6 +1094,85 @@ fun AppShell(
                 composable(Screen.LanguageSelector.route) {
                     LanguageSelectorScreen()
                 }
+
+                // ════════════════════════════════════════════════════════════
+                // HELP, SUPPORT & CLAIMS
+                // ════════════════════════════════════════════════════════════
+                composable(Screen.HelpCenter.route) {
+                    com.example.diamonds.ui.support.HelpCenterScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    route = Screen.ContextualHelp().route,
+                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+                ) { entry ->
+                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                    com.example.diamonds.ui.support.ContextualHelpScreen(
+                        bookingId = bid,
+                        onBack = { navController.popBackStack() },
+                        onNavigate = { route -> navController.navigate(route) }
+                    )
+                }
+
+                composable(
+                    route = Screen.CancelBooking().route,
+                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+                ) { entry ->
+                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                    com.example.diamonds.ui.support.CancelBookingScreen(
+                        bookingId = bid,
+                        onBack = { navController.popBackStack() },
+                        onCancelled = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    route = Screen.EditBooking().route,
+                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+                ) { entry ->
+                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                    com.example.diamonds.ui.support.EditBookingScreen(
+                        bookingId = bid,
+                        onBack = { navController.popBackStack() },
+                        onSaved = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    route = Screen.FileClaim().route,
+                    arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+                ) { entry ->
+                    val bid = entry.arguments?.getString("bookingId") ?: return@composable
+                    com.example.diamonds.ui.support.FileClaimScreen(
+                        bookingId = bid,
+                        currentUserId = s.userId,
+                        currentUserRole = s.role.name,
+                        onBack = { navController.popBackStack() },
+                        onClaimFiled = { claimId ->
+                            navController.navigate(
+                                Screen.ClaimDetail().route.replace(
+                                    "{claimId}",
+                                    claimId
+                                )
+                            ) {
+                                popUpTo(Screen.FileClaim().route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.ClaimDetail().route,
+                    arguments = listOf(navArgument("claimId") { type = NavType.StringType })
+                ) { entry ->
+                    val cid = entry.arguments?.getString("claimId") ?: return@composable
+                    com.example.diamonds.ui.support.ClaimDetailScreen(
+                        claimId = cid,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

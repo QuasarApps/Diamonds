@@ -1,6 +1,7 @@
 package com.example.diamonds.data.mapper
 
 import com.example.diamonds.data.local.entity.BookingEntity
+import com.example.diamonds.data.local.entity.ClaimEntity
 import com.example.diamonds.data.local.entity.ClientEntity
 import com.example.diamonds.data.local.entity.ConversationEntity
 import com.example.diamonds.data.local.entity.MessageEntity
@@ -11,22 +12,30 @@ import com.example.diamonds.data.local.entity.ProviderLocationEntity
 import com.example.diamonds.data.local.entity.RecurringBookingEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
+import com.example.diamonds.data.local.entity.SupportTicketEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
 import com.example.diamonds.data.remote.backend.BookingDto
+import com.example.diamonds.data.remote.backend.ClaimDto
 import com.example.diamonds.data.remote.backend.ClientDto
 import com.example.diamonds.data.remote.backend.ConversationDto
+import com.example.diamonds.data.remote.backend.HelpArticleDto
 import com.example.diamonds.data.remote.backend.MessageDto
 import com.example.diamonds.data.remote.backend.PaymentDto
 import com.example.diamonds.data.remote.backend.ProviderDto
 import com.example.diamonds.data.remote.backend.RecurringBookingDto
 import com.example.diamonds.data.remote.backend.ReviewDto
 import com.example.diamonds.data.remote.backend.ServiceDto
+import com.example.diamonds.data.remote.backend.SupportTicketDto
 import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.Claim
+import com.example.diamonds.domain.model.ClaimStatus
+import com.example.diamonds.domain.model.ClaimType
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Client
 import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.GeoLocation
+import com.example.diamonds.domain.model.HelpArticle
 import com.example.diamonds.domain.model.Message
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationType
@@ -42,6 +51,9 @@ import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.ReviewDirection
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.domain.model.SupportTicket
+import com.example.diamonds.domain.model.SupportTicketStatus
+import com.example.diamonds.domain.model.SupportTicketType
 import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.model.VerificationStatus
 import com.example.diamonds.domain.repository.EntityType
@@ -508,3 +520,67 @@ fun RecurringBookingDto.toDomain(): RecurringBooking = RecurringBooking(
     updatedAt = updatedAt
 )
 
+// ── Support Ticket mappers ──────────────────────────────────────────────────
+
+fun SupportTicketEntity.toDomain(): SupportTicket = SupportTicket(
+    id = id, userId = userId, userRole = userRole, bookingId = bookingId,
+    type = SupportTicketType.valueOf(type), status = SupportTicketStatus.valueOf(status),
+    subject = subject, description = description, conversationId = conversationId,
+    createdAt = createdAt, updatedAt = updatedAt
+)
+
+fun SupportTicket.toEntity(): SupportTicketEntity = SupportTicketEntity(
+    id = id, userId = userId, userRole = userRole, bookingId = bookingId,
+    type = type.name, status = status.name,
+    subject = subject, description = description, conversationId = conversationId,
+    createdAt = createdAt, updatedAt = updatedAt
+)
+
+fun SupportTicketDto.toDomain(): SupportTicket = SupportTicket(
+    id = id, userId = userId, userRole = userRole, bookingId = bookingId,
+    type = SupportTicketType.valueOf(type), status = SupportTicketStatus.valueOf(status),
+    subject = subject, description = description, conversationId = conversationId,
+    createdAt = createdAt, updatedAt = updatedAt
+)
+
+// ── Claim mappers ────────────────────────────────────────────────────────────
+
+fun ClaimEntity.toDomain(): Claim = Claim(
+    id = id, bookingId = bookingId, filedByUserId = filedByUserId, filedByRole = filedByRole,
+    claimType = ClaimType.valueOf(claimType), status = ClaimStatus.valueOf(status),
+    description = description,
+    evidenceImageUrls = try {
+        if (evidenceImageUrls.isBlank()) emptyList()
+        else kotlinx.serialization.json.Json.decodeFromString<List<String>>(evidenceImageUrls)
+    } catch (_: Exception) {
+        emptyList()
+    },
+    resolutionNotes = resolutionNotes, refundAmount = refundAmount,
+    createdAt = createdAt, updatedAt = updatedAt
+)
+
+fun Claim.toEntity(): ClaimEntity = ClaimEntity(
+    id = id, bookingId = bookingId, filedByUserId = filedByUserId, filedByRole = filedByRole,
+    claimType = claimType.name, status = status.name, description = description,
+    evidenceImageUrls = kotlinx.serialization.json.Json.encodeToString(
+        kotlinx.serialization.builtins.ListSerializer(
+            kotlinx.serialization.serializer<String>()
+        ), evidenceImageUrls
+    ),
+    resolutionNotes = resolutionNotes, refundAmount = refundAmount,
+    createdAt = createdAt, updatedAt = updatedAt
+)
+
+fun ClaimDto.toDomain(): Claim = Claim(
+    id = id, bookingId = bookingId, filedByUserId = filedByUserId, filedByRole = filedByRole,
+    claimType = ClaimType.valueOf(claimType), status = ClaimStatus.valueOf(status),
+    description = description, evidenceImageUrls = evidenceImageUrls,
+    resolutionNotes = resolutionNotes, refundAmount = refundAmount,
+    createdAt = createdAt, updatedAt = updatedAt
+)
+
+// ── HelpArticle mappers ──────────────────────────────────────────────────────
+
+fun HelpArticleDto.toDomain(): HelpArticle = HelpArticle(
+    id = id, title = title, body = body, category = category, tags = tags
+)

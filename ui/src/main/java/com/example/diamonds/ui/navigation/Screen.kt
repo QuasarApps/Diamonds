@@ -128,4 +128,32 @@ sealed class Screen(val route: String) {
         Screen("chat/{conversationId}") {
         fun route(id: String) = "chat/$id"
     }
+
+    // ── Help, Support & Claims ─────────────────────────────────────────────
+    data object HelpCenter : Screen("support/help")
+
+    data class ContextualHelp(val bookingId: String = "{bookingId}") :
+        Screen("support/help/{bookingId}") {
+        fun route(id: String) = "support/help/$id"
+    }
+
+    data class FileClaim(val bookingId: String = "{bookingId}") :
+        Screen("support/claim/{bookingId}") {
+        fun route(id: String) = "support/claim/$id"
+    }
+
+    data class ClaimDetail(val claimId: String = "{claimId}") :
+        Screen("support/claim/detail/{claimId}") {
+        fun route(id: String) = "support/claim/detail/$id"
+    }
+
+    data class CancelBooking(val bookingId: String = "{bookingId}") :
+        Screen("support/cancel/{bookingId}") {
+        fun route(id: String) = "support/cancel/$id"
+    }
+
+    data class EditBooking(val bookingId: String = "{bookingId}") :
+        Screen("support/edit/{bookingId}") {
+        fun route(id: String) = "support/edit/$id"
+    }
 }

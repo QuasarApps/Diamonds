@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.diamonds.data.local.entity.BookingEntity
+import com.example.diamonds.data.local.entity.ClaimEntity
 import com.example.diamonds.data.local.entity.ClientEntity
 import com.example.diamonds.data.local.entity.ConversationEntity
 import com.example.diamonds.data.local.entity.MessageEntity
@@ -16,6 +17,7 @@ import com.example.diamonds.data.local.entity.ProviderLocationEntity
 import com.example.diamonds.data.local.entity.RecurringBookingEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
+import com.example.diamonds.data.local.entity.SupportTicketEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -324,3 +326,53 @@ interface RecurringBookingDao {
     suspend fun delete(id: String)
 }
 
+@Dao
+interface SupportTicketDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(ticket: SupportTicketEntity)
+
+    @Query("SELECT * FROM support_tickets WHERE id = :id")
+    suspend fun getById(id: String): SupportTicketEntity?
+
+    @Query("SELECT * FROM support_tickets WHERE userId = :userId ORDER BY createdAt DESC")
+    suspend fun getForUser(userId: String): List<SupportTicketEntity>
+
+    @Query("SELECT * FROM support_tickets WHERE userId = :userId ORDER BY createdAt DESC")
+    fun observeForUser(userId: String): Flow<List<SupportTicketEntity>>
+
+    @Query("UPDATE support_tickets SET status = :status, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateStatus(id: String, status: String, updatedAt: String)
+
+    @Query("DELETE FROM support_tickets WHERE id = :id")
+    suspend fun delete(id: String)
+}
+
+@Dao
+interface ClaimDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(claim: ClaimEntity)
+
+    @Query("SELECT * FROM claims WHERE id = :id")
+    suspend fun getById(id: String): ClaimEntity?
+
+    @Query("SELECT * FROM claims WHERE bookingId = :bookingId LIMIT 1")
+    suspend fun getByBookingId(bookingId: String): ClaimEntity?
+
+    @Query("SELECT * FROM claims WHERE filedByUserId = :userId ORDER BY createdAt DESC")
+    suspend fun getForUser(userId: String): List<ClaimEntity>
+
+    @Query("SELECT * FROM claims WHERE filedByUserId = :userId ORDER BY createdAt DESC")
+    fun observeForUser(userId: String): Flow<List<ClaimEntity>>
+
+    @Query("UPDATE claims SET status = :status, resolutionNotes = :notes, refundAmount = :refundAmount, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateStatus(
+        id: String,
+        status: String,
+        notes: String?,
+        refundAmount: Double?,
+        updatedAt: String
+    )
+
+    @Query("DELETE FROM claims WHERE id = :id")
+    suspend fun delete(id: String)
+}
