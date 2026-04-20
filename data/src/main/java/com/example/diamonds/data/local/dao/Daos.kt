@@ -16,6 +16,7 @@ import com.example.diamonds.data.local.entity.ProviderEntity
 import com.example.diamonds.data.local.entity.ProviderLocationEntity
 import com.example.diamonds.data.local.entity.RecurringBookingEntity
 import com.example.diamonds.data.local.entity.ReviewEntity
+import com.example.diamonds.data.local.entity.SavedLocationEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SupportTicketEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
@@ -396,3 +397,22 @@ interface ClaimDao {
     @Query("DELETE FROM claims WHERE id = :id")
     suspend fun delete(id: String)
 }
+
+@Dao
+interface SavedLocationDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(location: SavedLocationEntity)
+
+    @Query("SELECT * FROM saved_locations WHERE clientId = :clientId ORDER BY label ASC")
+    suspend fun getForClient(clientId: String): List<SavedLocationEntity>
+
+    @Query("SELECT * FROM saved_locations WHERE clientId = :clientId ORDER BY label ASC")
+    fun observeForClient(clientId: String): Flow<List<SavedLocationEntity>>
+
+    @Query("SELECT * FROM saved_locations WHERE id = :id")
+    suspend fun getById(id: String): SavedLocationEntity?
+
+    @Query("DELETE FROM saved_locations WHERE id = :id")
+    suspend fun delete(id: String)
+}
+

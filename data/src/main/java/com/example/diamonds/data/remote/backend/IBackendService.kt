@@ -100,6 +100,11 @@ interface IBackendService {
     suspend fun editBooking(request: EditBookingRequest): Result<BookingDto>
     suspend fun requestRefund(bookingId: String): Result<PaymentDto>
     suspend fun getHelpArticles(): Result<List<HelpArticleDto>>
+
+    // Saved Locations
+    suspend fun getSavedLocations(clientId: String): Result<List<SavedLocationDto>>
+    suspend fun upsertSavedLocation(location: SavedLocationDto): Result<SavedLocationDto>
+    suspend fun deleteSavedLocation(locationId: String): Result<Unit>
 }
 
 // DTO classes for API communication (separate from domain models)
@@ -132,6 +137,8 @@ data class ProviderDto(
     /** Non-null for employed cleaners */
     val employerId: String? = null,
     val employerName: String? = null,
+    /** List of CleaningType enum names */
+    val specializations: List<String> = emptyList(),
     val createdAt: String,
     val updatedAt: String
 )
@@ -166,6 +173,8 @@ data class BookingDto(
     val address: String,
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val cleaningType: String? = null,
+    val locationType: String? = null,
     val createdAt: String,
     val updatedAt: String
 )
@@ -408,3 +417,20 @@ data class EditBookingRequest(
     val newAddress: String? = null,
     val newServiceId: String? = null
 )
+
+@Serializable
+data class SavedLocationDto(
+    val id: String,
+    val clientId: String,
+    val label: String,
+    val address: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val locationType: String = "HOUSE",
+    val roomCount: Int = 1,
+    val bathroomCount: Int = 1,
+    val sqFootage: Int? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+

@@ -155,4 +155,7 @@ sealed class Screen(val route: String) {
         Screen("support/edit/{bookingId}") {
         fun route(id: String) = "support/edit/$id"
     }
+
+    // ── Profile & Locations ────────────────────────────────────────────────
+    data object SavedLocations : Screen("customer/locations")
 }

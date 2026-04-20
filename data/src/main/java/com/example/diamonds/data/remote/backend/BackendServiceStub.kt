@@ -20,6 +20,7 @@ class BackendServiceStub : IBackendService {
             phoneNumber = "+1 555-0101", bio = "10 years experience, specialising in deep cleans and post-construction.",
             rating = 4.9f, reviewCount = 143, verificationStatus = "APPROVED",
             serviceRadius = 15, cleanerType = "INDEPENDENT",
+            specializations = listOf("DEEP_CLEAN", "POST_CONSTRUCTION", "END_OF_TENANCY"),
             createdAt = "2023-01-10", updatedAt = "2026-01-01"
         ),
         ProviderDto(
@@ -27,6 +28,7 @@ class BackendServiceStub : IBackendService {
             phoneNumber = "+1 555-0404", bio = "Carpet and upholstery expert. Steam cleaning available.",
             rating = 4.6f, reviewCount = 57, verificationStatus = "APPROVED",
             serviceRadius = 12, cleanerType = "INDEPENDENT",
+            specializations = listOf("CARPET_AND_UPHOLSTERY", "STANDARD"),
             createdAt = "2024-06-20", updatedAt = "2026-03-01"
         ),
         // ── Cleaning company ──────────────────────────────────────────────
@@ -35,6 +37,12 @@ class BackendServiceStub : IBackendService {
             phoneNumber = "+1 555-0500", bio = "Fully insured commercial & residential cleaning company. Vetted team of 12 cleaners.",
             rating = 4.8f, reviewCount = 304, verificationStatus = "APPROVED",
             serviceRadius = 25, cleanerType = "INDEPENDENT", // company itself has no employer
+            specializations = listOf(
+                "STANDARD",
+                "DEEP_CLEAN",
+                "OFFICE_COMMERCIAL",
+                "MOVE_IN_MOVE_OUT"
+            ),
             createdAt = "2021-06-01", updatedAt = "2026-03-15"
         ),
         // ── Employed cleaners (work for Sparkle Pro) ──────────────────────
@@ -44,6 +52,7 @@ class BackendServiceStub : IBackendService {
             rating = 4.7f, reviewCount = 89, verificationStatus = "APPROVED",
             serviceRadius = 10, cleanerType = "EMPLOYED",
             employerId = "p5", employerName = "Sparkle Pro Cleaning Co.",
+            specializations = listOf("STANDARD", "DEEP_CLEAN"),
             createdAt = "2023-03-15", updatedAt = "2025-12-01"
         ),
         ProviderDto(
@@ -52,6 +61,7 @@ class BackendServiceStub : IBackendService {
             rating = 4.8f, reviewCount = 212, verificationStatus = "APPROVED",
             serviceRadius = 20, cleanerType = "EMPLOYED",
             employerId = "p5", employerName = "Sparkle Pro Cleaning Co.",
+            specializations = listOf("OFFICE_COMMERCIAL", "WINDOW_CLEANING"),
             createdAt = "2022-11-05", updatedAt = "2026-02-14"
         )
     )
@@ -1082,5 +1092,40 @@ class BackendServiceStub : IBackendService {
     override suspend fun getHelpArticles(): Result<List<HelpArticleDto>> {
         delay(200)
         return Result.Success(helpArticles)
+    }
+
+    // ── Saved Locations ───────────────────────────────────────────────────
+
+    private val savedLocationStore = mutableListOf(
+        SavedLocationDto(
+            id = "loc-1", clientId = "demo_customer", label = "Home",
+            address = "45 Oak Street, Maplewood", latitude = 37.7749, longitude = -122.4194,
+            locationType = "HOUSE", roomCount = 3, bathroomCount = 2, sqFootage = 1400,
+            createdAt = "2025-01-01", updatedAt = "2025-01-01"
+        ),
+        SavedLocationDto(
+            id = "loc-2", clientId = "demo_customer", label = "Office",
+            address = "200 Market St, San Francisco", latitude = 37.7935, longitude = -122.3964,
+            locationType = "OFFICE", roomCount = 5, bathroomCount = 2, sqFootage = 2000,
+            createdAt = "2025-03-15", updatedAt = "2025-03-15"
+        )
+    )
+
+    override suspend fun getSavedLocations(clientId: String): Result<List<SavedLocationDto>> {
+        delay(300)
+        return Result.Success(savedLocationStore.filter { it.clientId == clientId })
+    }
+
+    override suspend fun upsertSavedLocation(location: SavedLocationDto): Result<SavedLocationDto> {
+        delay(300)
+        val idx = savedLocationStore.indexOfFirst { it.id == location.id }
+        if (idx >= 0) savedLocationStore[idx] = location else savedLocationStore.add(location)
+        return Result.Success(location)
+    }
+
+    override suspend fun deleteSavedLocation(locationId: String): Result<Unit> {
+        delay(200)
+        savedLocationStore.removeAll { it.id == locationId }
+        return Result.Success(Unit)
     }
 }

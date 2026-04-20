@@ -32,6 +32,8 @@ data class ProviderEntity(
     /** Non-null when cleanerType == "EMPLOYED" */
     val employerId: String? = null,
     val employerName: String? = null,
+    /** JSON array of CleaningType enum names */
+    val specializations: String = "[]",
     val createdAt: String,
     val updatedAt: String,
     val syncedAt: String? = null
@@ -68,6 +70,8 @@ data class BookingEntity(
     val address: String,
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val cleaningType: String? = null,   // CleaningType enum name
+    val locationType: String? = null,   // LocationType enum name
     val syncStatus: String, // SyncStatus enum
     val createdAt: String,
     val updatedAt: String,
@@ -219,3 +223,20 @@ data class ClaimEntity(
     val createdAt: String,
     val updatedAt: String
 )
+
+@Entity(tableName = "saved_locations")
+data class SavedLocationEntity(
+    @PrimaryKey val id: String,
+    val clientId: String,
+    val label: String,
+    val address: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val locationType: String = "HOUSE",
+    val roomCount: Int = 1,
+    val bathroomCount: Int = 1,
+    val sqFootage: Int? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+

@@ -20,6 +20,7 @@ import com.example.diamonds.data.local.dao.ReviewDao
 import com.example.diamonds.data.local.dao.ServiceDao
 import com.example.diamonds.data.local.dao.SupportTicketDao
 import com.example.diamonds.data.local.dao.SyncQueueDao
+import com.example.diamonds.data.local.dao.SavedLocationDao
 import com.example.diamonds.data.local.entity.BookingEntity
 import com.example.diamonds.data.local.entity.ClaimEntity
 import com.example.diamonds.data.local.entity.ClientEntity
@@ -34,6 +35,7 @@ import com.example.diamonds.data.local.entity.ReviewEntity
 import com.example.diamonds.data.local.entity.ServiceEntity
 import com.example.diamonds.data.local.entity.SupportTicketEntity
 import com.example.diamonds.data.local.entity.SyncQueueEntity
+import com.example.diamonds.data.local.entity.SavedLocationEntity
 
 @Database(
     entities = [
@@ -50,9 +52,10 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
         MessageEntity::class,
         RecurringBookingEntity::class,
         SupportTicketEntity::class,
-        ClaimEntity::class
+        ClaimEntity::class,
+        SavedLocationEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -70,6 +73,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recurringBookingDao(): RecurringBookingDao
     abstract fun supportTicketDao(): SupportTicketDao
     abstract fun claimDao(): ClaimDao
+    abstract fun savedLocationDao(): SavedLocationDao
 
     companion object {
         @Volatile
@@ -241,6 +245,33 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v9 → v10: add specializations to providers, cleaningType/locationType to bookings, saved_locations table. */
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE providers ADD COLUMN specializations TEXT NOT NULL DEFAULT '[]'")
+                db.execSQL("ALTER TABLE bookings ADD COLUMN cleaningType TEXT")
+                db.execSQL("ALTER TABLE bookings ADD COLUMN locationType TEXT")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS saved_locations (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        clientId TEXT NOT NULL,
+                        label TEXT NOT NULL,
+                        address TEXT NOT NULL,
+                        latitude REAL,
+                        longitude REAL,
+                        locationType TEXT NOT NULL DEFAULT 'HOUSE',
+                        roomCount INTEGER NOT NULL DEFAULT 1,
+                        bathroomCount INTEGER NOT NULL DEFAULT 1,
+                        sqFootage INTEGER,
+                        createdAt TEXT NOT NULL,
+                        updatedAt TEXT NOT NULL
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -256,7 +287,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_5_6,
                         MIGRATION_6_7,
                         MIGRATION_7_8,
-                        MIGRATION_8_9
+                        MIGRATION_8_9,
+                        MIGRATION_9_10
                     )
                     .build()
                 INSTANCE = instance

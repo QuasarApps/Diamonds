@@ -2,6 +2,7 @@ package com.example.diamonds.ui.cleaner
 
 import androidx.lifecycle.viewModelScope
 import com.example.diamonds.data.connectivity.ConnectivityObserver
+import com.example.diamonds.domain.model.CleaningType
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Service
@@ -65,9 +66,16 @@ class CleanerProfileViewModel @Inject constructor(
     private val _editPhone = MutableStateFlow("")
     val editPhone: StateFlow<String> = _editPhone.asStateFlow()
 
+    private val _editSpecializations = MutableStateFlow<List<CleaningType>>(emptyList())
+    val editSpecializations: StateFlow<List<CleaningType>> = _editSpecializations.asStateFlow()
+
     fun onNameChange(v: String)  { _editName.value  = v }
     fun onBioChange(v: String)   { _editBio.value   = v }
     fun onPhoneChange(v: String) { _editPhone.value = v }
+    fun onToggleSpecialization(type: CleaningType) {
+        val current = _editSpecializations.value
+        _editSpecializations.value = if (type in current) current - type else current + type
+    }
 
     private suspend fun myProviderId(): String? =
         authRepository.getCurrentUserSession().first()?.userId
@@ -96,6 +104,7 @@ class CleanerProfileViewModel @Inject constructor(
                 _editName.value  = provider.name
                 _editBio.value   = provider.bio   ?: ""
                 _editPhone.value = provider.phoneNumber
+                _editSpecializations.value = provider.specializations
 
                 _profileState.value = CleanerProfileUiState(
                     provider     = provider,
@@ -121,7 +130,8 @@ class CleanerProfileViewModel @Inject constructor(
             val updated = current.copy(
                 name        = _editName.value.trim(),
                 bio         = _editBio.value.trim().ifBlank { null },
-                phoneNumber = _editPhone.value.trim()
+                phoneNumber = _editPhone.value.trim(),
+                specializations = _editSpecializations.value
             )
 
             when (val r = providerRepository.updateProvider(updated)) {

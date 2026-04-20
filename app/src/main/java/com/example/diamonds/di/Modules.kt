@@ -20,6 +20,7 @@ import com.example.diamonds.data.repository.NotificationRepository
 import com.example.diamonds.data.repository.PaymentRepository
 import com.example.diamonds.data.repository.ProviderRepository
 import com.example.diamonds.data.repository.ReviewRepository
+import com.example.diamonds.data.repository.SavedLocationRepository
 import com.example.diamonds.data.repository.ServiceRepository
 import com.example.diamonds.data.repository.SubscriptionRepository
 import com.example.diamonds.data.repository.SupportRepository
@@ -34,6 +35,7 @@ import com.example.diamonds.domain.repository.INotificationRepository
 import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
+import com.example.diamonds.domain.repository.ISavedLocationRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.ISubscriptionRepository
 import com.example.diamonds.domain.repository.ISupportRepository
@@ -243,5 +245,14 @@ object RepositoryModule {
         backendService: IBackendService
     ): ISupportRepository {
         return SupportRepository(db, backendService)
+    }
+
+    @Singleton
+    @Provides
+    fun provideSavedLocationRepository(
+        db: AppDatabase,
+        backendService: IBackendService
+    ): ISavedLocationRepository {
+        return SavedLocationRepository(db, backendService)
     }
 }

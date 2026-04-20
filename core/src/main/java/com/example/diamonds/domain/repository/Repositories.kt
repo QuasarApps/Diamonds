@@ -19,6 +19,7 @@ import com.example.diamonds.domain.model.RecurringBooking
 import com.example.diamonds.domain.model.RecurringBookingStatus
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Review
+import com.example.diamonds.domain.model.SavedLocation
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceArea
 import com.example.diamonds.domain.model.ServiceCategory
@@ -359,3 +360,14 @@ enum class SyncOperationType {
 enum class EntityType {
     BOOKING, REVIEW, PAYMENT, SERVICE, PROFILE, RECURRING_BOOKING, SUPPORT_TICKET, CLAIM
 }
+
+/**
+ * Repository for managing a client's saved locations.
+ */
+interface ISavedLocationRepository {
+    suspend fun getSavedLocations(clientId: String): Result<List<SavedLocation>>
+    fun observeSavedLocations(clientId: String): Flow<List<SavedLocation>>
+    suspend fun upsertSavedLocation(location: SavedLocation): Result<SavedLocation>
+    suspend fun deleteSavedLocation(locationId: String): Result<Unit>
+}
+

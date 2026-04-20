@@ -46,6 +46,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
+import com.example.diamonds.domain.model.LocationDetail
+import com.example.diamonds.ui.components.CleaningTypeSelector
+import com.example.diamonds.ui.components.LocationTypeSelector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,6 +116,22 @@ fun BookingFormScreen(
                 }
             }
         }
+
+        Spacer(Modifier.height(28.dp))
+        Text("Cleaning Type", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Spacer(Modifier.height(8.dp))
+        CleaningTypeSelector(
+            selected = state.cleaningType,
+            onSelect = viewModel::onCleaningTypeSelected
+        )
+
+        Spacer(Modifier.height(24.dp))
+        Text("Property Details", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Spacer(Modifier.height(8.dp))
+        LocationTypeSelector(
+            detail = state.locationDetail ?: LocationDetail(),
+            onDetailChange = viewModel::onLocationDetailChanged
+        )
 
         Spacer(Modifier.height(28.dp))
         Text("Schedule", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)

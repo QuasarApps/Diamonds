@@ -36,6 +36,7 @@ fun CustomerProfileScreen(
     onPaymentHistory: () -> Unit,
     onMyBookings: () -> Unit,
     onSubscriptions: () -> Unit = {},
+    onSavedLocations: () -> Unit = {},
     onLanguage: () -> Unit = {},
     onHelpCenter: () -> Unit = {},
     onSignOut: () -> Unit
@@ -110,6 +111,13 @@ fun CustomerProfileScreen(
             title = "Recurring Bookings",
             subtitle = "Manage your scheduled cleaning plans",
             onClick = onSubscriptions
+        )
+
+        ProfileLinkCard(
+            icon = "📍",
+            title = "My Locations",
+            subtitle = "Save and manage your cleaning locations",
+            onClick = onSavedLocations
         )
 
         ProfileLinkCard(

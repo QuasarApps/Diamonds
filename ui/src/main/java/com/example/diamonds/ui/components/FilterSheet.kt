@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -29,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.diamonds.domain.model.CleaningType
 import com.example.diamonds.domain.model.ServiceCategory
 
 /**
@@ -37,7 +36,8 @@ import com.example.diamonds.domain.model.ServiceCategory
 data class FilterCriteria(
     val category: ServiceCategory? = null,
     val minRating: Float = 0f,
-    val maxPrice: Float = 500f
+    val maxPrice: Float = 500f,
+    val specialization: CleaningType? = null
 )
 
 /**
@@ -57,6 +57,7 @@ fun FilterSection(
     var selectedCategory by remember(currentFilters) { mutableStateOf(currentFilters.category) }
     var minRating by remember(currentFilters) { mutableFloatStateOf(currentFilters.minRating) }
     var maxPrice by remember(currentFilters) { mutableFloatStateOf(currentFilters.maxPrice) }
+    var selectedSpecialization by remember(currentFilters) { mutableStateOf(currentFilters.specialization) }
 
     val categoryLabels = listOf(
         null to "All",
@@ -118,6 +119,13 @@ fun FilterSection(
                 steps = 19
             )
 
+            // ── Specialization ────────────────────────────────────────────
+            Text("Specialization", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            CleaningTypeSelector(
+                selected = selectedSpecialization,
+                onSelect = { selectedSpecialization = it }
+            )
+
             // ── Actions ───────────────────────────────────────────────────
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(
@@ -125,13 +133,21 @@ fun FilterSection(
                         selectedCategory = null
                         minRating = 0f
                         maxPrice = 500f
+                        selectedSpecialization = null
                     },
                     modifier = Modifier.weight(1f)
                 ) { Text("Reset") }
 
                 Button(
                     onClick = {
-                        onApply(FilterCriteria(selectedCategory, minRating, maxPrice))
+                        onApply(
+                            FilterCriteria(
+                                selectedCategory,
+                                minRating,
+                                maxPrice,
+                                selectedSpecialization
+                            )
+                        )
                         onDismiss()
                     },
                     modifier = Modifier.weight(1f)

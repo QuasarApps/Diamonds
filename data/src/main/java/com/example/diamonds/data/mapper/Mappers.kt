@@ -90,6 +90,13 @@ fun ProviderEntity.toDomain(): Provider = Provider(
     cleanerType = try { CleanerType.valueOf(cleanerType) } catch (_: Exception) { CleanerType.INDEPENDENT },
     employerId = employerId,
     employerName = employerName,
+    specializations = try {
+        if (specializations.isBlank() || specializations == "[]") emptyList()
+        else kotlinx.serialization.json.Json.decodeFromString<List<String>>(specializations)
+            .mapNotNull { runCatching { com.example.diamonds.domain.model.CleaningType.valueOf(it) }.getOrNull() }
+    } catch (_: Exception) {
+        emptyList()
+    },
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -122,6 +129,20 @@ fun BookingEntity.toDomain(): Booking = Booking(
     address = address,
     latitude = latitude,
     longitude = longitude,
+    cleaningType = cleaningType?.let {
+        runCatching {
+            com.example.diamonds.domain.model.CleaningType.valueOf(
+                it
+            )
+        }.getOrNull()
+    },
+    locationType = locationType?.let {
+        runCatching {
+            com.example.diamonds.domain.model.LocationType.valueOf(
+                it
+            )
+        }.getOrNull()
+    },
     syncStatus = SyncStatus.valueOf(syncStatus),
     createdAt = createdAt,
     updatedAt = updatedAt
@@ -209,6 +230,10 @@ fun Provider.toEntity(): ProviderEntity = ProviderEntity(
     cleanerType = cleanerType.name,
     employerId = employerId,
     employerName = employerName,
+    specializations = kotlinx.serialization.json.Json.encodeToString(
+        kotlinx.serialization.builtins.ListSerializer(kotlinx.serialization.serializer<String>()),
+        specializations.map { it.name }
+    ),
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -241,6 +266,8 @@ fun Booking.toEntity(): BookingEntity = BookingEntity(
     address = address,
     latitude = latitude,
     longitude = longitude,
+    cleaningType = cleaningType?.name,
+    locationType = locationType?.name,
     syncStatus = syncStatus.name,
     createdAt = createdAt,
     updatedAt = updatedAt
@@ -272,6 +299,13 @@ fun ProviderDto.toDomain(): Provider = Provider(
     cleanerType = try { CleanerType.valueOf(cleanerType) } catch (_: Exception) { CleanerType.INDEPENDENT },
     employerId = employerId,
     employerName = employerName,
+    specializations = specializations.mapNotNull {
+        runCatching {
+            com.example.diamonds.domain.model.CleaningType.valueOf(
+                it
+            )
+        }.getOrNull()
+    },
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -304,6 +338,20 @@ fun BookingDto.toDomain(): Booking = Booking(
     address = address,
     latitude = latitude,
     longitude = longitude,
+    cleaningType = cleaningType?.let {
+        runCatching {
+            com.example.diamonds.domain.model.CleaningType.valueOf(
+                it
+            )
+        }.getOrNull()
+    },
+    locationType = locationType?.let {
+        runCatching {
+            com.example.diamonds.domain.model.LocationType.valueOf(
+                it
+            )
+        }.getOrNull()
+    },
     syncStatus = SyncStatus.SYNCED,
     createdAt = createdAt,
     updatedAt = updatedAt
@@ -584,3 +632,50 @@ fun ClaimDto.toDomain(): Claim = Claim(
 fun HelpArticleDto.toDomain(): HelpArticle = HelpArticle(
     id = id, title = title, body = body, category = category, tags = tags
 )
+
+// ── SavedLocation mappers ────────────────────────────────────────────────────
+
+fun com.example.diamonds.data.local.entity.SavedLocationEntity.toDomain(): com.example.diamonds.domain.model.SavedLocation =
+    com.example.diamonds.domain.model.SavedLocation(
+        id = id, clientId = clientId, label = label, address = address,
+        latitude = latitude, longitude = longitude,
+        locationType = runCatching {
+            com.example.diamonds.domain.model.LocationType.valueOf(
+                locationType
+            )
+        }.getOrDefault(com.example.diamonds.domain.model.LocationType.HOUSE),
+        roomCount = roomCount, bathroomCount = bathroomCount, sqFootage = sqFootage,
+        createdAt = createdAt, updatedAt = updatedAt
+    )
+
+fun com.example.diamonds.domain.model.SavedLocation.toEntity(): com.example.diamonds.data.local.entity.SavedLocationEntity =
+    com.example.diamonds.data.local.entity.SavedLocationEntity(
+        id = id, clientId = clientId, label = label, address = address,
+        latitude = latitude, longitude = longitude,
+        locationType = locationType.name,
+        roomCount = roomCount, bathroomCount = bathroomCount, sqFootage = sqFootage,
+        createdAt = createdAt, updatedAt = updatedAt
+    )
+
+fun com.example.diamonds.data.remote.backend.SavedLocationDto.toDomain(): com.example.diamonds.domain.model.SavedLocation =
+    com.example.diamonds.domain.model.SavedLocation(
+        id = id, clientId = clientId, label = label, address = address,
+        latitude = latitude, longitude = longitude,
+        locationType = runCatching {
+            com.example.diamonds.domain.model.LocationType.valueOf(
+                locationType
+            )
+        }.getOrDefault(com.example.diamonds.domain.model.LocationType.HOUSE),
+        roomCount = roomCount, bathroomCount = bathroomCount, sqFootage = sqFootage,
+        createdAt = createdAt, updatedAt = updatedAt
+    )
+
+fun com.example.diamonds.domain.model.SavedLocation.toDto(): com.example.diamonds.data.remote.backend.SavedLocationDto =
+    com.example.diamonds.data.remote.backend.SavedLocationDto(
+        id = id, clientId = clientId, label = label, address = address,
+        latitude = latitude, longitude = longitude,
+        locationType = locationType.name,
+        roomCount = roomCount, bathroomCount = bathroomCount, sqFootage = sqFootage,
+        createdAt = createdAt, updatedAt = updatedAt
+    )
+

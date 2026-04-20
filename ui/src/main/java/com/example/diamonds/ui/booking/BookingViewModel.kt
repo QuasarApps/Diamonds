@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.CleaningType
+import com.example.diamonds.domain.model.LocationDetail
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Review
@@ -29,7 +31,8 @@ import javax.inject.Inject
 data class ProviderSearchUiState(
     val isLoading: Boolean = false,
     val providers: List<Provider> = emptyList(),
-    val selectedCategory: ServiceCategory? = null
+    val selectedCategory: ServiceCategory? = null,
+    val selectedSpecialization: CleaningType? = null
 )
 
 data class ServiceListUiState(
@@ -48,6 +51,8 @@ data class BookingFormUiState(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val notes: String = "",
+    val cleaningType: CleaningType? = null,
+    val locationDetail: LocationDetail? = null,
     val bookingSuccess: Boolean = false,
     val createdBookingId: String? = null,
     val fieldErrors: Map<BookingField, String> = emptyMap()
@@ -95,16 +100,23 @@ class BookingViewModel @Inject constructor(
     private val _searchState = MutableStateFlow(ProviderSearchUiState())
     val searchState: StateFlow<ProviderSearchUiState> = _searchState.asStateFlow()
 
-    fun loadProviders(category: ServiceCategory? = null) {
+    fun loadProviders(category: ServiceCategory? = null, specialization: CleaningType? = null) {
         viewModelScope.launch {
-            _searchState.value = _searchState.value.copy(isLoading = true, selectedCategory = category)
+            _searchState.value = _searchState.value.copy(
+                isLoading = true,
+                selectedCategory = category,
+                selectedSpecialization = specialization
+            )
             clearError()
             when (val r = providerRepository.searchProviders(0.0, 0.0)) {
-                is Result.Success -> _searchState.value = _searchState.value.copy(
-                    isLoading = false,
-                    providers = if (category == null) r.data
-                    else r.data.filter { p -> p.serviceRadius > 0 } // placeholder until server-side filtering
-                )
+                is Result.Success -> {
+                    var filtered = r.data
+                    if (specialization != null) {
+                        filtered = filtered.filter { it.specializations.contains(specialization) }
+                    }
+                    _searchState.value =
+                        _searchState.value.copy(isLoading = false, providers = filtered)
+                }
                 is Result.Error -> {
                     _searchState.value = _searchState.value.copy(isLoading = false)
                     setError(r.exception.message ?: "Could not load providers")
@@ -115,11 +127,18 @@ class BookingViewModel @Inject constructor(
     }
 
     fun selectCategory(category: ServiceCategory?) {
-        loadProviders(category)
+        loadProviders(category, _searchState.value.selectedSpecialization)
+    }
+
+    fun selectSpecialization(spec: CleaningType?) {
+        loadProviders(_searchState.value.selectedCategory, spec)
     }
 
     fun refreshProviders() {
-        loadProviders(_searchState.value.selectedCategory)
+        loadProviders(
+            _searchState.value.selectedCategory,
+            _searchState.value.selectedSpecialization
+        )
     }
 
     // ── Service list ──────────────────────────────────────────────────────────
@@ -252,6 +271,14 @@ class BookingViewModel @Inject constructor(
         )
     }
 
+    fun onCleaningTypeSelected(type: com.example.diamonds.domain.model.CleaningType?) {
+        _formState.value = _formState.value.copy(cleaningType = type)
+    }
+
+    fun onLocationDetailChanged(detail: LocationDetail) {
+        _formState.value = _formState.value.copy(locationDetail = detail)
+    }
+
     fun submitBooking() {
         val state = _formState.value
         val errors = buildMap<BookingField, String> {
@@ -286,6 +313,8 @@ class BookingViewModel @Inject constructor(
                 address = state.address,
                 latitude = state.latitude,
                 longitude = state.longitude,
+                cleaningType = state.cleaningType,
+                locationType = state.locationDetail?.locationType,
                 createdAt = System.currentTimeMillis().toString(),
                 updatedAt = System.currentTimeMillis().toString()
             )

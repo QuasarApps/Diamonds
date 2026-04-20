@@ -74,6 +74,7 @@ import com.example.diamonds.ui.company.CompanyTeamScreen
 import com.example.diamonds.ui.components.ConfirmationDialog
 import com.example.diamonds.ui.components.OfflineBanner
 import com.example.diamonds.ui.customer.CustomerProfileScreen
+import com.example.diamonds.ui.profile.SavedLocationsScreen
 import com.example.diamonds.ui.map.BookingMapScreen
 import com.example.diamonds.ui.map.ProviderTrackingScreen
 import com.example.diamonds.ui.navigation.Screen
@@ -803,6 +804,7 @@ fun AppShell(
                             session = s,
                             onPaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
                             onSubscriptions = { navController.navigate(Screen.SubscriptionManagement.route) },
+                            onSavedLocations = { navController.navigate(Screen.SavedLocations.route) },
                             onLanguage = { navController.navigate(Screen.LanguageSelector.route) },
                             onHelpCenter = { navController.navigate(Screen.HelpCenter.route) },
                             onMyBookings = {
@@ -816,6 +818,9 @@ fun AppShell(
                             },
                             onSignOut = { showSignOutDialog = true }
                         )
+                    }
+                    composable(Screen.SavedLocations.route) {
+                        SavedLocationsScreen(onBack = { navController.popBackStack() })
                     }
                     composable(Screen.PaymentHistory.route) {
                         PaymentHistoryScreen()

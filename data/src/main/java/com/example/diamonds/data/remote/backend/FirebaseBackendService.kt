@@ -514,6 +514,15 @@ class FirebaseBackendService : IBackendService {
     override suspend fun getHelpArticles(): Result<List<HelpArticleDto>> =
         Result.Error(Exception("Firebase help articles not yet implemented"))
 
+    override suspend fun getSavedLocations(clientId: String): Result<List<SavedLocationDto>> =
+        Result.Error(Exception("Firebase saved locations not yet implemented"))
+
+    override suspend fun upsertSavedLocation(location: SavedLocationDto): Result<SavedLocationDto> =
+        Result.Error(Exception("Firebase saved locations not yet implemented"))
+
+    override suspend fun deleteSavedLocation(locationId: String): Result<Unit> =
+        Result.Error(Exception("Firebase saved locations not yet implemented"))
+
     // ── Helper ───────────────────────────────────────────────────────────────
 
     /**

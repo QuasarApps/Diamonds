@@ -3,6 +3,8 @@ package com.example.diamonds.ui.cleaner
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,7 +46,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserSession
+import com.example.diamonds.ui.components.CleaningTypeMultiSelector
 import com.example.diamonds.ui.components.PullToRefreshLayout
+import com.example.diamonds.ui.components.cleaningTypeLabels
 
 /**
  * Profile screen for individual cleaners (INDEPENDENT or EMPLOYED).
@@ -67,6 +72,7 @@ fun CleanerProfileScreen(
     val editName    by viewModel.editName.collectAsState()
     val editBio     by viewModel.editBio.collectAsState()
     val editPhone   by viewModel.editPhone.collectAsState()
+    val editSpecializations by viewModel.editSpecializations.collectAsState()
     val error       by viewModel.error.collectAsState()
     val snackbar    = remember { SnackbarHostState() }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -151,6 +157,23 @@ fun CleanerProfileScreen(
 
             HorizontalDivider()
 
+            // ── Specializations ───────────────────────────────────────────
+            val providerSpecializations = state.provider?.specializations ?: emptyList()
+            if (providerSpecializations.isNotEmpty()) {
+                Text("Specializations", style = MaterialTheme.typography.titleMedium)
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    providerSpecializations.forEach { spec ->
+                        val (icon, label) = cleaningTypeLabels[spec] ?: ("🔷" to spec.name)
+                        AssistChip(onClick = {}, label = { Text("$icon $label", fontSize = 12.sp) })
+                    }
+                }
+                HorizontalDivider()
+            }
+
             // ── Editable fields ───────────────────────────────────────────
             Text("Edit Profile", style = MaterialTheme.typography.titleMedium)
 
@@ -180,6 +203,12 @@ fun CleanerProfileScreen(
                 maxLines = 6,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth()
+            )
+
+            Text("My Specializations", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            CleaningTypeMultiSelector(
+                selected = editSpecializations,
+                onToggle = viewModel::onToggleSpecialization
             )
 
             Button(

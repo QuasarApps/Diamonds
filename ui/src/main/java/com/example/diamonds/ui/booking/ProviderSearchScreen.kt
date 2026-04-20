@@ -3,6 +3,8 @@ package com.example.diamonds.ui.booking
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,6 +45,7 @@ import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.ui.components.FilterCriteria
 import com.example.diamonds.ui.components.FilterSection
 import com.example.diamonds.ui.components.PullToRefreshLayout
+import com.example.diamonds.ui.components.cleaningTypeLabels
 
 private val categories = listOf(
     null to "All",
@@ -108,6 +112,7 @@ fun ProviderSearchScreen(
                 filters = newFilters
                 showFilterSheet = false
                 viewModel.selectCategory(newFilters.category)
+                viewModel.selectSpecialization(newFilters.specialization)
             },
             onDismiss = { showFilterSheet = false }
         )
@@ -202,6 +207,23 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit, onViewRatings:
                 }
                 Spacer(Modifier.height(4.dp))
                 CleanerTypeBadge(provider)
+                // Specialization badges (up to 3)
+                if (provider.specializations.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    @OptIn(ExperimentalLayoutApi::class)
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        provider.specializations.take(3).forEach { spec ->
+                            val (icon, label) = cleaningTypeLabels[spec] ?: ("🔷" to spec.name)
+                            AssistChip(
+                                onClick = {},
+                                label = { Text("$icon $label", fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                }
                 provider.bio?.let { bio ->
                     Spacer(Modifier.height(4.dp))
                     Text(bio, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)

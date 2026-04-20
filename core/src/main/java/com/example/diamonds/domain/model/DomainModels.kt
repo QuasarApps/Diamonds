@@ -63,6 +63,8 @@ data class Provider(
     val employerId: String? = null,
     /** Display name of the employing company (denormalised for easy display). */
     val employerName: String? = null,
+    /** Cleaning types this provider specialises in. */
+    val specializations: List<CleaningType> = emptyList(),
     val createdAt: String,
     val updatedAt: String
 )
@@ -101,6 +103,60 @@ enum class ServiceCategory {
 }
 
 /**
+ * Expanded cleaning type options for a booking.
+ */
+@Serializable
+enum class CleaningType {
+    STANDARD,
+    DEEP_CLEAN,
+    END_OF_TENANCY,
+    POST_CONSTRUCTION,
+    CARPET_AND_UPHOLSTERY,
+    WINDOW_CLEANING,
+    OVEN_AND_APPLIANCE,
+    MOVE_IN_MOVE_OUT,
+    OFFICE_COMMERCIAL
+}
+
+/**
+ * Type of property/location for a booking.
+ */
+@Serializable
+enum class LocationType {
+    APARTMENT, HOUSE, STUDIO, OFFICE, RETAIL, WAREHOUSE, AIRBNB, OTHER
+}
+
+/**
+ * Details about the location being cleaned.
+ */
+@Serializable
+data class LocationDetail(
+    val locationType: LocationType = LocationType.HOUSE,
+    val roomCount: Int = 1,
+    val bathroomCount: Int = 1,
+    val sqFootage: Int? = null
+)
+
+/**
+ * A saved location for a client (e.g., Home, Office).
+ */
+@Serializable
+data class SavedLocation(
+    val id: String,
+    val clientId: String,
+    val label: String,
+    val address: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val locationType: LocationType = LocationType.HOUSE,
+    val roomCount: Int = 1,
+    val bathroomCount: Int = 1,
+    val sqFootage: Int? = null,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+/**
  * Represents a booking request from a client to a provider
  */
 @Serializable
@@ -118,6 +174,8 @@ data class Booking(
     val address: String,
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val cleaningType: CleaningType? = null,
+    val locationType: LocationType? = null,
     val syncStatus: SyncStatus = SyncStatus.READ_ONLY,
     val createdAt: String,
     val updatedAt: String
