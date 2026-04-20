@@ -26,8 +26,7 @@ val customerTabs = listOf(
 
 val cleanerTabs = listOf(
     BottomTab(Screen.CleanerDashboard, "Dashboard", "📊"),
-    BottomTab(Screen.CleanerRequests,  "Requests",  "🔔"),
-    BottomTab(Screen.CleanerSchedule,  "Schedule",  "📅"),
+    BottomTab(Screen.CleanerBookings, "Bookings", "📋"),
     BottomTab(Screen.CleanerEarnings,  "Earnings",  "💰"),
     BottomTab(Screen.CleanerProfile,   "Profile",   "👤"),
 )

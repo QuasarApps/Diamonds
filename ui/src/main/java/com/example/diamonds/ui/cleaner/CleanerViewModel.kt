@@ -31,11 +31,13 @@ data class CleanerBookingItem(
 
 data class CleanerRequestsUiState(
     val isLoading: Boolean = false,
+    val loaded: Boolean = false,
     val requests: List<CleanerBookingItem> = emptyList()
 )
 
 data class CleanerScheduleUiState(
     val isLoading: Boolean = false,
+    val loaded: Boolean = false,
     /** Today's accepted/in-progress jobs. */
     val todayJobs: List<CleanerBookingItem> = emptyList(),
     /** Future (after today) accepted jobs. */
@@ -47,6 +49,12 @@ data class CleanerDashboardUiState(
     val pendingCount: Int = 0,
     val todayCount: Int = 0,
     val weekEarnings: Double = 0.0
+)
+
+data class CleanerHistoryUiState(
+    val isLoading: Boolean = false,
+    val loaded: Boolean = false,
+    val completedJobs: List<CleanerBookingItem> = emptyList()
 )
 
 // ── ViewModel ─────────────────────────────────────────────────────────────────
@@ -69,6 +77,9 @@ class CleanerViewModel @Inject constructor(
     private val _dashboardState = MutableStateFlow(CleanerDashboardUiState())
     val dashboardState: StateFlow<CleanerDashboardUiState> = _dashboardState.asStateFlow()
 
+    private val _historyState = MutableStateFlow(CleanerHistoryUiState())
+    val historyState: StateFlow<CleanerHistoryUiState> = _historyState.asStateFlow()
+
     // ── Load provider id from session ─────────────────────────────────────────
 
     private suspend fun providerId(): String? =
@@ -78,12 +89,12 @@ class CleanerViewModel @Inject constructor(
 
     fun loadRequests() {
         viewModelScope.launch {
-            _requestsState.value = CleanerRequestsUiState(isLoading = true)
+            _requestsState.value = _requestsState.value.copy(isLoading = true)
             clearError()
 
             val pid = providerId() ?: run {
                 setError("Not signed in")
-                _requestsState.value = CleanerRequestsUiState()
+                _requestsState.value = _requestsState.value.copy(isLoading = false, loaded = true)
                 return@launch
             }
 
@@ -92,20 +103,22 @@ class CleanerViewModel @Inject constructor(
                     is Result.Success -> {
                         val pending = r.data.filter { it.status == BookingStatus.PENDING }
                         _requestsState.value = CleanerRequestsUiState(
+                            loaded = true,
                             requests = pending.map { it.enrichSafe() }
                         )
                         clearError()
                     }
 
                     is Result.Error -> {
-                        _requestsState.value = CleanerRequestsUiState()
+                        _requestsState.value =
+                            _requestsState.value.copy(isLoading = false, loaded = true)
                         setError(r.exception.message ?: "Could not load requests")
                     }
 
                     is Result.Loading -> Unit
                 }
             } catch (e: Exception) {
-                _requestsState.value = CleanerRequestsUiState()
+                _requestsState.value = _requestsState.value.copy(isLoading = false, loaded = true)
                 setError(e.message ?: "Could not load requests")
             }
         }
@@ -115,12 +128,12 @@ class CleanerViewModel @Inject constructor(
 
     fun loadSchedule() {
         viewModelScope.launch {
-            _scheduleState.value = CleanerScheduleUiState(isLoading = true)
+            _scheduleState.value = _scheduleState.value.copy(isLoading = true)
             clearError()
 
             val pid = providerId() ?: run {
                 setError("Not signed in")
-                _scheduleState.value = CleanerScheduleUiState()
+                _scheduleState.value = _scheduleState.value.copy(isLoading = false, loaded = true)
                 return@launch
             }
 
@@ -139,20 +152,22 @@ class CleanerViewModel @Inject constructor(
                                 .thenByDescending { it.scheduledTime })
 
                         _scheduleState.value = CleanerScheduleUiState(
+                            loaded = true,
                             todayJobs = (overdueJobs + todayJobs).map { it.enrichSafe() },
                             upcomingJobs = upcomingJobs.map { it.enrichSafe() }
                         )
                     }
 
                     is Result.Error -> {
-                        _scheduleState.value = CleanerScheduleUiState()
+                        _scheduleState.value =
+                            _scheduleState.value.copy(isLoading = false, loaded = true)
                         setError(r.exception.message ?: "Could not load schedule")
                     }
 
                     is Result.Loading -> Unit
                 }
             } catch (e: Exception) {
-                _scheduleState.value = CleanerScheduleUiState()
+                _scheduleState.value = _scheduleState.value.copy(isLoading = false, loaded = true)
                 setError(e.message ?: "Could not load schedule")
             }
         }
@@ -218,14 +233,10 @@ class CleanerViewModel @Inject constructor(
             try {
                 when (val r = bookingRepository.updateBookingStatus(bookingId, newStatus)) {
                     is Result.Success -> {
-                        // Refresh whichever list is currently displayed.
-                        // Each tab screen has its own ViewModel instance (hiltViewModel
-                        // is scoped per NavBackStackEntry), so we refresh the three
-                        // slices that THIS instance owns. The other tabs will reload
-                        // on their own when the user navigates to them.
                         loadRequests()
                         loadSchedule()
                         loadDashboard()
+                        loadHistory()
                     }
 
                     is Result.Error -> setError(r.exception.message ?: "Action failed")
@@ -235,6 +246,50 @@ class CleanerViewModel @Inject constructor(
                 setError(e.message ?: "Action failed")
             }
         }
+    }
+
+    // ── History (COMPLETED) ───────────────────────────────────────────────────
+
+    fun loadHistory() {
+        viewModelScope.launch {
+            _historyState.value = _historyState.value.copy(isLoading = true)
+            clearError()
+
+            val pid = providerId() ?: run {
+                setError("Not signed in")
+                _historyState.value = _historyState.value.copy(isLoading = false, loaded = true)
+                return@launch
+            }
+
+            try {
+                when (val r = bookingRepository.getProviderBookings(pid)) {
+                    is Result.Success -> {
+                        val completed = r.data
+                            .filter { it.status == BookingStatus.COMPLETED }
+                            .sortedByDescending { it.scheduledDate }
+                        _historyState.value = CleanerHistoryUiState(
+                            loaded = true,
+                            completedJobs = completed.map { it.enrichSafe() }
+                        )
+                    }
+
+                    is Result.Error -> {
+                        _historyState.value =
+                            _historyState.value.copy(isLoading = false, loaded = true)
+                        setError(r.exception.message ?: "Could not load history")
+                    }
+
+                    is Result.Loading -> Unit
+                }
+            } catch (e: Exception) {
+                _historyState.value = _historyState.value.copy(isLoading = false, loaded = true)
+                setError(e.message ?: "Could not load history")
+            }
+        }
+    }
+
+    fun refreshHistory() {
+        loadHistory()
     }
 
     // ── Refresh helpers ───────────────────────────────────────────────────────

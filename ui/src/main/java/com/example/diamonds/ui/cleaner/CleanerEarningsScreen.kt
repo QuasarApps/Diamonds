@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -160,44 +158,6 @@ fun CleanerEarningsScreen(
             }
         }
 
-        // ── Completed jobs list header ────────────────────────────────────
-            if (!isRefreshing && state.completedBookings.isNotEmpty()) {
-            item {
-                Text(
-                    "Completed Jobs",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-        }
-
-        // ── Per-booking rows ──────────────────────────────────────────────
-            if (!isRefreshing) {
-                items(state.completedBookings, key = { it.booking.id }) { item ->
-                    EarningsBookingRow(item)
-                }
-        }
-
-            if (!isRefreshing && state.completedBookings.isEmpty()) {
-            item {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("💰", fontSize = 48.sp)
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            "No completed jobs yet.\nComplete your first job to see earnings here.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
         } // end LazyColumn
     } // end PullToRefreshLayout
 }
@@ -253,26 +213,3 @@ private fun EarningsStat(label: String, value: String) {
     }
 }
 
-@Composable
-private fun EarningsBookingRow(item: CleanerBookingItem) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(item.serviceName, fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                Text(
-                    "${DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)}  ·  ${item.clientName}",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Text(
-                "$${item.servicePrice.toInt()}",
-                fontWeight = FontWeight.Bold, fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
-}

@@ -14,6 +14,7 @@ import com.example.diamonds.domain.model.VerificationStatus
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
 import com.example.diamonds.domain.repository.IProviderRepository
+import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.domain.repository.UserSession
@@ -41,6 +42,7 @@ class BookingViewModelTest {
     private lateinit var bookingRepository: IBookingRepository
     private lateinit var providerRepository: IProviderRepository
     private lateinit var serviceRepository: IServiceRepository
+    private lateinit var reviewRepository: IReviewRepository
     private lateinit var authRepository: IAuthRepository
     private lateinit var connectivityObserver: ConnectivityObserver
     private lateinit var savedStateHandle: SavedStateHandle
@@ -75,6 +77,7 @@ class BookingViewModelTest {
         bookingRepository    = mockk()
         providerRepository   = mockk()
         serviceRepository    = mockk()
+        reviewRepository = mockk()
         authRepository       = mockk()
         connectivityObserver = mockk {
             every { observeConnectivityState() } returns flowOf(ConnectivityState.ONLINE)
@@ -83,7 +86,7 @@ class BookingViewModelTest {
         every { authRepository.getCurrentUserSession() } returns flowOf(mockSession)
         viewModel = BookingViewModel(
             bookingRepository, providerRepository, serviceRepository,
-            authRepository, connectivityObserver, savedStateHandle
+            reviewRepository, authRepository, connectivityObserver, savedStateHandle
         )
     }
 

@@ -2,10 +2,13 @@ package com.example.diamonds.di
 
 import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.CancellationReason
+import com.example.diamonds.domain.model.Claim
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Client
 import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.GeoLocation
+import com.example.diamonds.domain.model.HelpArticle
 import com.example.diamonds.domain.model.Message
 import com.example.diamonds.domain.model.Notification
 import com.example.diamonds.domain.model.NotificationPreferences
@@ -22,6 +25,7 @@ import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceArea
 import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.domain.model.SupportTicket
 import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.model.VerificationStatus
 import com.example.diamonds.domain.repository.IAuthRepository
@@ -35,6 +39,7 @@ import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.ISubscriptionRepository
+import com.example.diamonds.domain.repository.ISupportRepository
 import com.example.diamonds.domain.repository.ISyncRepository
 import com.example.diamonds.domain.repository.SyncOperation
 import com.example.diamonds.domain.repository.UserRole
@@ -605,4 +610,51 @@ class FakeSubscriptionRepository : ISubscriptionRepository {
         if (idx >= 0) store[idx] = store[idx].copy(nextBookingDate = newDate)
         return Result.Success(Unit)
     }
+}
+
+class FakeSupportRepository : ISupportRepository {
+    override suspend fun createSupportTicket(ticket: SupportTicket): Result<SupportTicket> =
+        Result.Success(ticket)
+
+    override suspend fun getSupportTicket(ticketId: String): Result<SupportTicket> =
+        Result.Error(Exception("Not found"))
+
+    override suspend fun getTicketsForUser(userId: String): Result<List<SupportTicket>> =
+        Result.Success(emptyList())
+
+    override fun observeTicketsForUser(userId: String): Flow<List<SupportTicket>> =
+        flowOf(emptyList())
+
+    override suspend fun fileClaim(claim: Claim): Result<Claim> =
+        Result.Success(claim)
+
+    override suspend fun getClaim(claimId: String): Result<Claim> =
+        Result.Error(Exception("Not found"))
+
+    override suspend fun getClaimsForUser(userId: String): Result<List<Claim>> =
+        Result.Success(emptyList())
+
+    override suspend fun getClaimForBooking(bookingId: String): Result<Claim?> =
+        Result.Success(null)
+
+    override fun observeClaimsForUser(userId: String): Flow<List<Claim>> =
+        flowOf(emptyList())
+
+    override suspend fun cancelBookingWithReason(
+        bookingId: String,
+        reason: CancellationReason,
+        notes: String?
+    ): Result<Booking> = Result.Error(Exception("Not found"))
+
+    override suspend fun editBooking(
+        bookingId: String,
+        newAddress: String?,
+        newServiceId: String?
+    ): Result<Booking> = Result.Error(Exception("Not found"))
+
+    override suspend fun requestRefund(bookingId: String): Result<Payment> =
+        Result.Error(Exception("Not found"))
+
+    override suspend fun getHelpArticles(): Result<List<HelpArticle>> =
+        Result.Success(emptyList())
 }

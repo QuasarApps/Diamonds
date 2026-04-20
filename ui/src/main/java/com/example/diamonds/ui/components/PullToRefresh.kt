@@ -54,9 +54,14 @@ fun PullToRefreshLayout(
     ) {
         content()
 
-        PullToRefreshContainer(
-            state = pullState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
+        // Only render the indicator when it's actively being used
+        // (dragging or refreshing). This prevents the resting-state
+        // indicator from being visible when idle.
+        if (pullState.isRefreshing || pullState.progress > 0f) {
+            PullToRefreshContainer(
+                state = pullState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
     }
 }

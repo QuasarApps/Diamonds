@@ -32,9 +32,7 @@ data class CleanerEarningsUiState(
      * (day abbreviation, total earnings) for the last 7 days, oldest → newest.
      * e.g. listOf("Mon" to 79.0, "Tue" to 0.0, …)
      */
-    val dailyTotals: List<Pair<String, Double>> = emptyList(),
-    /** All completed bookings, newest first */
-    val completedBookings: List<CleanerBookingItem> = emptyList()
+    val dailyTotals: List<Pair<String, Double>> = emptyList()
 )
 
 // ── ViewModel ─────────────────────────────────────────────────────────────────
@@ -95,28 +93,12 @@ class CleanerEarningsViewModel @Inject constructor(
                         dayAbbr to total
                     }
 
-                    // Enrich completed bookings for display
-                    val enriched = completed.take(30).map { booking ->
-                        val clientName = try {
-                            (clientRepository.getClient(booking.clientId) as? Result.Success)
-                                ?.data?.name ?: booking.clientId
-                        } catch (_: Exception) { booking.clientId }
-                        val service = (serviceRepository.getService(booking.serviceId) as? Result.Success)?.data
-                        CleanerBookingItem(
-                            booking      = booking,
-                            clientName   = clientName,
-                            serviceName  = service?.title     ?: booking.serviceId,
-                            servicePrice = service?.basePrice ?: booking.totalPrice
-                        )
-                    }
-
                     _earningsState.value = CleanerEarningsUiState(
                         weekTotal           = weekTotal,
                         weekCompletedCount  = weekCount,
                         monthTotal          = monthTotal,
                         monthCompletedCount = monthCount,
-                        dailyTotals         = dailyTotals,
-                        completedBookings   = enriched
+                        dailyTotals = dailyTotals
                     )
                 }
                 is Result.Error -> {

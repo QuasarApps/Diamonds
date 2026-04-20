@@ -62,10 +62,9 @@ import com.example.diamonds.ui.booking.ServiceListScreen
 import com.example.diamonds.ui.chat.ChatScreen
 import com.example.diamonds.ui.chat.ChatViewModel
 import com.example.diamonds.ui.chat.ConversationListScreen
-import com.example.diamonds.ui.cleaner.CleanerBookingRequestsScreen
+import com.example.diamonds.ui.cleaner.CleanerBookingsScreen
 import com.example.diamonds.ui.cleaner.CleanerEarningsScreen
 import com.example.diamonds.ui.cleaner.CleanerProfileScreen
-import com.example.diamonds.ui.cleaner.CleanerScheduleScreen
 import com.example.diamonds.ui.cleaner.ServiceEditScreen
 import com.example.diamonds.ui.cleaner.ServiceManagementScreen
 import com.example.diamonds.ui.company.CompanyBookingsScreen
@@ -105,8 +104,7 @@ private object TabGraph {
     const val CustomerBookings = "graph/customer/bookings"
     const val CustomerProfile = "graph/customer/profile"
     const val CleanerDashboard = "graph/cleaner/dashboard"
-    const val CleanerRequests = "graph/cleaner/requests"
-    const val CleanerSchedule = "graph/cleaner/schedule"
+    const val CleanerBookings = "graph/cleaner/bookings"
     const val CleanerEarnings = "graph/cleaner/earnings"
     const val CleanerProfile = "graph/cleaner/profile"
     const val CompanyDashboard = "graph/company/dashboard"
@@ -124,8 +122,7 @@ private fun graphRouteForTab(tabRoute: String): String = when (tabRoute) {
     Screen.CustomerBookings.route -> TabGraph.CustomerBookings
     Screen.CustomerProfile.route -> TabGraph.CustomerProfile
     Screen.CleanerDashboard.route -> TabGraph.CleanerDashboard
-    Screen.CleanerRequests.route -> TabGraph.CleanerRequests
-    Screen.CleanerSchedule.route -> TabGraph.CleanerSchedule
+    Screen.CleanerBookings.route -> TabGraph.CleanerBookings
     Screen.CleanerEarnings.route -> TabGraph.CleanerEarnings
     Screen.CleanerProfile.route -> TabGraph.CleanerProfile
     Screen.CompanyDashboard.route -> TabGraph.CompanyDashboard
@@ -800,7 +797,7 @@ fun AppShell(
                         CleanerDashboardTab(
                             session = s,
                             onNavigateToRequests = {
-                                navController.navigate(graphRouteForTab(Screen.CleanerRequests.route)) {
+                                navController.navigate(graphRouteForTab(Screen.CleanerBookings.route)) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
@@ -813,32 +810,17 @@ fun AppShell(
                 }
 
                 navigation(
-                    route = TabGraph.CleanerRequests,
-                    startDestination = Screen.CleanerRequests.route
+                    route = TabGraph.CleanerBookings,
+                    startDestination = Screen.CleanerBookings.route
                 ) {
                     composable(
-                        Screen.CleanerRequests.route,
+                        Screen.CleanerBookings.route,
                         enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
                         exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
                         popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
                         popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
                     ) {
-                        CleanerBookingRequestsScreen()
-                    }
-                }
-
-                navigation(
-                    route = TabGraph.CleanerSchedule,
-                    startDestination = Screen.CleanerSchedule.route
-                ) {
-                    composable(
-                        Screen.CleanerSchedule.route,
-                        enterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                        exitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) },
-                        popEnterTransition = { fadeIn(tween(NAV_ANIM_DURATION)) },
-                        popExitTransition = { fadeOut(tween(NAV_ANIM_DURATION)) }
-                    ) {
-                        CleanerScheduleScreen(
+                        CleanerBookingsScreen(
                             onReviewClient = { bookingId, clientId ->
                                 navController.navigate(
                                     Screen.LeaveClientReview().route(bookingId, clientId)

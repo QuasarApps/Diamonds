@@ -69,8 +69,7 @@ sealed class Screen(val route: String) {
 
     // ── Cleaner tab destinations ───────────────────────────────────────────
     data object CleanerDashboard       : Screen("cleaner/dashboard")
-    data object CleanerRequests        : Screen("cleaner/requests")
-    data object CleanerSchedule        : Screen("cleaner/schedule")
+    data object CleanerBookings : Screen("cleaner/bookings")
     data object CleanerEarnings        : Screen("cleaner/earnings")
     data object CleanerProfile         : Screen("cleaner/profile")
     data object CleanerServiceManage   : Screen("cleaner/services")

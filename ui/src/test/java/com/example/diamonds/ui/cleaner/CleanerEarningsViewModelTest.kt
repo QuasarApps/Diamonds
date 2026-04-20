@@ -2,15 +2,25 @@ package com.example.diamonds.ui.cleaner
 
 import com.example.diamonds.common.util.ConnectivityState
 import com.example.diamonds.data.connectivity.ConnectivityObserver
-import com.example.diamonds.domain.model.*
-import com.example.diamonds.domain.repository.*
+import com.example.diamonds.domain.model.Booking
+import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.repository.IAuthRepository
+import com.example.diamonds.domain.repository.IBookingRepository
+import com.example.diamonds.domain.repository.IClientRepository
+import com.example.diamonds.domain.repository.IServiceRepository
+import com.example.diamonds.domain.repository.UserRole
+import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.MainDispatcherRule
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -114,7 +124,6 @@ class CleanerEarningsViewModelTest {
         val state = viewModel.earningsState.value
         assertEquals(0, state.weekCompletedCount)
         assertEquals(0.0, state.weekTotal, 0.01)
-        assertTrue(state.completedBookings.isEmpty())
     }
 
     @Test

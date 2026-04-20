@@ -11,6 +11,7 @@ import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.ISubscriptionRepository
+import com.example.diamonds.domain.repository.ISupportRepository
 import com.example.diamonds.domain.repository.ISyncRepository
 import dagger.Module
 import dagger.Provides
@@ -77,4 +78,8 @@ object FakeRepositoryModule {
     @Singleton
     @Provides
     fun provideFakeSubscriptionRepository(): ISubscriptionRepository = FakeSubscriptionRepository()
+
+    @Singleton
+    @Provides
+    fun provideFakeSupportRepository(): ISupportRepository = FakeSupportRepository()
 }

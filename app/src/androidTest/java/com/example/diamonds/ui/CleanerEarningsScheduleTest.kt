@@ -74,7 +74,7 @@ class CleanerEarningsScreenTest {
 }
 
 /**
- * UI tests for the Cleaner Schedule screen.
+ * UI tests for the Cleaner Bookings screen (Upcoming tab, formerly Schedule).
  */
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
@@ -101,14 +101,17 @@ class CleanerScheduleScreenTest {
     fun setUp() {
         hiltRule.inject()
         composeRule.waitForAppShell()
-        composeRule.onNodeWithText("Schedule").performClick()
+        composeRule.onNodeWithText("Bookings").performClick()
+        composeRule.waitForIdle()
+        // Navigate to the Upcoming sub-tab
+        composeRule.onNodeWithText("Upcoming").performClick()
         composeRule.waitForIdle()
     }
 
     @Test
     fun cleanerSchedule_screenLoads_withoutCrash() {
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodes(hasText("Schedule", ignoreCase = true))
+            composeRule.onAllNodes(hasText("Upcoming", ignoreCase = true))
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
@@ -116,7 +119,7 @@ class CleanerScheduleScreenTest {
     @Test
     fun cleanerSchedule_showsCalendarOrList() {
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodes(hasText("Schedule", ignoreCase = true))
+            composeRule.onAllNodes(hasText("Upcoming", ignoreCase = true))
                 .fetchSemanticsNodes().isNotEmpty()
                     || composeRule.onAllNodes(hasText("Today", substring = true))
                 .fetchSemanticsNodes().isNotEmpty()
