@@ -252,11 +252,31 @@ interface ConversationDao {
     @Query("SELECT * FROM conversations WHERE clientId = :userId OR providerId = :userId ORDER BY updatedAt DESC")
     fun observeForUser(userId: String): Flow<List<ConversationEntity>>
 
-    @Query("SELECT SUM(unreadCount) FROM conversations WHERE (clientId = :userId OR providerId = :userId)")
+    @Query(
+        """
+        SELECT COUNT(*) FROM messages
+        WHERE isRead = 0
+          AND senderId != :userId
+          AND conversationId IN (
+              SELECT id FROM conversations
+              WHERE clientId = :userId OR providerId = :userId
+          )
+    """
+    )
     fun observeTotalUnreadForUser(userId: String): Flow<Int?>
 
     @Query("UPDATE conversations SET unreadCount = 0 WHERE id = :conversationId")
     suspend fun resetUnreadCount(conversationId: String)
+
+    @Query(
+        """
+        SELECT COUNT(*) FROM messages
+        WHERE conversationId = :conversationId
+          AND isRead = 0
+          AND senderId != :userId
+    """
+    )
+    fun observeUnreadCountForUser(conversationId: String, userId: String): Flow<Int>
 
     @Query("UPDATE conversations SET lastMessage = :lastMessage, lastMessageAt = :lastMessageAt, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateLastMessage(

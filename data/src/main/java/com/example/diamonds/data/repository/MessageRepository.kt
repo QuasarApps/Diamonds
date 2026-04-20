@@ -11,7 +11,10 @@ import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.Message
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.repository.IMessageRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -73,8 +76,19 @@ class MessageRepository @Inject constructor(
         return Result.Success(cached.map { it.toDomain() })
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeConversationsForUser(userId: String): Flow<List<Conversation>> {
-        return conversationDao.observeForUser(userId).map { list -> list.map { it.toDomain() } }
+        // Each time the conversation list changes, combine every conversation's
+        // real unread count (messages not sent by this user) so the badge is correct
+        // for both sides of the conversation.
+        return conversationDao.observeForUser(userId).flatMapLatest { entities ->
+            if (entities.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList())
+            val unreadFlows = entities.map { entity ->
+                conversationDao.observeUnreadCountForUser(entity.id, userId)
+                    .map { count -> entity.toDomain().copy(unreadCount = count) }
+            }
+            combine(unreadFlows) { it.toList() }
+        }
     }
 
     override suspend fun getMessages(conversationId: String): Result<List<Message>> {

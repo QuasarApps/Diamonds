@@ -224,13 +224,31 @@ fun AppShell(
     // The active graph route is the parent graph of the current destination.
     val activeGraphRoute = backEntry?.destination?.parent?.route
 
+    // Overlay graphs are NOT tabs — they float on top and must not pollute tab back-stack state.
+    val overlayGraphRoutes = setOf(TabGraph.Notifications, TabGraph.Chat)
+    val inOverlay = activeGraphRoute in overlayGraphRoutes
+
+    // Collect the full back-stack so we can find the last real tab underneath an overlay.
+    val fullBackStack by navController.currentBackStack.collectAsState()
+
     // The tab-bar tab that should appear "selected".
-    val selectedTabRoute =
+    // When inside an overlay, walk back through the stack and find the most recent tab graph.
+    val selectedTabRoute: String = if (inOverlay) {
+        val tabGraphRoutes = tabs.map { graphRouteForTab(it.screen.route) }.toSet()
+        fullBackStack
+            .mapNotNull { it.destination.parent?.route }
+            .lastOrNull { it in tabGraphRoutes }
+            ?.let { graphRoute -> tabs.firstOrNull { graphRouteForTab(it.screen.route) == graphRoute }?.screen?.route }
+            ?: startTab.route
+    } else {
         tabs.firstOrNull { graphRouteForTab(it.screen.route) == activeGraphRoute }?.screen?.route
             ?: tabs.firstOrNull { it.screen.route == currentRoute }?.screen?.route
             ?: startTab.route
+    }
 
     // Show back arrow when we are NOT at the root of the active tab graph.
+    // Overlays are considered "at root" for the purpose of the top bar, but we also want
+    // the back arrow shown when drilling into a detail from the notification list.
     val atTabRoot = navController.isAtTabRoot()
 
     // Whether the current tab is the default start tab.
@@ -239,11 +257,10 @@ fun AppShell(
     val title = titleForRoute(currentRoute, s)
 
     // ── Back press handling ─────────────────────────────────────────────────
-    // When at the root of any tab: if it's NOT the start tab, navigate to the
-    // start tab instead of crossing to a previous tab on the back stack.
-    // If already on the start tab at root, let the system handle the back
-    // press (which will exit the app).
-    if (atTabRoot && !isOnStartTab) {
+    // When inside an overlay (Notifications / Chat): let the system pop the overlay naturally.
+    // When at the root of a non-start tab: redirect to the start tab so the app doesn't exit.
+    // If already on the start tab at root, let the system handle the back press (exits the app).
+    if (!inOverlay && atTabRoot && !isOnStartTab) {
         BackHandler {
             val startGraphRoute = graphRouteForTab(startTab.route)
             navController.navigate(startGraphRoute) {
@@ -307,8 +324,17 @@ fun AppShell(
                         }
                         // Chat icon with unread message badge
                         IconButton(onClick = {
-                            navController.navigate(TabGraph.Chat) {
-                                launchSingleTop = true
+                            if (activeGraphRoute == TabGraph.Chat) {
+                                // Already in the chat overlay — pop to its root
+                                navController.popBackStack(
+                                    destinationId = navController.currentBackStack.value
+                                        .lastOrNull { it.destination.parent?.route == TabGraph.Chat }
+                                        ?.destination?.parent?.startDestinationId
+                                        ?: return@IconButton,
+                                    inclusive = false
+                                )
+                            } else {
+                                navController.navigate(TabGraph.Chat) { launchSingleTop = true }
                             }
                         }) {
                             BadgedBox(
@@ -323,8 +349,19 @@ fun AppShell(
                         }
                         // Notification bell with unread badge
                         IconButton(onClick = {
-                            navController.navigate(TabGraph.Notifications) {
-                                launchSingleTop = true
+                            if (activeGraphRoute == TabGraph.Notifications) {
+                                // Already in the notifications overlay — pop to its root
+                                navController.popBackStack(
+                                    destinationId = navController.currentBackStack.value
+                                        .lastOrNull { it.destination.parent?.route == TabGraph.Notifications }
+                                        ?.destination?.parent?.startDestinationId
+                                        ?: return@IconButton,
+                                    inclusive = false
+                                )
+                            } else {
+                                navController.navigate(TabGraph.Notifications) {
+                                    launchSingleTop = true
+                                }
                             }
                         }) {
                             BadgedBox(
@@ -363,23 +400,43 @@ fun AppShell(
                         selected = isSelected,
                         onClick = {
                             val graphRoute = graphRouteForTab(tab.screen.route)
-                            if (isSelected) {
-                                // Already on this tab — pop to the tab root if deep
-                                navController.popBackStack(
-                                    destinationId = navController.currentBackStackEntry
-                                        ?.destination?.parent?.startDestinationId
-                                        ?: return@NavigationBarItem,
-                                    inclusive = false
-                                )
-                            } else {
-                                navController.navigate(graphRoute) {
-                                    // Pop up to (but not including) the NavHost's start destination
-                                    // so we don't accumulate tab graphs on the back stack.
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                            when {
+                                // ── Already on this tab and not in an overlay:
+                                //    pop back to the tab root (e.g. collapse a detail screen).
+                                isSelected && !inOverlay -> {
+                                    navController.popBackStack(
+                                        destinationId = navController.currentBackStackEntry
+                                            ?.destination?.parent?.startDestinationId
+                                            ?: return@NavigationBarItem,
+                                        inclusive = false
+                                    )
+                                }
+
+                                // ── Currently showing an overlay (Notifications / Chat):
+                                //    Dismiss the overlay WITHOUT saving its state into any tab,
+                                //    then navigate to the target tab.
+                                //    Using saveState=false here is critical — it prevents the
+                                //    overlay from being stored in the tab's saved back-stack and
+                                //    being incorrectly restored when the user returns to that tab.
+                                inOverlay -> {
+                                    navController.navigate(graphRoute) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = false   // ← do NOT save the overlay
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true     // still restore genuine tab state
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                }
+
+                                // ── Normal tab switch (no overlay active).
+                                else -> {
+                                    navController.navigate(graphRoute) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
                         },
