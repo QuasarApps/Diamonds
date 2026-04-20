@@ -715,7 +715,10 @@ fun AppShell(
                         ReviewScreen(
                             bookingId = bid,
                             providerId = pid,
-                            onReviewSubmitted = { navController.popBackStack() }
+                            onReviewSubmitted = { navController.popBackStack() },
+                            onFileClaim = { bookingId ->
+                                navController.navigate(Screen.FileClaim().route(bookingId))
+                            }
                         )
                     }
                     composable(
@@ -744,6 +747,7 @@ fun AppShell(
                             onPaymentHistory = { navController.navigate(Screen.PaymentHistory.route) },
                             onSubscriptions = { navController.navigate(Screen.SubscriptionManagement.route) },
                             onLanguage = { navController.navigate(Screen.LanguageSelector.route) },
+                            onHelpCenter = { navController.navigate(Screen.HelpCenter.route) },
                             onMyBookings = {
                                 navController.navigate(graphRouteForTab(Screen.CustomerBookings.route)) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -828,6 +832,9 @@ fun AppShell(
                             },
                             onViewClientRatings = { clientId ->
                                 navController.navigate(Screen.ClientRatings().route(clientId))
+                            },
+                            onFileClaim = { bookingId ->
+                                navController.navigate(Screen.FileClaim().route(bookingId))
                             }
                         )
                     }
@@ -843,7 +850,10 @@ fun AppShell(
                         LeaveClientReviewScreen(
                             bookingId = bid,
                             clientId = cid,
-                            onReviewSubmitted = { navController.popBackStack() }
+                            onReviewSubmitted = { navController.popBackStack() },
+                            onFileClaim = { bookingId ->
+                                navController.navigate(Screen.FileClaim().route(bookingId))
+                            }
                         )
                     }
                     composable(
@@ -884,7 +894,8 @@ fun AppShell(
                         CleanerProfileScreen(
                             session = s,
                             onManageServices = { navController.navigate(Screen.CleanerServiceManage.route) },
-                            onLanguage = { navController.navigate(Screen.LanguageSelector.route) }
+                            onLanguage = { navController.navigate(Screen.LanguageSelector.route) },
+                            onHelpCenter = { navController.navigate(Screen.HelpCenter.route) }
                         )
                     }
                     composable(Screen.CleanerServiceManage.route) {
@@ -990,7 +1001,8 @@ fun AppShell(
                         CleanerProfileScreen(
                             session = s,
                             onManageServices = { navController.navigate(Screen.CompanyServiceManage.route) },
-                            onLanguage = { navController.navigate(Screen.LanguageSelector.route) }
+                            onLanguage = { navController.navigate(Screen.LanguageSelector.route) },
+                            onHelpCenter = { navController.navigate(Screen.HelpCenter.route) }
                         )
                     }
                     composable(Screen.CompanyServiceManage.route) {

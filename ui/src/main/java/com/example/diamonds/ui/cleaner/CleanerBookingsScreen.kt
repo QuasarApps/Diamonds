@@ -62,6 +62,7 @@ import kotlinx.coroutines.launch
 fun CleanerBookingsScreen(
     onReviewClient: ((bookingId: String, clientId: String) -> Unit)? = null,
     onViewClientRatings: ((clientId: String) -> Unit)? = null,
+    onFileClaim: ((bookingId: String) -> Unit)? = null,
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val tabTitles = listOf("Requests", "Upcoming", "History")
@@ -94,8 +95,8 @@ fun CleanerBookingsScreen(
         ) { page ->
             when (page) {
                 0 -> RequestsTab(viewModel)
-                1 -> UpcomingTab(viewModel, onReviewClient, onViewClientRatings)
-                2 -> HistoryTab(viewModel, onReviewClient, onViewClientRatings)
+                1 -> UpcomingTab(viewModel, onReviewClient, onViewClientRatings, onFileClaim)
+                2 -> HistoryTab(viewModel, onReviewClient, onViewClientRatings, onFileClaim)
             }
         }
     }
@@ -181,7 +182,8 @@ private fun RequestsTab(viewModel: CleanerViewModel) {
 private fun UpcomingTab(
     viewModel: CleanerViewModel,
     onReviewClient: ((bookingId: String, clientId: String) -> Unit)?,
-    onViewClientRatings: ((clientId: String) -> Unit)?
+    onViewClientRatings: ((clientId: String) -> Unit)?,
+    onFileClaim: ((bookingId: String) -> Unit)?
 ) {
     val state by viewModel.scheduleState.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -239,7 +241,13 @@ private fun UpcomingTab(
                 if (state.todayJobs.isNotEmpty()) {
                     item { SectionHeader("Today") }
                     items(state.todayJobs, key = { "today-${it.booking.id}" }) { item ->
-                        ScheduleJobCard(item, viewModel, onReviewClient, onViewClientRatings)
+                        ScheduleJobCard(
+                            item,
+                            viewModel,
+                            onReviewClient,
+                            onViewClientRatings,
+                            onFileClaim
+                        )
                     }
                 }
                 if (state.upcomingJobs.isNotEmpty()) {
@@ -248,7 +256,13 @@ private fun UpcomingTab(
                         SectionHeader("Upcoming")
                     }
                     items(state.upcomingJobs, key = { "upcoming-${it.booking.id}" }) { item ->
-                        ScheduleJobCard(item, viewModel, onReviewClient, onViewClientRatings)
+                        ScheduleJobCard(
+                            item,
+                            viewModel,
+                            onReviewClient,
+                            onViewClientRatings,
+                            onFileClaim
+                        )
                     }
                 }
             }
@@ -265,7 +279,8 @@ private fun UpcomingTab(
 private fun HistoryTab(
     viewModel: CleanerViewModel,
     onReviewClient: ((bookingId: String, clientId: String) -> Unit)?,
-    onViewClientRatings: ((clientId: String) -> Unit)?
+    onViewClientRatings: ((clientId: String) -> Unit)?,
+    onFileClaim: ((bookingId: String) -> Unit)?
 ) {
     val state by viewModel.historyState.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -321,7 +336,7 @@ private fun HistoryTab(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(state.completedJobs, key = { it.booking.id }) { item ->
-                    HistoryJobCard(item, onReviewClient, onViewClientRatings)
+                    HistoryJobCard(item, onReviewClient, onViewClientRatings, onFileClaim)
                 }
             }
         }
@@ -405,7 +420,8 @@ private fun ScheduleJobCard(
     item: CleanerBookingItem,
     viewModel: CleanerViewModel,
     onReviewClient: ((bookingId: String, clientId: String) -> Unit)?,
-    onViewClientRatings: ((clientId: String) -> Unit)?
+    onViewClientRatings: ((clientId: String) -> Unit)?,
+    onFileClaim: ((bookingId: String) -> Unit)?
 ) {
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -485,6 +501,13 @@ private fun ScheduleJobCard(
                             modifier = Modifier.fillMaxWidth()
                         ) { Text("⭐ Review Client") }
                     }
+                    if (onFileClaim != null) {
+                        Spacer(Modifier.height(8.dp))
+                        TextButton(
+                            onClick = { onFileClaim(item.booking.id) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("⚠️ Report Issue with Client") }
+                    }
                 }
 
                 else -> Unit
@@ -497,7 +520,8 @@ private fun ScheduleJobCard(
 private fun HistoryJobCard(
     item: CleanerBookingItem,
     onReviewClient: ((bookingId: String, clientId: String) -> Unit)?,
-    onViewClientRatings: ((clientId: String) -> Unit)?
+    onViewClientRatings: ((clientId: String) -> Unit)?,
+    onFileClaim: ((bookingId: String) -> Unit)?
 ) {
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -553,6 +577,13 @@ private fun HistoryJobCard(
                     onClick = { onReviewClient(item.booking.id, item.booking.clientId) },
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("⭐ Review Client") }
+            }
+            if (onFileClaim != null) {
+                Spacer(Modifier.height(8.dp))
+                TextButton(
+                    onClick = { onFileClaim(item.booking.id) },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("⚠️ Report Issue with Client") }
             }
         }
     }

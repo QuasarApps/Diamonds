@@ -47,6 +47,7 @@ fun LeaveClientReviewScreen(
     bookingId: String,
     clientId: String,
     onReviewSubmitted: () -> Unit,
+    onFileClaim: (bookingId: String) -> Unit = {},
     viewModel: ClientReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.formState.collectAsState()
@@ -188,6 +189,15 @@ fun LeaveClientReviewScreen(
         Spacer(Modifier.height(24.dp))
 
         if (!readOnly) {
+            // "Having an issue?" link
+            Text(
+                "Having an issue? Report it",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { onFileClaim(bookingId) }
+            )
+            Spacer(Modifier.height(12.dp))
+
             Button(
                 onClick = { viewModel.submitReview(bookingId, clientId) },
                 enabled = state.rating > 0 && !state.isSubmitting,

@@ -37,6 +37,7 @@ fun CustomerProfileScreen(
     onMyBookings: () -> Unit,
     onSubscriptions: () -> Unit = {},
     onLanguage: () -> Unit = {},
+    onHelpCenter: () -> Unit = {},
     onSignOut: () -> Unit
 ) {
     Column(
@@ -116,6 +117,13 @@ fun CustomerProfileScreen(
             title = "Language",
             subtitle = "Change app language",
             onClick = onLanguage
+        )
+
+        ProfileLinkCard(
+            icon = "❓",
+            title = "Help & Support",
+            subtitle = "FAQ, claims, and contact support",
+            onClick = onHelpCenter
         )
 
         HorizontalDivider()

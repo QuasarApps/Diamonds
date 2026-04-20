@@ -48,6 +48,7 @@ fun ReviewScreen(
     bookingId: String,
     providerId: String,
     onReviewSubmitted: () -> Unit,
+    onFileClaim: (bookingId: String) -> Unit = {},
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.formState.collectAsState()
@@ -142,6 +143,14 @@ fun ReviewScreen(
             Text(error ?: "", color = MaterialTheme.colorScheme.error,
                 fontSize = 13.sp, textAlign = TextAlign.Center)
         }
+
+        // "Having an issue?" link
+        Text(
+            "Having an issue? File a claim",
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable { onFileClaim(bookingId) }
+        )
 
         Button(
             onClick  = { viewModel.submitReview(bookingId, providerId) },

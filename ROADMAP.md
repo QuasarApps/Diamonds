@@ -617,7 +617,7 @@ Allow cleaners to review clients and their locations after a job.
 
 ---
 
-## Phase 15: Help, Support & Claims System
+## Phase 15: Help, Support & Claims System ✅ COMPLETE
 
 Comprehensive contextual help, cancellations, booking edits, refunds, and post-service claims for
 both customers and providers — integrated directly into booking and review flows.
@@ -656,81 +656,81 @@ both customers and providers — integrated directly into booking and review flo
 
 #### Cancellation & Refund
 
-- [ ] Add `requestCancellation(bookingId, reason): Result<Booking>` — validates status is PENDING or
+- [x] Add `requestCancellation(bookingId, reason): Result<Booking>` — validates status is PENDING or
   ACCEPTED (not yet IN_PROGRESS); transitions booking to CANCELLED
-- [ ] Add `requestRefund(bookingId): Result<Payment>` — updates PaymentStatus to REFUNDED on
+- [x] Add `requestRefund(bookingId): Result<Payment>` — updates PaymentStatus to REFUNDED on
   associated payment
-- [ ] Build CancelBookingScreen — reason picker (radio list of CancellationReason), refund
+- [x] Build CancelBookingScreen — reason picker (radio list of CancellationReason), refund
   confirmation summary, "Confirm Cancellation" button
-- [ ] Show inline "Cancel Booking" button on BookingDetailScreen when status is PENDING or ACCEPTED
+- [x] Show inline "Cancel Booking" button on BookingDetailScreen when status is PENDING or ACCEPTED
 
 #### Booking Edits (Pre-Confirmation)
 
-- [ ] Add `editBooking(bookingId, newAddress?, newServiceId?): Result<Booking>` — validates status
+- [x] Add `editBooking(bookingId, newAddress?, newServiceId?): Result<Booking>` — validates status
   is
   PENDING only (provider has not yet accepted)
-- [ ] Build EditBookingScreen — pre-populated address and service type fields, "Save Changes" button
-- [ ] Show inline "Edit Booking" button on BookingDetailScreen when status is PENDING
+- [x] Build EditBookingScreen — pre-populated address and service type fields, "Save Changes" button
+- [x] Show inline "Edit Booking" button on BookingDetailScreen when status is PENDING
 
 #### Post-Service Claims (Customer)
 
-- [ ] Build FileClaimScreen — claim type selector chips (Incomplete, Unsatisfactory, Property
+- [x] Build FileClaimScreen — claim type selector chips (Incomplete, Unsatisfactory, Property
   Damage,
   Inappropriate Behavior), description text field, image evidence picker
   (PickMultipleVisualMedia), submit button
-- [ ] Build ClaimDetailScreen — view claim status, resolution notes, refund amount if approved
-- [ ] Show "File a Claim" button on BookingDetailScreen when status is COMPLETED
-- [ ] Add "Having an issue?" link on ReviewScreen that navigates to FileClaimScreen
+- [x] Build ClaimDetailScreen — view claim status, resolution notes, refund amount if approved
+- [x] Show "File a Claim" button on BookingDetailScreen when status is COMPLETED
+- [x] Add "Having an issue?" link on ReviewScreen that navigates to FileClaimScreen
 
 #### Post-Service Claims (Provider)
 
-- [ ] Build provider-side FileClaimScreen — claim type chips (Dangerous Property, Exceedingly Dirty,
+- [x] Build provider-side FileClaimScreen — claim type chips (Dangerous Property, Exceedingly Dirty,
   Inappropriate Client), description, evidence images
-- [ ] Show "Report Issue with Client" button on CleanerScheduleScreen for COMPLETED bookings
-- [ ] Add "Having an issue?" link on LeaveClientReviewScreen navigating to FileClaimScreen
+- [x] Show "Report Issue with Client" button on CleanerScheduleScreen for COMPLETED bookings
+- [x] Add "Having an issue?" link on LeaveClientReviewScreen navigating to FileClaimScreen
 
 #### Support Tickets & Help Center
 
-- [ ] Build HelpCenterScreen — FAQ accordion list, "My Tickets" section with ticket history, "
+- [x] Build HelpCenterScreen — FAQ accordion list, "My Tickets" section with ticket history, "
   Contact
   Support" button (creates a support conversation via existing chat/message system)
-- [ ] Build ContextualHelpScreen — dynamically shows available actions based on booking status and
+- [x] Build ContextualHelpScreen — dynamically shows available actions based on booking status and
   user role (see matrix above); each action is a card/button navigating to the appropriate screen
-- [ ] Add prominent "Help & Support" button/FAB on BookingDetailScreen → navigates to
+- [x] Add prominent "Help & Support" button/FAB on BookingDetailScreen → navigates to
   ContextualHelpScreen(bookingId)
-- [ ] Add Help Center entry in CustomerProfileScreen and CleanerProfileScreen
+- [x] Add Help Center entry in CustomerProfileScreen and CleanerProfileScreen
 
 #### Safety & Emergency (During Service)
 
-- [ ] Add a prominent red "🚨 Emergency / Safety Help" button on ContextualHelpScreen when booking is
+- [x] Add a prominent red "🚨 Emergency / Safety Help" button on ContextualHelpScreen when booking is
   IN_PROGRESS
-- [ ] Creates an urgent SAFETY_EMERGENCY support ticket and optionally launches a phone dialer
+- [x] Creates an urgent SAFETY_EMERGENCY support ticket and optionally launches a phone dialer
   intent
   to local emergency services
-- [ ] Send push notification to support team (via existing FCM infrastructure)
+- [ ] Send push notification to support team (via existing FCM infrastructure) — future enhancement
 
 #### Data Layer
 
-- [ ] Create `SupportTicketEntity` Room entity (table `support_tickets`)
-- [ ] Create `ClaimEntity` Room entity (table `claims`, `evidenceImageUrls` stored as JSON string)
-- [ ] Create `SupportTicketDao` — insert, getByUser, getById, updateStatus, observeByUser
-- [ ] Create `ClaimDao` — insert, getByBooking, getByUser, getById, updateStatus, observeByUser
-- [ ] Add Room `MIGRATION_8_9` creating both tables; bump database version to 9
-- [ ] Add DTOs and endpoints to `IBackendService`: `SupportTicketDto`, `ClaimDto`,
+- [x] Create `SupportTicketEntity` Room entity (table `support_tickets`)
+- [x] Create `ClaimEntity` Room entity (table `claims`, `evidenceImageUrls` stored as JSON string)
+- [x] Create `SupportTicketDao` — insert, getByUser, getById, updateStatus, observeByUser
+- [x] Create `ClaimDao` — insert, getByBooking, getByUser, getById, updateStatus, observeByUser
+- [x] Add Room `MIGRATION_8_9` creating both tables; bump database version to 9
+- [x] Add DTOs and endpoints to `IBackendService`: `SupportTicketDto`, `ClaimDto`,
   `CreateSupportTicketRequest`, `FileClaimRequest`, `EditBookingRequest`,
   `CancelBookingWithReasonRequest`
-- [ ] Implement stubs in `BackendServiceStub` with seeded demo claims and tickets
-- [ ] Implement Firestore collections in `FirebaseBackendService` (`support_tickets`, `claims`)
-- [ ] Create `ISupportRepository` interface in Repositories.kt
-- [ ] Create `SupportRepositoryImpl` in `data/repository/SupportRepository.kt`
-- [ ] Bind `ISupportRepository` in Hilt DI module
+- [x] Implement stubs in `BackendServiceStub` with seeded demo claims and tickets
+- [x] Implement Firestore collections in `FirebaseBackendService` (`support_tickets`, `claims`)
+- [x] Create `ISupportRepository` interface in Repositories.kt
+- [x] Create `SupportRepositoryImpl` in `data/repository/SupportRepository.kt`
+- [x] Bind `ISupportRepository` in Hilt DI module
 
 #### Navigation
 
-- [ ] Add routes to Screen.kt: `HelpCenter`, `ContextualHelp(bookingId)`, `FileClaim(bookingId)`,
+- [x] Add routes to Screen.kt: `HelpCenter`, `ContextualHelp(bookingId)`, `FileClaim(bookingId)`,
   `ClaimDetail(claimId)`, `CancelBooking(bookingId)`, `EditBooking(bookingId)`,
   `SupportTicketDetail(ticketId)`
-- [ ] Wire all new composable destinations in AppShell.kt
+- [x] Wire all new composable destinations in AppShell.kt
 
 ### New Files
 
@@ -795,7 +795,7 @@ both customers and providers — integrated directly into booking and review flo
 - [ ] Refund processing tests
 - [ ] Support ticket creation and chat integration tests
 
-**Estimated Duration**: 2-3 weeks
+**Status**: ✅ COMPLETE
 
 ---
 

@@ -44,6 +44,7 @@ import com.example.diamonds.ui.components.PullToRefreshLayout
 fun CleanerScheduleScreen(
     onReviewClient: ((bookingId: String, clientId: String) -> Unit)? = null,
     onViewClientRatings: ((clientId: String) -> Unit)? = null,
+    onFileClaim: ((bookingId: String) -> Unit)? = null,
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
     val state by viewModel.scheduleState.collectAsState()
@@ -109,7 +110,8 @@ fun CleanerScheduleScreen(
                     item = item,
                     viewModel = viewModel,
                     onReviewClient = onReviewClient,
-                    onViewClientRatings = onViewClientRatings
+                    onViewClientRatings = onViewClientRatings,
+                    onFileClaim = onFileClaim
                 )
             }
         }
@@ -124,7 +126,8 @@ fun CleanerScheduleScreen(
                     item = item,
                     viewModel = viewModel,
                     onReviewClient = onReviewClient,
-                    onViewClientRatings = onViewClientRatings
+                    onViewClientRatings = onViewClientRatings,
+                    onFileClaim = onFileClaim
                 )
             }
         }
@@ -148,7 +151,8 @@ private fun ScheduledJobCard(
     item: CleanerBookingItem,
     viewModel: CleanerViewModel,
     onReviewClient: ((bookingId: String, clientId: String) -> Unit)? = null,
-    onViewClientRatings: ((clientId: String) -> Unit)? = null
+    onViewClientRatings: ((clientId: String) -> Unit)? = null,
+    onFileClaim: ((bookingId: String) -> Unit)? = null
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -233,6 +237,15 @@ private fun ScheduledJobCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("⭐ Review Client")
+                        }
+                    }
+                    if (onFileClaim != null) {
+                        Spacer(Modifier.height(8.dp))
+                        androidx.compose.material3.TextButton(
+                            onClick = { onFileClaim(item.booking.id) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("⚠️ Report Issue with Client")
                         }
                     }
                 }

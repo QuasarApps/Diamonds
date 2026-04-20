@@ -60,6 +60,7 @@ fun CleanerProfileScreen(
     session: UserSession,
     onManageServices: () -> Unit,
     onLanguage: () -> Unit = {},
+    onHelpCenter: () -> Unit = {},
     viewModel: CleanerProfileViewModel = hiltViewModel()
 ) {
     val state       by viewModel.profileState.collectAsState()
@@ -214,6 +215,28 @@ fun CleanerProfileScreen(
                         Text("Language", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         Text(
                             "Change app language", fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text("›", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
+            // ── Help & Support ────────────────────────────────────────────
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onHelpCenter
+            ) {
+                Row(
+                    Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("❓", fontSize = 24.sp)
+                    Spacer(Modifier.width(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Help & Support", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(
+                            "FAQ, claims, and contact support", fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
