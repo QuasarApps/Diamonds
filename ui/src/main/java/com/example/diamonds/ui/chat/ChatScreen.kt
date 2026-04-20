@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -143,11 +142,10 @@ fun ChatScreen(
             )
         }
 
-        // Message input bar - uses imePadding to adjust for keyboard
+        // Message input bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .imePadding()
                 .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp)

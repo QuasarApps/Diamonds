@@ -182,6 +182,9 @@ fun BookingDetailScreen(
     onLeaveReview: (bookingId: String, providerId: String) -> Unit = { _, _ -> },
     onTrackCleaner: (bookingId: String) -> Unit = {},
     onOpenChat: (OpenChatParams) -> Unit = {},
+    onEditBooking: (bookingId: String) -> Unit = {},
+    onFileClaim: (bookingId: String) -> Unit = {},
+    onGetHelp: (bookingId: String) -> Unit = {},
     viewModel: BookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.detailState.collectAsState()
@@ -337,12 +340,81 @@ fun BookingDetailScreen(
         }
 
         if (booking.status == BookingStatus.COMPLETED && state.provider != null) {
-            Button(
-                onClick  = { onLeaveReview(bookingId, booking.providerId) },
+            // Show existing review if present
+            val review = state.review
+            if (review != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    Column(
+                        Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        SectionLabel("Your Review")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "⭐".repeat(review.rating) + "☆".repeat(5 - review.rating),
+                                fontSize = 18.sp
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "${review.rating}/5",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        val comment = review.comment
+                        if (!comment.isNullOrBlank()) {
+                            Text(
+                                comment,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        Text(
+                            DateTimeFormatUtil.formatDateForDisplay(review.createdAt),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            } else {
+                Button(
+                    onClick = { onLeaveReview(bookingId, booking.providerId) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                ) { Text("⭐  Leave a Review", fontSize = 15.sp) }
+            }
+
+            OutlinedButton(
+                onClick = { onFileClaim(bookingId) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-            ) { Text("⭐  Leave a Review", fontSize = 15.sp) }
+            ) { Text("⚠️  Report an Issue", fontSize = 15.sp) }
+        }
+
+        // Edit / Reschedule for PENDING bookings
+        if (booking.status == BookingStatus.PENDING) {
+            OutlinedButton(
+                onClick = { onEditBooking(bookingId) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) { Text("✏️  Edit / Reschedule", fontSize = 15.sp) }
+        }
+
+        // Help & Support button for all active bookings
+        if (booking.status !in listOf(BookingStatus.CANCELLED)) {
+            OutlinedButton(
+                onClick = { onGetHelp(bookingId) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) { Text("❓  Help & Support", fontSize = 15.sp) }
         }
     }
     } // end PullToRefreshLayout

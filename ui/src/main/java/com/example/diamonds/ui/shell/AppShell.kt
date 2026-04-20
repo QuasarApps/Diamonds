@@ -6,6 +6,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -31,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -269,6 +272,9 @@ fun AppShell(
         )
     }
 
+    val density = LocalDensity.current
+    val isKeyboardVisible = WindowInsets.ime.getBottom(density) > 0
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -347,8 +353,8 @@ fun AppShell(
             )
         },
         bottomBar = {
-            // Always show the bottom bar (it is the tab root concept now);
-            // individual deep screens are inside the tab graph, not outside it.
+            // Hide bottom bar when the keyboard is visible to avoid a blank gap
+            if (!isKeyboardVisible) {
             NavigationBar(
                 containerColor = com.example.diamonds.ui.theme.BarBackground,
                 contentColor = androidx.compose.ui.graphics.Color.White
@@ -391,6 +397,7 @@ fun AppShell(
                     )
                 }
             }
+            } // end if (!isKeyboardVisible)
         }
     ) { padding ->
         Column(
@@ -669,6 +676,15 @@ fun AppShell(
                             },
                             onTrackCleaner = { bookingId ->
                                 navController.navigate(Screen.ProviderTracking().route(bookingId))
+                            },
+                            onEditBooking = { bookingId ->
+                                navController.navigate(Screen.EditBooking().route(bookingId))
+                            },
+                            onFileClaim = { bookingId ->
+                                navController.navigate(Screen.FileClaim().route(bookingId))
+                            },
+                            onGetHelp = { bookingId ->
+                                navController.navigate(Screen.ContextualHelp().route(bookingId))
                             },
                             onOpenChat = { params ->
                                 chatViewModel.openOrCreateConversation(

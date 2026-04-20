@@ -7,11 +7,13 @@ import com.example.diamonds.domain.model.Booking
 import com.example.diamonds.domain.model.BookingStatus
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.Review
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceCategory
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.IBookingRepository
 import com.example.diamonds.domain.repository.IProviderRepository
+import com.example.diamonds.domain.repository.IReviewRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,6 +63,7 @@ data class BookingDetailUiState(
     val booking: Booking? = null,
     val provider: Provider? = null,
     val service: Service? = null,
+    val review: Review? = null,
     val cancelSuccess: Boolean = false
 )
 
@@ -81,6 +84,7 @@ class BookingViewModel @Inject constructor(
     private val bookingRepository: IBookingRepository,
     private val providerRepository: IProviderRepository,
     private val serviceRepository: IServiceRepository,
+    private val reviewRepository: IReviewRepository,
     private val authRepository: IAuthRepository,
     connectivityObserver: ConnectivityObserver,
     private val savedStateHandle: SavedStateHandle
@@ -373,7 +377,15 @@ class BookingViewModel @Inject constructor(
                     val booking  = r.data
                     val provider = (providerRepository.getProvider(booking.providerId) as? Result.Success)?.data
                     val service  = (serviceRepository.getService(booking.serviceId) as? Result.Success)?.data
-                    _detailState.value = BookingDetailUiState(booking = booking, provider = provider, service = service)
+                    val review = if (booking.status == BookingStatus.COMPLETED) {
+                        (reviewRepository.getReviewsForBooking(booking.id) as? Result.Success)?.data
+                    } else null
+                    _detailState.value = BookingDetailUiState(
+                        booking = booking,
+                        provider = provider,
+                        service = service,
+                        review = review
+                    )
                 }
                 is Result.Error -> {
                     _detailState.value = BookingDetailUiState()
