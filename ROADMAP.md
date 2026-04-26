@@ -560,11 +560,17 @@ Full internationalisation and localisation of the app.
 
 **Status**: ✅ COMPLETE
 
+> ⚠️ **Known gap (audit April 26, 2026)**: `LanguageViewModel` saves the locale code to DataStore
+> but nothing reads it to reconfigure the app locale. `AppCompatDelegate.setApplicationLocales()`
+> must be called (e.g. in `MainActivity.onCreate`
+> observing `PreferencesDataStore.observeLanguage()`)
+> for runtime switching to actually work.
+
 **Estimated Duration**: 2 weeks
 
 ---
 
-## Phase 14: Reverse Reviews (Cleaner Reviews Customer) ✅ COMPLETE
+## Phase 14: Reverse Reviews
 
 Allow cleaners to review clients and their locations after a job.
 
@@ -614,6 +620,11 @@ Allow cleaners to review clients and their locations after a job.
 **Estimated Duration**: 1-2 weeks
 
 **Status**: ✅ COMPLETE
+
+> ⚠️ **Known gap (audit April 26, 2026)**: `FirebaseBackendService.createReview` does not write
+> the `direction` field to Firestore. The `ReviewDirection` enum and Room column exist correctly,
+> but the value is silently dropped when using the Firebase backend. Fix: include `direction` in
+> the `ReviewDto` Firestore write in `FirebaseBackendService.createReview`.
 
 ---
 
@@ -797,6 +808,15 @@ both customers and providers — integrated directly into booking and review flo
 
 **Status**: ✅ COMPLETE
 
+> ⚠️ **Known gaps (audit April 26, 2026)**:
+> - **14 `FirebaseBackendService` methods** (lines 485–524)
+    return `Result.Error("not yet implemented")`
+    > for support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, and
+    saved
+    > locations. All Phase 15 UI is functional with the stub backend but **silently fails with
+    Firebase**.
+> - `SupportRepository`, `ClaimRepository` are untested — no unit tests exist.
+
 ---
 
 ## Phase 16: Detailed Cleaning and Location Options
@@ -973,17 +993,26 @@ App store submission and monitoring.
 
 **Total Estimated Timeline**: 5-7 months
 
-### Current Status: **Phase 1-14 Complete**
+### Current Status: **Phases 1–15 Complete** *(as of April 26, 2026)*
 
-(Authentication, Booking, Provider Mgmt, Reviews, Payments, Navigation & App Flow, Firebase
+(Architecture, Authentication, Booking, Provider Mgmt, Reviews, Payments, Navigation & App Flow,
+Firebase
 Integration, Maps & Location, Sync & Offline Features, In-App Chat, Subscriptions, Multi-Language,
-Reverse Reviews)
+Reverse Reviews, Help/Support & Claims)
+
+> ⚠️ **Audit note (April 26, 2026)**: Several phases are structurally complete but contain
+> known implementation gaps that must be resolved before switching off `USE_MOCK_BACKEND`.
+> See [README.md Known Issues](README.md#known-issues--audit-findings) for the full list.
+> Critical gaps: 14 unimplemented `FirebaseBackendService` methods (Phase 15 features silent-fail
+> in production), `getCurrentClient()` returns `Result.Error`, `ReviewDirection` not persisted to
+> Firestore, runtime locale switching not wired, no image loading library (Coil missing).
 
 ### Next Immediate Steps:
 
-1. Begin Phase 15 (Help, Support & Claims System)
-2. Continue with Phase 16 (Detailed Cleaning and Location Options)
-3. Start Phase 17 (Error Handling & Analytics)
+1. **Resolve P1 production blockers** (see README Known Issues) before advancing phases
+2. Begin Phase 16 (Detailed Cleaning and Location Options)
+3. Continue with Phase 17 (Error Handling & Analytics)
+4. Start Phase 18 (Testing & Optimization — target 60% coverage)
 
 ### Architecture Strengths
 

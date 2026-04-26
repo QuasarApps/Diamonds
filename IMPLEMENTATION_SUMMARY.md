@@ -1,6 +1,7 @@
 # Implementation Status & Next Steps
 
-**Status**: Phases 1-11 ✅ Complete | **Completion**: 55% of 20-phase roadmap
+**Status**: Phases 1–15 ✅ Complete | **Completion**: 75% of 21-phase roadmap  
+**Last Audit**: April 26, 2026
 
 ---
 
@@ -138,15 +139,56 @@
 
 ## What's NOT Done Yet
 
-**Phase 12**: Subscription & Recurring Bookings  
-**Phase 13**: Multi-Language Support  
-**Phase 14**: Reverse Reviews (Cleaner Reviews Customer)  
-**Phase 15**: Detailed Cleaning & Location Options  
-**Phase 16**: Error Handling & Analytics  
-**Phase 17**: Testing & Optimization  
-**Phase 18**: Release Preparation  
-**Phase 19**: Beta Testing  
-**Phase 20**: Launch
+**Phases 12–15 Complete** — but with implementation gaps. See Audit Findings below.
+
+**Phase 16**: Detailed Cleaning & Location Options  
+**Phase 17**: Error Handling & Analytics  
+**Phase 18**: Testing & Optimization  
+**Phase 19**: Release Preparation & CI/CD  
+**Phase 20**: Beta Testing  
+**Phase 21**: Launch
+
+---
+
+## Audit Findings (April 26, 2026)
+
+### 🔴 P1 — Must Fix Before Firebase Go-Live
+
+| Issue                                                                            | File                                |
+|----------------------------------------------------------------------------------|-------------------------------------|
+| No image loading library — add `io.coil-kt:coil-compose`                         | `build.gradle.kts`                  |
+| `applicationId = "com.example.diamonds"` — change before release                 | `app/build.gradle.kts:17`           |
+| `isMinifyEnabled = false` in release build                                       | `app/build.gradle.kts:38`           |
+| Auth token stored as plaintext in DataStore                                      | `PreferencesDataStore.kt`           |
+| No Firestore Security Rules file in repo                                         | Firebase Console                    |
+| 14 `FirebaseBackendService` methods return `Result.Error("not yet implemented")` | `FirebaseBackendService.kt:485–524` |
+| `getCurrentClient()` returns `Result.Error("Not implemented")`                   | `ClientRepository.kt:86–91`         |
+| `updateProvider()` returns `Result.Error("Not implemented")`                     | `ProviderRepository.kt:127–130`     |
+
+### 🟡 P2 — Important Fixes
+
+| Issue                                                                                                      | File                             |
+|------------------------------------------------------------------------------------------------------------|----------------------------------|
+| Runtime locale switching not wired (`AppCompatDelegate.setApplicationLocales()` never called)              | `MainActivity.kt`                |
+| `ReviewDirection` never written to Firestore in `createReview`                                             | `FirebaseBackendService.kt:~200` |
+| `DiamondsApplication` creates a second `ConnectivitySyncTrigger` manually; Hilt instance never started     | `DiamondsApplication.kt`         |
+| `ConnectivityObserver.isOnline()` false positive on captive portals (missing `NET_CAPABILITY_VALIDATED`)   | `ConnectivityObserver.kt`        |
+| `searchProviders` / `getConversationsForUser` / `getReviewsForProvider` do full Firestore collection scans | `FirebaseBackendService.kt`      |
+| `android:allowBackup="true"` — token extractable via ADB                                                   | `AndroidManifest.xml`            |
+| Deep link `autoVerify="true"` but no Digital Asset Links file                                              | `AndroidManifest.xml`            |
+| `proguard-rules.pro` is empty                                                                              | `proguard-rules.pro`             |
+| No real payment SDK (Stripe/Braintree) integrated                                                          | `PaymentRepository.kt`           |
+
+### 🔵 P3 — Code Quality
+
+| Issue                                                                               | File                   |
+|-------------------------------------------------------------------------------------|------------------------|
+| Test coverage ~15–20% (target 60%); `BookingRepositoryTest` has only `assert(true)` | `data/test/`           |
+| Kotlin 1.9.0 → upgrade to 2.1.x                                                     | `libs.versions.toml`   |
+| Compose 1.6.0 → upgrade to 1.7.x                                                    | `libs.versions.toml`   |
+| `ACCESS_BACKGROUND_LOCATION` likely unnecessary                                     | `AndroidManifest.xml`  |
+| `org.gradle.parallel=true` commented out                                            | `gradle.properties`    |
+| No `signingConfig` for release build                                                | `app/build.gradle.kts` |
 
 ---
 
@@ -304,6 +346,6 @@ After implementing Phase 7-8, review:
 
 ---
 
-**Last Updated**: April 9, 2026  
-**Status**: Production-ready for Phase 11+  
+**Last Updated**: April 26, 2026  
+**Status**: Phases 1–15 complete; resolve P1 blockers before Firebase go-live  
 **Questions?** See documentation files or QUICK_REFERENCE.md

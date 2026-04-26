@@ -44,9 +44,10 @@ Diamonds implements a **modular, offline-first architecture** with the following
 ## Getting Started
 
 ### Prerequisites
-- Android Studio Iguana or later
+
+- Android Studio Iguana or later (Ladybug recommended)
 - Android SDK 34
-- Kotlin 1.9.0
+- Kotlin 1.9.0 (upgrade to 2.1.x recommended — see [Known Issues](#known-issues--audit-findings))
 
 ### Setup
 
@@ -128,15 +129,64 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 
 ## Next Steps
 
-- [ ] Build in-app chat system (Phase 11)
-- [ ] Add subscription and recurring bookings (Phase 12)
-- [ ] Implement multi-language support (Phase 13)
-- [ ] Add reverse reviews - cleaner reviews customer (Phase 14)
-- [ ] Expand cleaning types, location types, and specializations (Phase 15)
-- [ ] Add error handling and analytics (Phase 16)
-- [ ] Setup CI/CD pipeline and release preparation (Phase 18)
+- [x] ~~Build in-app chat system (Phase 11)~~ ✅ Complete
+- [x] ~~Add subscription and recurring bookings (Phase 12)~~ ✅ Complete
+- [x] ~~Implement multi-language support (Phase 13)~~ ✅ Complete
+- [x] ~~Add reverse reviews - cleaner reviews customer (Phase 14)~~ ✅ Complete
+- [x] ~~Help, Support & Claims System (Phase 15)~~ ✅ Complete
+- [ ] Expand cleaning types, location types, and specializations (Phase 16)
+- [ ] Add error handling and analytics (Phase 17)
+- [ ] Comprehensive testing & optimization (Phase 18)
+- [ ] Setup CI/CD pipeline and release preparation (Phase 19)
+- [ ] Beta testing and launch (Phase 20–21)
 
-## License
+---
+
+## Known Issues & Audit Findings
+
+> Last audited: **April 26, 2026**. Issues are prioritised P1 (blocker) → P3 (nice-to-have).
+
+### 🔴 P1 — Production Blockers
+
+| # | Issue                                                                                                                                                                                                                 | Location                            |
+|---|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------|
+| 1 | **No image loading library** — images cannot be displayed; Coil must be added                                                                                                                                         | `build.gradle.kts`                  |
+| 2 | **`applicationId` is `com.example.diamonds`** — must be changed before release                                                                                                                                        | `app/build.gradle.kts:17`           |
+| 3 | **`isMinifyEnabled = false` in release** — no obfuscation or code shrinking                                                                                                                                           | `app/build.gradle.kts:38`           |
+| 4 | **Auth token stored as plaintext** in DataStore; `EncryptedDataStore` not used                                                                                                                                        | `PreferencesDataStore.kt`           |
+| 5 | **No Firestore Security Rules file** — any authenticated user can read/write all documents                                                                                                                            | Firebase Console                    |
+| 6 | **14 `FirebaseBackendService` methods return `Result.Error("not yet implemented")`** — support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations silently fail in production | `FirebaseBackendService.kt:485–524` |
+| 7 | **`getCurrentClient()` returns `Result.Error("Not implemented")`**                                                                                                                                                    | `ClientRepository.kt:86–91`         |
+| 8 | **`updateProvider()` returns `Result.Error("Not implemented")`** — provider profile editing is broken                                                                                                                 | `ProviderRepository.kt:127–130`     |
+
+### 🟡 P2 — Important Fixes
+
+| #  | Issue                                                                                                                                                     | Location                         |
+|----|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
+| 9  | **Runtime locale switching not wired** — language saved to DataStore but `AppCompatDelegate.setApplicationLocales()` never called                         | `MainActivity.kt`                |
+| 10 | **`ReviewDirection` always lost in Firebase** — `createReview` never writes the `direction` field to Firestore                                            | `FirebaseBackendService.kt:~200` |
+| 11 | **`DiamondsApplication` DI inconsistency** — manually constructs a second `ConnectivitySyncTrigger`; Hilt-injected instance is never started              | `DiamondsApplication.kt`         |
+| 12 | **`ConnectivityObserver.isOnline()` false positives on captive portals** — only checks `NET_CAPABILITY_INTERNET`, not `NET_CAPABILITY_VALIDATED`          | `ConnectivityObserver.kt`        |
+| 13 | **Full Firestore collection scans** — `searchProviders`, `getConversationsForUser`, `getReviewsForProvider` perform unfiltered reads; scalability blocker | `FirebaseBackendService.kt`      |
+| 14 | **`android:allowBackup="true"`** — DataStore (incl. auth token) extractable via ADB                                                                       | `AndroidManifest.xml:14`         |
+| 15 | **Deep link `autoVerify="true"` with no Digital Asset Links file** — verification fails; any app can intercept `diamonds://` links                        | `AndroidManifest.xml:44`         |
+| 16 | **`proguard-rules.pro` is empty** — must be written before `isMinifyEnabled = true` is enabled                                                            | `proguard-rules.pro`             |
+| 17 | **No real payment processing** — card payments immediately set to `SUCCEEDED` with no Stripe/Braintree SDK                                                | `PaymentRepository.kt`           |
+
+### 🔵 P3 — Improvements
+
+| #  | Issue                                                                                                                                                                                                       | Location                 |
+|----|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| 18 | **Test coverage ~15–20%** (target 60%) — `SyncManager`, `ClientRepository`, `PreferencesDataStore`, all unimplemented repo methods lack tests; `BookingRepositoryTest` has only a no-op `assert(true)` test | `data/test/`, `ui/test/` |
+| 19 | **Kotlin 1.9.0** — upgrade to 2.1.x for K2 compiler and latest stdlib                                                                                                                                       | `libs.versions.toml`     |
+| 20 | **Compose 1.6.0** — upgrade to 1.7.x for stability improvements                                                                                                                                             | `libs.versions.toml`     |
+| 21 | **`ACCESS_BACKGROUND_LOCATION` declared but likely unnecessary** — foreground-only suffices if tracking only occurs during active booking screen                                                            | `AndroidManifest.xml:9`  |
+| 22 | **`MAPS_API_KEY` is empty string** committed in `gradle.properties`                                                                                                                                         | `gradle.properties:25`   |
+| 23 | **`BackendServiceStub` is 1,132 lines** — seed data difficult to maintain in a single file                                                                                                                  | `BackendServiceStub.kt`  |
+| 24 | **`org.gradle.parallel=true` commented out** — enabling would speed up multi-module builds                                                                                                                  | `gradle.properties`      |
+| 25 | **No `signingConfig` block** for release build                                                                                                                                                              | `app/build.gradle.kts`   |
+
+---
 
 TODO: Add license information
 
