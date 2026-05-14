@@ -6,10 +6,18 @@ import com.example.diamonds.data.local.dao.BookingDao
 import com.example.diamonds.data.local.dao.SyncQueueDao
 import com.example.diamonds.data.remote.backend.BookingDto
 import com.example.diamonds.data.remote.backend.IBackendService
-import com.example.diamonds.domain.model.*
-import io.mockk.*
+import com.example.diamonds.domain.model.Booking
+import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.domain.model.OfflineException
+import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.SyncStatus
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -55,10 +63,20 @@ class BookingRepositoryFullTest {
     fun `getBooking returns cached value when present`() = runTest {
         val entity = makeBookingDto().run {
             com.example.diamonds.data.local.entity.BookingEntity(
-                id, clientId, providerId, serviceId, status,
-                scheduledDate, scheduledTime, estimatedDuration, totalPrice,
-                notes, address, null, null, SyncStatus.SYNCED.name,
-                createdAt, updatedAt
+                id = id,
+                clientId = clientId,
+                providerId = providerId,
+                serviceId = serviceId,
+                status = status,
+                scheduledDate = scheduledDate,
+                scheduledTime = scheduledTime,
+                estimatedDuration = estimatedDuration,
+                totalPrice = totalPrice,
+                notes = notes,
+                address = address,
+                syncStatus = SyncStatus.SYNCED.name,
+                createdAt = createdAt,
+                updatedAt = updatedAt
             )
         }
         coEvery { bookingDao.getById("b1") } returns entity

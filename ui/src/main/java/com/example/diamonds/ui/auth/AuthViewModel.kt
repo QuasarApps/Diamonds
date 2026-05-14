@@ -134,6 +134,6 @@ class AuthViewModel @Inject constructor(
 }
 // -- Validation helpers ------------------------------------------------------
 private fun String.isValidEmail(): Boolean =
-    isNotBlank() && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    isNotBlank() && Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$").matches(this)
 private fun String.isValidPhone(): Boolean =
     isNotBlank() && length >= 7 && all { it.isDigit() || it == '+' || it == '-' || it == ' ' }

@@ -29,6 +29,12 @@ android {
     }
 }
 
+// All instrumentation tests live in :app. Disabling androidTest on this library
+// module prevents connectedDebugAndroidTest from crashing due to missing test classes.
+androidComponents {
+    beforeVariants { it.enableAndroidTest = false }
+}
+
 dependencies {
     implementation(project(":core"))
     implementation(project(":common"))
