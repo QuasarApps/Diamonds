@@ -23,7 +23,7 @@
 > ### Track B — Make it actually multilingual & accessible
 > - [ ] Externalize ~700 hardcoded `Text("…")` literals to `stringResource(R.string.*)` (translations
 >   already exist) and add a `HardcodedText` lint baseline. *(§3.2)*
-> - [ ] Replace emoji-as-icons with `material.icons.*` + `contentDescription`; localize
+> - [ ] Replace emoji-as-icons with `androidx.compose.material.icons.*` + `contentDescription`; localize
 >   `contentDescription`s; adopt `collectAsStateWithLifecycle`. *(§4)*
 >
 > ### Track C — Before flipping `USE_MOCK_BACKEND=false` (Firebase go-live gate)
@@ -163,7 +163,7 @@ Post-job review system.
 > ⚠️ **Review 2026-06-25:** `FirebaseBackendService.createReview` never persists the `direction`
 > (and `locationTags`) field, so against real Firestore every review defaults to
 > `CLIENT_REVIEWS_PROVIDER` and the client↔provider review split breaks. See
-> TECH_LEAD_REVIEW.md §3.5.
+> [TECH_LEAD_REVIEW.md §3.5](TECH_LEAD_REVIEW.md).
 
 ### Tasks
 - [x] Seed rich review data (12 seeded reviews across p1–p4, mutable store so new reviews persist in session)
@@ -186,7 +186,7 @@ Payment processing with mock/stub implementation, ready for Stripe swap-in.
 > ⚠️ **Review 2026-06-25:** Both Stub and Firebase paths fabricate a `SUCCEEDED` payment with a
 > synthetic `transactionId` and **no payment processor** — a booking is marked paid with no money
 > moving. The Stub's "5% failure rate" comment is dead code. No real PSP = a launch blocker, not a
-> swap-in. See TECH_LEAD_REVIEW.md §3.6.
+> swap-in. See [TECH_LEAD_REVIEW.md §3.6](TECH_LEAD_REVIEW.md).
 
 ### Tasks
 - [x] Seed payment data in BackendServiceStub (6 historical payments, mutable store)
@@ -251,7 +251,7 @@ Backend and real-time features via Firebase.
 > it (`USE_MOCK_BACKEND=false`): **14 `FirebaseBackendService` methods return
 > `Result.Error("not yet implemented")`**, `google-services.json` is a placeholder, `signup` never
 > writes a Client/Provider profile doc, and the FCM token is saved locally but never registered
-> server-side (targeted push can't work). See TECH_LEAD_REVIEW.md §3.1, §4.
+> server-side (targeted push can't work). See [TECH_LEAD_REVIEW.md §3.1, §4](TECH_LEAD_REVIEW.md).
 
 ### Tasks
 
@@ -382,7 +382,7 @@ Complete offline-first implementation and sync.
 > zero production call sites. Every write path hard-fails when offline instead of enqueuing, so the
 > backoff/conflict-resolution machinery processes a table that is never populated. Read-side
 > offline-first is real; the offline-**write** story advertised here does not run. Decision needed:
-> wire the queue into write repos, or delete it and correct the docs. See TECH_LEAD_REVIEW.md §4.
+> wire the queue into write repos, or delete it and correct the docs. See [TECH_LEAD_REVIEW.md §4](TECH_LEAD_REVIEW.md).
 
 ### Tasks
 
@@ -439,7 +439,7 @@ Complete offline-first implementation and sync.
 ## Phase 11: In-App Chat System ✅ STRUCTURAL ⚠️
 > ⚠️ **Review 2026-06-25:** `MessageRepository.sendMessage` reports `Result.Success` for messages
 > composed offline / on transient backend failure, but never sends or retries them — silent chat
-> **data loss**. See TECH_LEAD_REVIEW.md §3.4.
+> **data loss**. See [TECH_LEAD_REVIEW.md §3.4](TECH_LEAD_REVIEW.md).
 
 Real-time messaging between clients and cleaners.
 
@@ -519,7 +519,7 @@ Real-time messaging between clients and cleaners.
 > ⚠️ **Review 2026-06-25:** `RecurringBookingViewModel.getCurrentSession()` collects a
 > never-completing DataStore flow with `return@collect`, which only returns the lambda — `collect()`
 > never returns, so the suspend fn **hangs forever** and recurring-booking submit/load is broken.
-> Fix: use `.first()`. See TECH_LEAD_REVIEW.md §3.3.
+> Fix: use `.first()`. See [TECH_LEAD_REVIEW.md §3.3](TECH_LEAD_REVIEW.md).
 
 Allow clients to set up recurring cleaning schedules.
 
@@ -584,7 +584,7 @@ Allow clients to set up recurring cleaning schedules.
 > (ES/FR/AR/PT, real Arabic) but `stringResource` is used in **1 of 83 UI files** — ~700 `Text("…")`
 > literals are hardcoded English, so switching locale changes almost nothing on screen.
 > *Correction to prior audit:* runtime locale switching **is** now wired via
-> `AppCompatDelegate.setApplicationLocales()` (README #9 is stale). See TECH_LEAD_REVIEW.md §3.2.
+> `AppCompatDelegate.setApplicationLocales()` (README #9 is stale). See [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md).
 
 Full internationalisation and localisation of the app.
 
@@ -639,11 +639,18 @@ Full internationalisation and localisation of the app.
 
 **Status**: ✅ COMPLETE
 
-> ⚠️ **Known gap (audit April 26, 2026)**: `LanguageViewModel` saves the locale code to DataStore
-> but nothing reads it to reconfigure the app locale. `AppCompatDelegate.setApplicationLocales()`
-> must be called (e.g. in `MainActivity.onCreate`
-> observing `PreferencesDataStore.observeLanguage()`)
-> for runtime switching to actually work.
+> ⚠️ **Updated 2026-06-25 (supersedes the April 2026 "known gap" below)**: runtime locale switching
+> **is** now wired — `LanguageSelectorScreen` calls `AppCompatDelegate.setApplicationLocales()` — so
+> the older note ("nothing reads the stored locale") is **stale**. The *real* remaining gap is that
+> the UI hardcodes strings, so switching locale has almost no visible effect. Single source of truth:
+> the Phase 13 callout above and [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md).
+>
+> <details><summary>Original April 26, 2026 audit note (now resolved/stale — kept for history)</summary>
+>
+> > `LanguageViewModel` saves the locale code to DataStore but nothing reads it to reconfigure the
+> > app locale. `AppCompatDelegate.setApplicationLocales()` must be called for runtime switching to
+> > actually work.
+> </details>
 
 **Estimated Duration**: 2 weeks
 
@@ -711,7 +718,7 @@ Allow cleaners to review clients and their locations after a job.
 > ⚠️ **Review 2026-06-25:** Fully implemented in the Stub (so it works in debug), but **every**
 > backing Firebase method is one of the 14 `"not yet implemented"` stubs — support tickets, claims,
 > cancel-with-reason, edit-booking, refunds, help articles and saved locations all silent-fail in a
-> `release` build. See TECH_LEAD_REVIEW.md §3.1.
+> `release` build. See [TECH_LEAD_REVIEW.md §3.1](TECH_LEAD_REVIEW.md).
 
 Comprehensive contextual help, cancellations, booking edits, refunds, and post-service claims for
 both customers and providers — integrated directly into booking and review flows.

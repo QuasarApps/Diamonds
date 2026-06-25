@@ -3,7 +3,7 @@
 **Reviewer:** Tech Lead (independent architectural review)
 **Date:** 2026-06-25
 **Scope:** Full codebase — 5 Gradle modules, ~124 production Kotlin files, 49 test files
-**Method:** Static review of current source on branch `claude/great-noether-9i2e0t` (HEAD = "ADD TESTS"). No Android SDK in the review environment, so no Gradle build was executed; compile-level conclusions are reasoned statically and noted where a real build is needed to confirm. Each finding below was independently re-verified against the cited code before inclusion.
+**Method:** Static review of the repository source at the PR branch's HEAD at review time (the repo's then-latest commit). No Android SDK in the review environment, so no Gradle build was executed; compile-level conclusions are reasoned statically and noted where a real build is needed to confirm. Each finding below was independently re-verified against the cited code before inclusion.
 
 ---
 
