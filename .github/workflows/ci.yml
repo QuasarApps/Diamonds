@@ -1,0 +1,59 @@
+name: CI
+
+# Build the debug variant and run every module's JVM unit tests on each PR to
+# develop (and on pushes to develop). This is the "real" green/red signal the
+# tech-lead review's Track A calls for — until now nothing actually compiled or
+# ran the unit tests on a PR.
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+# A newer commit on the same branch/PR supersedes in-flight runs.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # AGP 8.5 requires JDK 17 to run the build (project still targets JVM 11 bytecode).
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle (with caching)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # assembleDebug compiles all modules (incl. Hilt kapt + Compose) and the
+      # manifest/resources; allUnitTests runs every module's testDebugUnitTest.
+      - name: Build debug + run all unit tests
+        run: ./gradlew assembleDebug allUnitTests --stacktrace
+
+      - name: Upload unit-test reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: '**/build/reports/tests/**'
+          if-no-files-found: ignore
+          retention-days: 7
