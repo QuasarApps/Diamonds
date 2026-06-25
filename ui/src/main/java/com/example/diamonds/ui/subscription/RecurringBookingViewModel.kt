@@ -96,7 +96,11 @@ class RecurringBookingViewModel @Inject constructor(
         }
         updateState { it.copy(isSubmitting = true, errorMessage = null) }
         viewModelScope.launch {
-            val session = getCurrentSession() ?: return@launch
+            val session = getCurrentSession()
+            if (session == null) {
+                updateState { it.copy(isSubmitting = false, errorMessage = "Session not found") }
+                return@launch
+            }
             val nextDate = calculateNextBookingDate(s.frequency, s.preferredDay)
             val rb = RecurringBooking(
                 id = UUID.randomUUID().toString(),
@@ -137,7 +141,13 @@ class RecurringBookingViewModel @Inject constructor(
     fun loadRecurringBookings() {
         viewModelScope.launch {
             _mgmtState.value = _mgmtState.value.copy(isLoading = true, errorMessage = null)
-            val session = getCurrentSession() ?: return@launch
+            val session = getCurrentSession()
+            if (session == null) {
+                _mgmtState.value = _mgmtState.value.copy(
+                    isLoading = false, errorMessage = "Session not found"
+                )
+                return@launch
+            }
             // Observe from Room
             subscriptionRepository.observeRecurringBookingsForClient(session.userId)
                 .collect { list ->
