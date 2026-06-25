@@ -21,7 +21,7 @@
 >   stale; there is currently no green/red signal). *(§7)*
 >
 > ### Track B — Make it actually multilingual & accessible
-> - [ ] Externalize ~700 hardcoded `Text("…")` literals to `stringResource(R.string.*)` (translations
+> - [ ] Externalize the ~350 hardcoded `Text("…")` literals to `stringResource(R.string.*)` (translations
 >   already exist) and add a `HardcodedText` lint baseline. *(§3.2)*
 > - [ ] Replace emoji-as-icons with `androidx.compose.material.icons.*` + `contentDescription`; localize
 >   `contentDescription`s; adopt `collectAsStateWithLifecycle`. *(§4)*
@@ -581,7 +581,7 @@ Allow clients to set up recurring cleaning schedules.
 
 ## Phase 13: Multi-Language Support ✅ STRUCTURAL ⚠️
 > ⚠️ **Review 2026-06-25:** Non-functional in practice. 845 strings are professionally translated
-> (ES/FR/AR/PT, real Arabic) but `stringResource` is used in **1 of 83 UI files** — ~700 `Text("…")`
+> (ES/FR/AR/PT, real Arabic) but `stringResource` is used in **1 of 83 UI files** — ~350 `Text("…")`
 > literals are hardcoded English, so switching locale changes almost nothing on screen.
 > *Correction to prior audit:* runtime locale switching **is** now wired via
 > `AppCompatDelegate.setApplicationLocales()` (README #9 is stale). See [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md).
@@ -1095,7 +1095,7 @@ Reverse Reviews, Help/Support & Claims)
 > error they cite is already fixed) and demos well on the mock backend, but "structurally complete"
 > ≠ "working." Phases re-tagged `✅ STRUCTURAL ⚠️` above have material gaps:
 > - **Offline-write/sync queue is dead code** (`queueOperation()` never called) — Phase 10 overstated.
-> - **Multi-language is inert** — `stringResource` in 1/83 UI files; ~700 hardcoded strings — Phase 13.
+> - **Multi-language is inert** — `stringResource` in 1/83 UI files; ~350 hardcoded `Text` literals — Phase 13.
 > - **`release` routes to a Firebase backend with 14 unimplemented methods** + placeholder config —
 >   Phases 8 & 15 silent-fail in production.
 > - **Security pre-production:** plaintext auth token, no Firestore rules, payments `SUCCEEDED` with
