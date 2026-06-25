@@ -16,6 +16,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -156,6 +157,26 @@ class RecurringBookingViewModelTest {
         assertFalse(viewModel.uiState.value.isSuccess)
         assertFalse(viewModel.uiState.value.isSubmitting)
         assertNotNull(viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun `submitRecurringBooking proceeds when session flow never completes`() = runTest {
+        // Regression for the infinite-suspend bug: getCurrentUserSession() is a hot,
+        // never-completing flow (DataStore). The old collect{ return@collect } helper
+        // suspended forever, so submit never reached createRecurringBooking. With
+        // .first() the submit proceeds even on a flow that never closes.
+        every { authRepository.getCurrentUserSession() } returns MutableStateFlow(mockSession)
+        viewModel.initSetup("p1", "s1", "Maria", "Deep Clean", 79.0)
+        viewModel.onAddressChanged("1 Test St")
+        coEvery {
+            subscriptionRepository.createRecurringBooking(any())
+        } returns Result.Success(makeRecurringBooking())
+
+        viewModel.submitRecurringBooking()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isSuccess)
+        coVerify { subscriptionRepository.createRecurringBooking(any()) }
     }
 
     // ── loadRecurringBookings ─────────────────────────────────────────────────

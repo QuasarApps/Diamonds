@@ -9,6 +9,7 @@ import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.data.remote.backend.SendMessageRequest
 import com.example.diamonds.domain.model.Conversation
 import com.example.diamonds.domain.model.Message
+import com.example.diamonds.domain.model.OfflineException
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.repository.IMessageRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -113,7 +114,8 @@ class MessageRepository @Inject constructor(
 
     override suspend fun sendMessage(message: Message): Result<Message> {
         return try {
-            // Insert locally immediately for instant UI feedback
+            // Insert locally immediately for instant UI feedback. Keeping the local
+            // copy means the text is never lost even when the send fails.
             messageDao.insert(message.toEntity())
             // Update conversation last message
             conversationDao.incrementUnreadAndUpdateLastMessage(
@@ -123,20 +125,28 @@ class MessageRepository @Inject constructor(
                 updatedAt = message.createdAt
             )
 
-            // Sync to backend if online
-            if (connectivityObserver.isOnline()) {
-                backendService.sendMessage(
-                    SendMessageRequest(
-                        id = message.id,
-                        conversationId = message.conversationId,
-                        senderId = message.senderId,
-                        senderName = message.senderName,
-                        body = message.body,
-                        createdAt = message.createdAt
-                    )
+            // A message only counts as sent once the backend accepts it. Reporting a
+            // delivery failure (offline or backend error) instead of a false success
+            // lets the UI surface it rather than silently dropping the message.
+            if (!connectivityObserver.isOnline()) {
+                return Result.Error(
+                    OfflineException("Message saved locally but not sent — no internet connection")
                 )
             }
-            Result.Success(message)
+            when (val remote = backendService.sendMessage(
+                SendMessageRequest(
+                    id = message.id,
+                    conversationId = message.conversationId,
+                    senderId = message.senderId,
+                    senderName = message.senderName,
+                    body = message.body,
+                    createdAt = message.createdAt
+                )
+            )) {
+                is Result.Success -> Result.Success(message)
+                is Result.Error -> remote
+                else -> Result.Error(Exception("Message send returned an unexpected state"))
+            }
         } catch (e: Exception) {
             Result.Error(e)
         }
