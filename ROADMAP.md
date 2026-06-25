@@ -8,44 +8,44 @@
 > architecture is strong; the gap is "compiles & demos on the mock backend" vs "works against real
 > Firebase." This section is the corrected, evidence-based work order. Each item cites the review
 > section that substantiates it. **Do these before resuming the linear Phase 16→21 march.**
->
-> ### Track A — Make the docs true (cheap, high trust; ~few days)
-> - [ ] **Decide the offline-write story:** wire `SyncManager.queueOperation()` into write repos, or
->   delete the dead queue/backoff/conflict code. Then fix README/AUDIT, which advertise it. *(§4)*
-> - [ ] Fix `RecurringBookingViewModel.getCurrentSession()` infinite-suspend → use `.first()`. *(§3.3)*
-> - [ ] Fix `MessageRepository.sendMessage` offline message loss (queue or surface pending state). *(§3.4)*
-> - [ ] Correct stale/inaccurate doc claims (§6): locale switching IS wired; `BookingRepositoryTest`
->   is no longer a no-op; coverage is well above "15–20%"; `getReviewsForProvider` is not a full scan;
->   README's "encrypted session storage" contradicts plaintext-token reality.
-> - [ ] Add CI: build + `./gradlew allUnitTests` on every push (the committed `*_build.txt` logs are
->   stale; there is currently no green/red signal). *(§7)*
->
-> ### Track B — Make it actually multilingual & accessible
-> - [ ] Externalize the ~350 hardcoded `Text("…")` literals to `stringResource(R.string.*)` (translations
->   already exist) and add a `HardcodedText` lint baseline. *(§3.2)*
-> - [ ] Replace emoji-as-icons with `androidx.compose.material.icons.*` + `contentDescription`; localize
->   `contentDescription`s; adopt `collectAsStateWithLifecycle`. *(§4)*
->
-> ### Track C — Before flipping `USE_MOCK_BACKEND=false` (Firebase go-live gate)
-> - [ ] Implement the 14 `FirebaseBackendService` stubs + repo stubs (`getCurrentClient`,
->   `updateProvider`, `getPaymentsForProvider`, `updatePaymentStatus`, `updateService`). *(§3.1, §4)*
-> - [ ] Persist `direction`/`locationTags` in `createReview`; populate price/duration/type in Firebase
->   `createBooking`; create the profile doc on signup; register the FCM token server-side. *(§3.5, §4)*
-> - [ ] **Security:** encrypt the session store; `allowBackup=false` / exclude DataStore; write & deploy
->   Firestore Security Rules; integrate a real PSP (status from server webhook only). *(§3.6)*
-> - [ ] Real `google-services.json`, real `applicationId`, `signingConfig`, ProGuard keep rules +
->   `isMinifyEnabled=true`, supply `MAPS_API_KEY`, add Coil. *(§4, §5)*
->
-> ### Track D — Hardening (folds into Phase 17/18)
-> - [ ] Unit-test `SyncManager` / Workers / `PreferencesDataStore` / `ConnectivityObserver` and the
->   newly-implemented repo methods; use Turbine to assert state transitions; export Room schemas +
->   migration tests; remove boilerplate `Example*Test`. *(§4, §5)*
-> - [ ] Introduce a `:core` connectivity interface + `DispatcherProvider`; fix the captive-portal
->   `NET_CAPABILITY_VALIDATED` check; cancel app/service coroutine scopes; drop unjustified
->   `ACCESS_BACKGROUND_LOCATION`; apply the `kotlin-serialization` plugin to `:core`. *(§4, §5)*
->
-> **Gate:** treat Tracks A–C as exit criteria for "production candidate." The linear roadmap's
-> Phase 19 (Release Prep) cannot truthfully start until Track C is done.
+
+### Track A — Make the docs true (cheap, high trust; ~few days)
+- [ ] **Decide the offline-write story:** wire `SyncManager.queueOperation()` into write repos, or
+  delete the dead queue/backoff/conflict code. Then fix README/AUDIT, which advertise it. *(§4)*
+- [ ] Fix `RecurringBookingViewModel.getCurrentSession()` infinite-suspend → use `.first()`. *(§3.3)*
+- [ ] Fix `MessageRepository.sendMessage` offline message loss (queue or surface pending state). *(§3.4)*
+- [ ] Correct stale/inaccurate doc claims (§6): locale switching IS wired; `BookingRepositoryTest`
+  is no longer a no-op; coverage is well above "15–20%"; `getReviewsForProvider` is not a full scan;
+  README's "encrypted session storage" contradicts plaintext-token reality.
+- [ ] Add CI: build + `./gradlew allUnitTests` on every push (the committed `*_build.txt` logs are
+  stale; there is currently no green/red signal). *(§7)*
+
+### Track B — Make it actually multilingual & accessible
+- [ ] Externalize the ~350 hardcoded `Text("…")` literals to `stringResource(R.string.*)` (translations
+  already exist) and add a `HardcodedText` lint baseline. *(§3.2)*
+- [ ] Replace emoji-as-icons with `androidx.compose.material.icons.*` + `contentDescription`; localize
+  `contentDescription`s; adopt `collectAsStateWithLifecycle`. *(§4)*
+
+### Track C — Before flipping `USE_MOCK_BACKEND=false` (Firebase go-live gate)
+- [ ] Implement the 14 `FirebaseBackendService` stubs + repo stubs (`getCurrentClient`,
+  `updateProvider`, `getPaymentsForProvider`, `updatePaymentStatus`, `updateService`). *(§3.1, §4)*
+- [ ] Persist `direction`/`locationTags` in `createReview`; populate price/duration/type in Firebase
+  `createBooking`; create the profile doc on signup; register the FCM token server-side. *(§3.5, §4)*
+- [ ] **Security:** encrypt the session store; `allowBackup=false` / exclude DataStore; write & deploy
+  Firestore Security Rules; integrate a real PSP (status from server webhook only). *(§3.6)*
+- [ ] Real `google-services.json`, real `applicationId`, `signingConfig`, ProGuard keep rules +
+  `isMinifyEnabled=true`, supply `MAPS_API_KEY`, add Coil. *(§4, §5)*
+
+### Track D — Hardening (folds into Phase 17/18)
+- [ ] Unit-test `SyncManager` / Workers / `PreferencesDataStore` / `ConnectivityObserver` and the
+  newly-implemented repo methods; use Turbine to assert state transitions; export Room schemas +
+  migration tests; remove boilerplate `Example*Test`. *(§4, §5)*
+- [ ] Introduce a `:core` connectivity interface + `DispatcherProvider`; fix the captive-portal
+  `NET_CAPABILITY_VALIDATED` check; cancel app/service coroutine scopes; drop unjustified
+  `ACCESS_BACKGROUND_LOCATION`; apply the `kotlin-serialization` plugin to `:core`. *(§4, §5)*
+
+**Gate:** treat Tracks A–C as exit criteria for "production candidate." The linear roadmap's
+Phase 19 (Release Prep) cannot truthfully start until Track C is done.
 
 ---
 
@@ -163,7 +163,7 @@ Post-job review system.
 > ⚠️ **Review 2026-06-25:** `FirebaseBackendService.createReview` never persists the `direction`
 > (and `locationTags`) field, so against real Firestore every review defaults to
 > `CLIENT_REVIEWS_PROVIDER` and the client↔provider review split breaks. See
-> [TECH_LEAD_REVIEW.md §3.5](TECH_LEAD_REVIEW.md).
+> [TECH_LEAD_REVIEW.md §3.5](TECH_LEAD_REVIEW.md#35-createreview-never-persists-direction-breaks-review-separation).
 
 ### Tasks
 - [x] Seed rich review data (12 seeded reviews across p1–p4, mutable store so new reviews persist in session)
@@ -186,7 +186,7 @@ Payment processing with mock/stub implementation, ready for Stripe swap-in.
 > ⚠️ **Review 2026-06-25:** Both Stub and Firebase paths fabricate a `SUCCEEDED` payment with a
 > synthetic `transactionId` and **no payment processor** — a booking is marked paid with no money
 > moving. The Stub's "5% failure rate" comment is dead code. No real PSP = a launch blocker, not a
-> swap-in. See [TECH_LEAD_REVIEW.md §3.6](TECH_LEAD_REVIEW.md).
+> swap-in. See [TECH_LEAD_REVIEW.md §3.6](TECH_LEAD_REVIEW.md#36-security-must-fixes-before-firebase-go-live).
 
 ### Tasks
 - [x] Seed payment data in BackendServiceStub (6 historical payments, mutable store)
@@ -251,7 +251,7 @@ Backend and real-time features via Firebase.
 > it (`USE_MOCK_BACKEND=false`): **14 `FirebaseBackendService` methods return
 > `Result.Error("not yet implemented")`**, `google-services.json` is a placeholder, `signup` never
 > writes a Client/Provider profile doc, and the FCM token is saved locally but never registered
-> server-side (targeted push can't work). See [TECH_LEAD_REVIEW.md §3.1, §4](TECH_LEAD_REVIEW.md).
+> server-side (targeted push can't work). See [TECH_LEAD_REVIEW.md §3.1, §4](TECH_LEAD_REVIEW.md#31-the-release-build-routes-to-an-unimplemented-firebase-backend).
 
 ### Tasks
 
@@ -382,7 +382,7 @@ Complete offline-first implementation and sync.
 > zero production call sites. Every write path hard-fails when offline instead of enqueuing, so the
 > backoff/conflict-resolution machinery processes a table that is never populated. Read-side
 > offline-first is real; the offline-**write** story advertised here does not run. Decision needed:
-> wire the queue into write repos, or delete it and correct the docs. See [TECH_LEAD_REVIEW.md §4](TECH_LEAD_REVIEW.md).
+> wire the queue into write repos, or delete it and correct the docs. See [TECH_LEAD_REVIEW.md §4](TECH_LEAD_REVIEW.md#4-important-findings-p2).
 
 ### Tasks
 
@@ -439,7 +439,7 @@ Complete offline-first implementation and sync.
 ## Phase 11: In-App Chat System ✅ STRUCTURAL ⚠️
 > ⚠️ **Review 2026-06-25:** `MessageRepository.sendMessage` reports `Result.Success` for messages
 > composed offline / on transient backend failure, but never sends or retries them — silent chat
-> **data loss**. See [TECH_LEAD_REVIEW.md §3.4](TECH_LEAD_REVIEW.md).
+> **data loss**. See [TECH_LEAD_REVIEW.md §3.4](TECH_LEAD_REVIEW.md#34-messagerepositorysendmessage-silently-loses-messages-sent-offline).
 
 Real-time messaging between clients and cleaners.
 
@@ -519,7 +519,7 @@ Real-time messaging between clients and cleaners.
 > ⚠️ **Review 2026-06-25:** `RecurringBookingViewModel.getCurrentSession()` collects a
 > never-completing DataStore flow with `return@collect`, which only returns the lambda — `collect()`
 > never returns, so the suspend fn **hangs forever** and recurring-booking submit/load is broken.
-> Fix: use `.first()`. See [TECH_LEAD_REVIEW.md §3.3](TECH_LEAD_REVIEW.md).
+> Fix: use `.first()`. See [TECH_LEAD_REVIEW.md §3.3](TECH_LEAD_REVIEW.md#33-recurringbookingviewmodelgetcurrentsession-suspends-forever).
 
 Allow clients to set up recurring cleaning schedules.
 
@@ -584,7 +584,7 @@ Allow clients to set up recurring cleaning schedules.
 > (ES/FR/AR/PT, real Arabic) but `stringResource` is used in **1 of 83 UI files** — ~350 `Text("…")`
 > literals are hardcoded English, so switching locale changes almost nothing on screen.
 > *Correction to prior audit:* runtime locale switching **is** now wired via
-> `AppCompatDelegate.setApplicationLocales()` (README #9 is stale). See [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md).
+> `AppCompatDelegate.setApplicationLocales()` (README #9 is stale). See [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md#32-user-facing-strings-are-hardcoded--the-multi-language-feature-does-not-work).
 
 Full internationalisation and localisation of the app.
 
@@ -643,7 +643,7 @@ Full internationalisation and localisation of the app.
 > **is** now wired — `LanguageSelectorScreen` calls `AppCompatDelegate.setApplicationLocales()` — so
 > the older note ("nothing reads the stored locale") is **stale**. The *real* remaining gap is that
 > the UI hardcodes strings, so switching locale has almost no visible effect. Single source of truth:
-> the Phase 13 callout above and [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md).
+> the Phase 13 callout above and [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md#32-user-facing-strings-are-hardcoded--the-multi-language-feature-does-not-work).
 >
 > <details><summary>Original April 26, 2026 audit note (now resolved/stale — kept for history)</summary>
 >
@@ -718,7 +718,7 @@ Allow cleaners to review clients and their locations after a job.
 > ⚠️ **Review 2026-06-25:** Fully implemented in the Stub (so it works in debug), but **every**
 > backing Firebase method is one of the 14 `"not yet implemented"` stubs — support tickets, claims,
 > cancel-with-reason, edit-booking, refunds, help articles and saved locations all silent-fail in a
-> `release` build. See [TECH_LEAD_REVIEW.md §3.1](TECH_LEAD_REVIEW.md).
+> `release` build. See [TECH_LEAD_REVIEW.md §3.1](TECH_LEAD_REVIEW.md#31-the-release-build-routes-to-an-unimplemented-firebase-backend).
 
 Comprehensive contextual help, cancellations, booking edits, refunds, and post-service claims for
 both customers and providers — integrated directly into booking and review flows.
