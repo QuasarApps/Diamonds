@@ -15,8 +15,15 @@ before switching off `USE_MOCK_BACKEND` and releasing to users. The most critica
 image loading library (Coil), 14 unimplemented Firebase backend methods, plaintext auth token
 storage, no Firestore Security Rules, and `isMinifyEnabled = false` in the release build.
 
-**Estimated current test coverage**: ~15–20% (target: 60%)  
+**Estimated current test coverage**: well above the earlier ~15–20% estimate — 49 test files (target still 60%; see §7)  
 **Phase completion**: 75% (15 of 20 phases)
+
+> **Corrections — 2026-06-25 (independent tech-lead review).** Since this audit: the recurring-booking
+> submit/load hang and the silent offline message-loss were fixed (PR #2), and CI (`assembleDebug
+> allUnitTests` on every PR) was added (PR #3). Several findings below were also stale/inaccurate and
+> are corrected inline: runtime locale switching IS wired (§3), `BookingRepositoryTest` is no longer a
+> no-op (§2/§7), real coverage is well above ~15–20%, and `getReviewsForProvider` is filtered (not a
+> full scan).
 
 ---
 
@@ -49,7 +56,7 @@ storage, no Firestore Security Rules, and `isMinifyEnabled = false` in the relea
 | 🟡       | `ServiceRepository.kt:150`          | TODO: `updateService` not called on backend.                                                                                                                                                    |
 | 🟡       | `PaymentRepository.kt:131`          | TODO: provider payments not fetched from backend.                                                                                                                                               |
 | 🔴       | `FirebaseBackendService.kt:485–524` | **14 methods** return `Result.Error("not yet implemented")`: support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations. Silent failures in production. |
-| 🔵       | `BookingRepositoryTest.kt:34`       | The only test is `assert(true)` — no-op giving false confidence.                                                                                                                                |
+| 🔵       | `BookingRepositoryTest.kt:34`       | RESOLVED — no longer a no-op; now carries real MockK/assertion tests (offline / error / cache paths).                                                                                                                                |
 | 🟡       | `FirebaseBackendService.kt:79`      | `searchProviders` performs a full Firestore collection scan with no geo-filtering. At scale, reads entire `providers` collection on every search.                                               |
 | 🟡       | `getConversationsForUser`           | Issues 2 separate Firestore queries merged in memory — doubles read cost; can miss ordering.                                                                                                    |
 
@@ -60,11 +67,11 @@ storage, no Firestore Security Rules, and `isMinifyEnabled = false` in the relea
 | Feature                         | Status     | Notes                                                                                                                                         |
 |---------------------------------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | **Image loading library**       | ❌ Missing  | No Coil/Glide/Picasso. `profileImageUrl`, `imageUrls` stored throughout models but images cannot be displayed. Add `io.coil-kt:coil-compose`. |
-| **Runtime locale switching**    | ⚠️ Partial | Language saved to DataStore but `AppCompatDelegate.setApplicationLocales()` never called.                                                     |
+| **Runtime locale switching**    | ⚠️ Partial | Wiring IS done — `LanguageSelectorScreen` calls `AppCompatDelegate.setApplicationLocales()`. Remaining gap: ~350 hardcoded UI strings, so switching has little visible effect. |
 | **ReviewDirection in Firebase** | ⚠️ Partial | `ReviewDirection` enum and Room column correct; `FirebaseBackendService.createReview` never writes `direction` field to Firestore.            |
 | **Firestore Security Rules**    | ❌ Missing  | No rules file in repo. Any authenticated user can read/write any document.                                                                    |
 | **Real payment processing**     | ❌ Missing  | No Stripe/Braintree SDK. Payments immediately set to `SUCCEEDED` with no real processing.                                                     |
-| **CI/CD**                       | ❌ Missing  | Planned for Phase 19. No `.github/workflows` or equivalent.                                                                                   |
+| **CI/CD**                       | ✅ Added    | `.github/workflows/ci.yml` runs `assembleDebug allUnitTests` on PRs/pushes to `develop` (PR #3).                                              |
 | **Proguard rules**              | ❌ Missing  | `proguard-rules.pro` is the default empty template.                                                                                           |
 
 ---
@@ -141,12 +148,13 @@ service cloud.firestore {
 
 ---
 
-## 7. Test Coverage — ⚠️ ~15–20% (Target: 60%)
+## 7. Test Coverage — well above the earlier ~15–20% estimate (Target: 60%)
 
 ### Current State
 
-- **`:data/test`**: `BookingRepositoryFullTest` solid (9 tests). `BookingRepositoryTest` has only
-  a trivial no-op `assert(true)` test.
+- **`:data/test`**: `BookingRepositoryFullTest` (10 tests) and `BookingRepositoryTest` (6 tests) are
+  both solid now — the latter is no longer a no-op `assert(true)`. PR #2 added regression tests for
+  `RecurringBookingViewModel` and `MessageRepository`, which now execute in CI.
 - **Missing unit tests**: `SyncManager`, `ConnectivityObserver`, `PreferencesDataStore`,
   `AuthRepository`, `MessageRepository`, `SubscriptionRepository`, `SupportRepository`, mappers
 - **`:ui/test`**: 6 ViewModel test files. Missing: `ChatViewModel`, `MapViewModel`,
@@ -242,7 +250,7 @@ Step" when it was already complete.
 
 20. Expand test coverage to 60%+ (
     priority: `SyncManager`, `ClientRepository`, `PreferencesDataStore`, support/claim repos)
-21. Remove no-op `assert(true)` test and boilerplate `ExampleUnitTest`/`ExampleInstrumentedTest`
+21. Remove boilerplate `ExampleUnitTest`/`ExampleInstrumentedTest` (the no-op `assert(true)` test is already resolved)
 
 ---
 
