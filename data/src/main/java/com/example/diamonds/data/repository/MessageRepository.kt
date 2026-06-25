@@ -145,7 +145,7 @@ class MessageRepository @Inject constructor(
             )) {
                 is Result.Success -> Result.Success(message)
                 is Result.Error -> remote
-                else -> Result.Error(Exception("Message send returned an unexpected state"))
+                is Result.Loading -> Result.Loading
             }
         } catch (e: Exception) {
             Result.Error(e)
