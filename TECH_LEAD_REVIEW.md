@@ -166,4 +166,4 @@ The committed `final_build.txt` / `build_out.txt` / `test_build.txt` show `:ui:c
 
 ---
 
-*This review was produced by reading the current source on `claude/great-noether-9i2e0t`; each finding cites the file/line that substantiates it. Where a real Gradle build (with the Android SDK) would be needed to be certain, that is called out explicitly.*
+*This review was produced by reading the source on this PR branch at review time; each finding cites the file/line that substantiates it. Where a real Gradle build (with the Android SDK) would be needed to be certain, that is called out explicitly.*

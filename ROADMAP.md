@@ -1,7 +1,7 @@
 # Implementation Roadmap
 
-> ## 🧭 Remediation Roadmap — supersedes "Next Steps" *(Tech-Lead Review, 2026-06-25)*
->
+## 🧭 Remediation Roadmap — supersedes "Next Steps" *(Tech-Lead Review, 2026-06-25)*
+
 > The original Phase 1–21 plan below tracks **what was built**. An independent review
 > ([`TECH_LEAD_REVIEW.md`](TECH_LEAD_REVIEW.md)) found that several phases marked "✅ COMPLETE" are
 > **structurally complete but not functionally working** (re-tagged `✅ STRUCTURAL ⚠️` inline). The
@@ -305,7 +305,7 @@ Backend and real-time features via Firebase.
 - [ ] Firestore integration tests
 - [ ] FCM notification tests
 
-**Status**: ✅ COMPLETE
+**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 ---
 
@@ -432,7 +432,7 @@ Complete offline-first implementation and sync.
 - [ ] Connectivity change tests
 - [ ] Offline data preservation tests
 
-**Status**: ✅ COMPLETE
+**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 ---
 
@@ -489,7 +489,7 @@ Real-time messaging between clients and cleaners.
 - [ ] Chat ViewModel tests
 - [ ] Real-time listener tests
 
-**Status**: ✅ COMPLETE
+**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 ### Modified Files
 
@@ -637,7 +637,7 @@ Full internationalisation and localisation of the app.
 - [ ] RTL layout tests
 - [ ] Date and time formatting tests per locale
 
-**Status**: ✅ COMPLETE
+**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 > ⚠️ **Updated 2026-06-25 (supersedes the April 2026 "known gap" below)**: runtime locale switching
 > **is** now wired — `LanguageSelectorScreen` calls `AppCompatDelegate.setApplicationLocales()` — so
@@ -896,7 +896,7 @@ both customers and providers — integrated directly into booking and review flo
 - [ ] Refund processing tests
 - [ ] Support ticket creation and chat integration tests
 
-**Status**: ✅ COMPLETE
+**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 > ⚠️ **Known gaps (audit April 26, 2026)**:
 > - **14 `FirebaseBackendService` methods** (lines 485–524)
