@@ -162,26 +162,25 @@ class RecurringBookingViewModelTest {
 
     @Test
     fun `submitRecurringBooking proceeds when session flow never completes`() =
-        // Real-time cap: if the infinite-suspend bug returns the test fails fast (5s)
-        // instead of stalling on the default ~60s runTest timeout.
+        // Real-time cap (5s): a reintroduced hang fails fast instead of the default ~60s.
         runTest(timeout = 5.seconds) {
-        // Regression for the infinite-suspend bug: getCurrentUserSession() is a hot,
-        // never-completing flow (DataStore). The old collect{ return@collect } helper
-        // suspended forever, so submit never reached createRecurringBooking. With
-        // .first() the submit proceeds even on a flow that never closes.
-        every { authRepository.getCurrentUserSession() } returns MutableStateFlow(mockSession)
-        viewModel.initSetup("p1", "s1", "Maria", "Deep Clean", 79.0)
-        viewModel.onAddressChanged("1 Test St")
-        coEvery {
-            subscriptionRepository.createRecurringBooking(any())
-        } returns Result.Success(makeRecurringBooking())
+            // Regression for the infinite-suspend bug: getCurrentUserSession() is a hot,
+            // never-completing flow (DataStore). The old collect{ return@collect } helper
+            // suspended forever, so submit never reached createRecurringBooking. With
+            // .first() the submit proceeds even on a flow that never closes.
+            every { authRepository.getCurrentUserSession() } returns MutableStateFlow(mockSession)
+            viewModel.initSetup("p1", "s1", "Maria", "Deep Clean", 79.0)
+            viewModel.onAddressChanged("1 Test St")
+            coEvery {
+                subscriptionRepository.createRecurringBooking(any())
+            } returns Result.Success(makeRecurringBooking())
 
-        viewModel.submitRecurringBooking()
-        advanceUntilIdle()
+            viewModel.submitRecurringBooking()
+            advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.isSuccess)
-        coVerify { subscriptionRepository.createRecurringBooking(any()) }
-    }
+            assertTrue(viewModel.uiState.value.isSuccess)
+            coVerify { subscriptionRepository.createRecurringBooking(any()) }
+        }
 
     @Test
     fun `submitRecurringBooking with null session surfaces error and clears submitting`() = runTest {
