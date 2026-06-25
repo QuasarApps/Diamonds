@@ -8,11 +8,13 @@ import com.example.diamonds.domain.model.RecurringFrequency
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.repository.IAuthRepository
 import com.example.diamonds.domain.repository.ISubscriptionRepository
+import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -94,7 +96,11 @@ class RecurringBookingViewModel @Inject constructor(
         }
         updateState { it.copy(isSubmitting = true, errorMessage = null) }
         viewModelScope.launch {
-            val session = getCurrentSession() ?: return@launch
+            val session = getCurrentSession()
+            if (session == null) {
+                updateState { it.copy(isSubmitting = false, errorMessage = "Session not found") }
+                return@launch
+            }
             val nextDate = calculateNextBookingDate(s.frequency, s.preferredDay)
             val rb = RecurringBooking(
                 id = UUID.randomUUID().toString(),
@@ -135,7 +141,13 @@ class RecurringBookingViewModel @Inject constructor(
     fun loadRecurringBookings() {
         viewModelScope.launch {
             _mgmtState.value = _mgmtState.value.copy(isLoading = true, errorMessage = null)
-            val session = getCurrentSession() ?: return@launch
+            val session = getCurrentSession()
+            if (session == null) {
+                _mgmtState.value = _mgmtState.value.copy(
+                    isLoading = false, errorMessage = "Session not found"
+                )
+                return@launch
+            }
             // Observe from Room
             subscriptionRepository.observeRecurringBookingsForClient(session.userId)
                 .collect { list ->
@@ -175,12 +187,11 @@ class RecurringBookingViewModel @Inject constructor(
 
     // ── Helpers ────────────────────────────────────────────────────────────
 
-    private suspend fun getCurrentSession() =
-        authRepository.getCurrentUserSession().let { flow ->
-            var session: com.example.diamonds.domain.repository.UserSession? = null
-            flow.collect { session = it; return@collect }
-            session
-        }
+    // getCurrentUserSession() is a hot, never-completing DataStore flow, so collecting
+    // it with `return@collect` suspended forever (return@collect only returns from the
+    // lambda, never from collect()). Take the first emission and stop collecting.
+    private suspend fun getCurrentSession(): UserSession? =
+        authRepository.getCurrentUserSession().first()
 
     private fun calculateNextBookingDate(frequency: RecurringFrequency, preferredDay: Int): String {
         val cal = Calendar.getInstance()

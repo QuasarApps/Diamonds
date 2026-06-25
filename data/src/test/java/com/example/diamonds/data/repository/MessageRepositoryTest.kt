@@ -10,6 +10,7 @@ import com.example.diamonds.data.remote.backend.ConversationDto
 import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.data.remote.backend.MessageDto
 import com.example.diamonds.domain.model.Message
+import com.example.diamonds.domain.model.OfflineException
 import com.example.diamonds.domain.model.Result
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -201,16 +202,33 @@ class MessageRepositoryTest {
     }
 
     @Test
-    fun `sendMessage inserts locally even when offline`() = runTest {
+    fun `sendMessage returns error when offline but still saves locally`() = runTest {
         every { connectivityObserver.isOnline() } returns false
 
         val message = makeMessage()
         val result = repository.sendMessage(message)
 
-        assertTrue(result is Result.Success)
+        // Honest result: an offline send is reported as a failure, not a false success…
+        assertTrue(result is Result.Error)
+        assertTrue((result as Result.Error).exception is OfflineException)
+        // …the message is still persisted locally so the text isn't lost…
         coVerify { messageDao.insert(any()) }
-        // Should NOT call backend when offline
+        // …and the backend is not called while offline.
         coVerify(exactly = 0) { backendService.sendMessage(any()) }
+    }
+
+    @Test
+    fun `sendMessage propagates backend failure instead of reporting success`() = runTest {
+        coEvery { backendService.sendMessage(any()) } returns Result.Error(Exception("server down"))
+
+        val result = repository.sendMessage(makeMessage())
+
+        // The backend rejected it, so the caller must see the failure (was previously
+        // swallowed and reported as Success).
+        assertTrue(result is Result.Error)
+        assertEquals("server down", (result as Result.Error).exception.message)
+        coVerify { messageDao.insert(any()) }
+        coVerify { backendService.sendMessage(any()) }
     }
 
     // ── markConversationRead ─────────────────────────────────────────────────

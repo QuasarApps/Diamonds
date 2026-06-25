@@ -16,9 +16,11 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -158,6 +160,44 @@ class RecurringBookingViewModelTest {
         assertNotNull(viewModel.uiState.value.errorMessage)
     }
 
+    @Test
+    fun `submitRecurringBooking proceeds when session flow never completes`() =
+        // Real-time cap (5s): a reintroduced hang fails fast instead of the default ~60s.
+        runTest(timeout = 5.seconds) {
+            // Regression for the infinite-suspend bug: getCurrentUserSession() is a hot,
+            // never-completing flow (DataStore). The old collect{ return@collect } helper
+            // suspended forever, so submit never reached createRecurringBooking. With
+            // .first() the submit proceeds even on a flow that never closes.
+            every { authRepository.getCurrentUserSession() } returns MutableStateFlow(mockSession)
+            viewModel.initSetup("p1", "s1", "Maria", "Deep Clean", 79.0)
+            viewModel.onAddressChanged("1 Test St")
+            coEvery {
+                subscriptionRepository.createRecurringBooking(any())
+            } returns Result.Success(makeRecurringBooking())
+
+            viewModel.submitRecurringBooking()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.isSuccess)
+            coVerify { subscriptionRepository.createRecurringBooking(any()) }
+        }
+
+    @Test
+    fun `submitRecurringBooking with null session surfaces error and clears submitting`() = runTest {
+        // .first() can legitimately emit null (logged out / DataStore not yet loaded);
+        // the submit must not leave a stuck "submitting" spinner.
+        every { authRepository.getCurrentUserSession() } returns flowOf<UserSession?>(null)
+        viewModel.initSetup("p1", "s1", "Maria", "Deep Clean", 79.0)
+        viewModel.onAddressChanged("1 Test St")
+
+        viewModel.submitRecurringBooking()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isSubmitting)
+        assertEquals("Session not found", viewModel.uiState.value.errorMessage)
+        coVerify(exactly = 0) { subscriptionRepository.createRecurringBooking(any()) }
+    }
+
     // ── loadRecurringBookings ─────────────────────────────────────────────────
 
     @Test
@@ -177,6 +217,19 @@ class RecurringBookingViewModelTest {
         assertEquals(1, state.recurringBookings.size)
         assertEquals("rb1", state.recurringBookings.first().id)
         assertFalse(state.isLoading)
+    }
+
+    @Test
+    fun `loadRecurringBookings with null session surfaces error and clears loading`() = runTest {
+        // mgmtState.isLoading defaults to true, so a null session must reset it or the
+        // screen shows a permanent spinner.
+        every { authRepository.getCurrentUserSession() } returns flowOf<UserSession?>(null)
+
+        viewModel.loadRecurringBookings()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.mgmtState.value.isLoading)
+        assertEquals("Session not found", viewModel.mgmtState.value.errorMessage)
     }
 
     // ── pause / resume / cancel ───────────────────────────────────────────────
