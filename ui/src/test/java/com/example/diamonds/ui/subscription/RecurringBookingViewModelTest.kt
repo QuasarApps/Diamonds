@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -160,7 +161,10 @@ class RecurringBookingViewModelTest {
     }
 
     @Test
-    fun `submitRecurringBooking proceeds when session flow never completes`() = runTest {
+    fun `submitRecurringBooking proceeds when session flow never completes`() =
+        // Real-time cap: if the infinite-suspend bug returns the test fails fast (5s)
+        // instead of stalling on the default ~60s runTest timeout.
+        runTest(timeout = 5.seconds) {
         // Regression for the infinite-suspend bug: getCurrentUserSession() is a hot,
         // never-completing flow (DataStore). The old collect{ return@collect } helper
         // suspended forever, so submit never reached createRecurringBooking. With
