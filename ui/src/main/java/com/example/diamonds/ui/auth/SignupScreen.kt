@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserRole
+import com.example.diamonds.ui.R
 
 @Composable
 fun SignupScreen(
@@ -77,8 +79,8 @@ fun SignupScreen(
             .padding(vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Create Account", fontSize = 26.sp, fontWeight = FontWeight.Bold)
-        Text("Join Diamonds today", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.create_account), fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.join_diamonds), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(32.dp))
         if (error != null) {
             Card(
@@ -95,7 +97,7 @@ fun SignupScreen(
             Spacer(Modifier.height(16.dp))
         }
         // -- Role selector (prominent, at the top) ---------------------------
-        Text("I want to...", style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
+        Text(stringResource(R.string.i_want_to), style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             FilterChip(
@@ -103,8 +105,8 @@ fun SignupScreen(
                 onClick = { viewModel.onRoleChange(UserRole.CUSTOMER) },
                 label = {
                     Column {
-                        Text("Customer", fontWeight = FontWeight.SemiBold)
-                        Text("Book cleaners", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.customer), fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.book_cleaners), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 modifier = Modifier.weight(1f)
@@ -114,8 +116,8 @@ fun SignupScreen(
                 onClick = { viewModel.onRoleChange(UserRole.CLEANER) },
                 label = {
                     Column {
-                        Text("Cleaner", fontWeight = FontWeight.SemiBold)
-                        Text("Get hired", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.cleaner), fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.get_hired), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
                 modifier = Modifier.weight(1f)
@@ -125,7 +127,7 @@ fun SignupScreen(
         // -- Cleaner type sub-selector (only shown when Cleaner is selected) --
         if (selectedRole == UserRole.CLEANER) {
             Spacer(Modifier.height(16.dp))
-            Text("Work type", style = MaterialTheme.typography.labelLarge, modifier = Modifier.fillMaxWidth())
+            Text(stringResource(R.string.work_type), style = MaterialTheme.typography.labelLarge, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(6.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FilterChip(
@@ -133,8 +135,8 @@ fun SignupScreen(
                     onClick = { viewModel.onCleanerTypeChange(CleanerType.INDEPENDENT) },
                     label = {
                         Column {
-                            Text("Independent", fontWeight = FontWeight.SemiBold)
-                            Text("Self-employed", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.independent), fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.self_employed), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
                     modifier = Modifier.weight(1f)
@@ -144,8 +146,8 @@ fun SignupScreen(
                     onClick = { viewModel.onCleanerTypeChange(CleanerType.EMPLOYED) },
                     label = {
                         Column {
-                            Text("Employed", fontWeight = FontWeight.SemiBold)
-                            Text("Work for a company", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.employed), fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.work_for_company), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
                     modifier = Modifier.weight(1f)
@@ -160,7 +162,7 @@ fun SignupScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                    text = "ℹ️  Your employer will link you to their company account after you sign up.",
+                    text = "ℹ️  ${stringResource(R.string.employer_link_hint)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.padding(12.dp)
@@ -174,7 +176,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = name,
             onValueChange = viewModel::onNameChange,
-            label = { Text("Full Name") },
+            label = { Text(stringResource(R.string.full_name)) },
             singleLine = true,
             isError = uiState.fieldErrors.containsKey(AuthField.NAME),
             supportingText = uiState.fieldErrors[AuthField.NAME]?.let { msg -> { Text(msg) } },
@@ -186,7 +188,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = email,
             onValueChange = viewModel::onEmailChange,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             singleLine = true,
             isError = uiState.fieldErrors.containsKey(AuthField.EMAIL),
             supportingText = uiState.fieldErrors[AuthField.EMAIL]?.let { msg -> { Text(msg) } },
@@ -198,7 +200,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = phone,
             onValueChange = viewModel::onPhoneChange,
-            label = { Text("Phone Number") },
+            label = { Text(stringResource(R.string.phone_number)) },
             singleLine = true,
             isError = uiState.fieldErrors.containsKey(AuthField.PHONE),
             supportingText = uiState.fieldErrors[AuthField.PHONE]?.let { msg -> { Text(msg) } },
@@ -210,7 +212,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = password,
             onValueChange = viewModel::onPasswordChange,
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.password)) },
             singleLine = true,
             isError = uiState.fieldErrors.containsKey(AuthField.PASSWORD),
             supportingText = uiState.fieldErrors[AuthField.PASSWORD]?.let { msg -> { Text(msg) } },
@@ -219,7 +221,7 @@ fun SignupScreen(
             keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
             trailingIcon = {
                 TextButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Text(if (passwordVisible) "Hide" else "Show", fontSize = 12.sp)
+                    Text(stringResource(if (passwordVisible) R.string.hide else R.string.show), fontSize = 12.sp)
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -228,7 +230,7 @@ fun SignupScreen(
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = viewModel::onConfirmPasswordChange,
-            label = { Text("Confirm Password") },
+            label = { Text(stringResource(R.string.confirm_password)) },
             singleLine = true,
             isError = uiState.fieldErrors.containsKey(AuthField.CONFIRM_PASSWORD),
             supportingText = uiState.fieldErrors[AuthField.CONFIRM_PASSWORD]?.let { msg -> { Text(msg) } },
@@ -249,17 +251,17 @@ fun SignupScreen(
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
                 val label = when {
-                    selectedRole == UserRole.CLEANER && cleanerType == CleanerType.EMPLOYED -> "Join as Employed Cleaner"
-                    selectedRole == UserRole.CLEANER -> "Join as Independent Cleaner"
-                    else -> "Create Account"
+                    selectedRole == UserRole.CLEANER && cleanerType == CleanerType.EMPLOYED -> stringResource(R.string.join_as_employed_cleaner)
+                    selectedRole == UserRole.CLEANER -> stringResource(R.string.join_as_independent_cleaner)
+                    else -> stringResource(R.string.create_account)
                 }
                 Text(label, fontSize = 16.sp)
             }
         }
         Spacer(Modifier.height(16.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Already have an account?", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TextButton(onClick = onNavigateToLogin) { Text("Sign In") }
+            Text(stringResource(R.string.already_have_account), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = onNavigateToLogin) { Text(stringResource(R.string.sign_in)) }
         }
     }
 }

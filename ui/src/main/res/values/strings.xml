@@ -30,10 +30,22 @@
     <string name="manage_team">Manage a cleaning team</string>
     <string name="independent">Independent</string>
     <string name="employed">Employed</string>
+    <string name="show">Show</string>
+    <string name="hide">Hide</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="get_hired">Get hired</string>
+    <string name="work_type">Work type</string>
+    <string name="self_employed">Self-employed</string>
+    <string name="work_for_company">Work for a company</string>
+    <string name="employer_link_hint">Your employer will link you to their company account after you sign up.</string>
+    <string name="join_as_independent_cleaner">Join as Independent Cleaner</string>
+    <string name="join_as_employed_cleaner">Join as Employed Cleaner</string>
 
     <!-- Demo accounts -->
     <string name="demo_accounts">Demo Accounts</string>
     <string name="tap_to_autofill">Tap to auto-fill</string>
+    <string name="demo_accounts_hint">Demo accounts (tap to fill)</string>
+    <string name="demo_password_hint">Password is pre-filled as \"demo1234\"</string>
 
     <!-- Customer Navigation -->
     <string name="home">Home</string>
