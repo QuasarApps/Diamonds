@@ -75,6 +75,24 @@
     <string name="chat_with_cleaner">💬 Chat with Cleaner</string>
     <string name="track_cleaner">🗺️ Track Cleaner</string>
     <string name="pick_on_map">📍 Pick on Map</string>
+    <string name="booking">Booking</string>
+    <string name="with_provider">with %1$s</string>
+    <string name="price">Price</string>
+    <string name="duration">Duration</string>
+    <string name="duration_minutes">%1$d min</string>
+    <string name="cleaning_type">Cleaning Type</string>
+    <string name="property_details">Property Details</string>
+    <string name="schedule">Schedule</string>
+    <string name="select_time_title">Select Time</string>
+    <string name="date">Date</string>
+    <string name="select_date">Select date</string>
+    <string name="time">Time</string>
+    <string name="select_time">Select time</string>
+    <string name="location">Location</string>
+    <string name="service_address">Service Address</string>
+    <string name="notes_optional">Notes (optional)</string>
+    <string name="special_instructions">Special instructions…</string>
+    <string name="review_and_confirm">Review &amp; Confirm</string>
 
     <!-- Booking Status -->
     <string name="pending">Pending</string>
