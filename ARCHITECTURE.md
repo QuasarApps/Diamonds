@@ -135,15 +135,13 @@ Backend responds with error → return error
 - Show tooltip "Requires internet connection"
 - Send immediately to backend when online
 - Never optimistically update cache for writes
-- Queue and retry failed operations with backoff (1min → 2min → 4min → ... → 60min max)
-- User can cancel pending operations
+- **Offline writes fail** with an offline error — `OfflineException` in most repos (a generic `Exception` in `SubscriptionRepository` and `MessageRepository.getOrCreateConversation`); they are *not* queued for later (the queue below is built but not wired into the write repos)
 
-### Sync Queue
-- Stores failed/pending operations in Room
-- Each operation tracked by: id, type, payload, status, retryCount, timestamps
-- Automatic retry on network restoration
-- User can manually retry or cancel operations
-- Shows pending operation count in UI ("2 pending")
+### Sync Queue (built, not currently wired)
+The queue infrastructure exists end-to-end but **no write repo enqueues operations**, so it is never populated (see `TECH_LEAD_REVIEW.md` §4):
+- A `SyncQueueEntity` Room table + `SyncManager` track operations by id, type, payload, status, retryCount, timestamps
+- `SyncManager`/`SyncWorker` support automatic retry-with-backoff on network restoration and conflict resolution
+- The Sync Status screen can show / retry / cancel operations — functional once writes are wired to enqueue them
 
 ## Repository Pattern
 
@@ -279,7 +277,7 @@ DTOs separate from domain models:
 
 - **Server is source of truth**: All business logic validation happens on backend
 - **Optimistic updates**: Only for read data; never for writes
-- **Automatic retries**: Failed operations retry with exponential backoff
-- **User control**: Users can cancel pending operations anytime
-- **No data loss**: All operations persisted in sync queue until confirmed
+- **Automatic retries (built, not wired)**: `SyncManager` supports retry-with-backoff, but write repos don't enqueue operations, so this path is dormant today
+- **User control**: the Sync Status screen can retry/cancel queued operations — once writes are wired to enqueue them
+- **Offline writes are not queued today**: they fail with an offline error (`OfflineException` in most repos; a generic `Exception` in a couple) rather than persisting to the sync queue (the queue infrastructure exists but is not wired into the write repos — see `TECH_LEAD_REVIEW.md` §4)
 - **Battery aware**: WorkManager respects device constraints

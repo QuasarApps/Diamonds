@@ -25,14 +25,13 @@ Diamonds implements a **modular, offline-first architecture** with the following
 ## Key Features
 
 ### Offline-First Architecture
-- **Read Operations**: Always check local cache first; fetch from server when online
-- **Write Operations**: Require online connectivity; sync queue with exponential backoff retry
-- **Automatic Sync**: Background sync via WorkManager when connectivity restored
-- **User Control**: Users can cancel pending operations anytime
+- **Read Operations**: Work offline from the local Room cache; refresh from the server when online (cache-first or network-first-with-cache-fallback, depending on the repo)
+- **Write Operations**: Require online connectivity and **fail with an offline error when offline** — they are *not* currently queued for later
+- **Sync queue (built, not wired)**: a `SyncManager` (retry/backoff/conflict), `SyncWorker` and connectivity trigger exist and back the Sync Status screen, but no write repo enqueues operations, so the queue stays empty — see `TECH_LEAD_REVIEW.md` §4 / `ROADMAP.md` Track A
 
 ### Data Management
 - **Room Database**: Local caching for all entities (Client, Provider, Booking, Review, Payment)
-- **SyncQueue**: Tracks pending/failed operations with retry logic
+- **SyncQueue**: Room-backed queue + `SyncManager` (retry/backoff/conflict) — built but not yet fed by the write repos (see `TECH_LEAD_REVIEW.md` §4)
 - **DataStore**: User session storage — ⚠️ the auth token **and** profile (userId/email/role) are stored in plaintext today; see Known Issue #4
 - **Mappers**: Convert between domain models, DTOs, and entities
 
