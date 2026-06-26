@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
@@ -65,30 +67,30 @@ fun LoginScreen(
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
-            title = { Text("Reset Password") },
+            title = { Text(stringResource(R.string.reset_password)) },
             text = {
                 Column {
-                    Text("Enter your email and we'll send a reset link.")
+                    Text(stringResource(R.string.reset_email_prompt))
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = email,
                         onValueChange = viewModel::onEmailChange,
-                        label = { Text("Email") },
+                        label = { Text(stringResource(R.string.email)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (uiState.passwordResetSent) {
                         Spacer(Modifier.height(8.dp))
-                        Text("Reset email sent!", color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.reset_email_sent), color = MaterialTheme.colorScheme.primary)
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.sendPasswordReset() }) { Text("Send") }
+                TextButton(onClick = { viewModel.sendPasswordReset() }) { Text(stringResource(R.string.send)) }
             },
             dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showResetDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -103,8 +105,8 @@ fun LoginScreen(
     ) {
         Text("\u25C6", fontSize = 56.sp, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(8.dp))
-        Text("Diamonds", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("Sign in to continue", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.app_name), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.sign_in_to_continue), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(40.dp))
         if (error != null) {
             Card(
@@ -123,7 +125,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = email,
             onValueChange = viewModel::onEmailChange,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             singleLine = true,
             isError = uiState.fieldErrors.containsKey(AuthField.EMAIL),
             supportingText = uiState.fieldErrors[AuthField.EMAIL]?.let { msg -> { Text(msg) } },
@@ -135,7 +137,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = viewModel::onPasswordChange,
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.password)) },
             singleLine = true,
             isError = uiState.fieldErrors.containsKey(AuthField.PASSWORD),
             supportingText = uiState.fieldErrors[AuthField.PASSWORD]?.let { msg -> { Text(msg) } },
@@ -144,14 +146,14 @@ fun LoginScreen(
             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); viewModel.login() }),
             trailingIcon = {
                 TextButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Text(if (passwordVisible) "Hide" else "Show", fontSize = 12.sp)
+                    Text(stringResource(if (passwordVisible) R.string.hide else R.string.show), fontSize = 12.sp)
                 }
             },
             modifier = Modifier.fillMaxWidth()
         )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             TextButton(onClick = { showResetDialog = true }) {
-                Text("Forgot password?", fontSize = 12.sp)
+                Text(stringResource(R.string.forgot_password), fontSize = 12.sp)
             }
         }
         Spacer(Modifier.height(24.dp))
@@ -165,13 +167,13 @@ fun LoginScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text("Sign In", fontSize = 16.sp)
+                Text(stringResource(R.string.sign_in), fontSize = 16.sp)
             }
         }
         Spacer(Modifier.height(24.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Don't have an account?", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TextButton(onClick = onNavigateToSignup) { Text("Sign Up") }
+            Text(stringResource(R.string.dont_have_account), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = onNavigateToSignup) { Text(stringResource(R.string.sign_up)) }
         }
 
         Spacer(Modifier.height(32.dp))
@@ -209,7 +211,7 @@ fun LoginScreen(
         ) {
             Column(Modifier.padding(12.dp)) {
                 Text(
-                    "🔧  Demo accounts  (tap to fill)",
+                    "🔧  ${stringResource(R.string.demo_accounts_hint)}",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -247,7 +249,7 @@ fun LoginScreen(
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Password is pre-filled as \"demo1234\"",
+                    stringResource(R.string.demo_password_hint),
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
