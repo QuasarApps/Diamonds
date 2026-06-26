@@ -29,12 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -78,10 +80,10 @@ fun ProviderRatingsScreen(
             ) {
                 Text("⭐", fontSize = 48.sp)
                 Spacer(Modifier.height(12.dp))
-                Text("No reviews yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text(stringResource(R.string.no_reviews_yet), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Be the first to review ${state.provider?.name ?: "this provider"}.",
+                    stringResource(R.string.be_first_to_review, state.provider?.name ?: stringResource(R.string.this_provider)),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
             }
@@ -116,7 +118,7 @@ fun ProviderRatingsScreen(
                                 enabled    = false,
                                 starSizeSp = 18
                             )
-                            Text("${state.totalCount} reviews",
+                            Text(stringResource(R.string.review_count_label, state.totalCount),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -150,7 +152,11 @@ fun ProviderRatingsScreen(
         }
 
         item {
-            Text("${state.totalCount} Review${if (state.totalCount != 1) "s" else ""}",
+            Text(
+                if (state.totalCount != 1)
+                    stringResource(R.string.reviews_count_header, state.totalCount)
+                else
+                    stringResource(R.string.review_count_header_singular, state.totalCount),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 4.dp))
         }
