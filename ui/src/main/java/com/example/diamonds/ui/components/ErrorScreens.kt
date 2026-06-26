@@ -14,17 +14,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.diamonds.ui.R
 
 /**
  * Full-screen generic error with a retry button.
  */
 @Composable
 fun GenericErrorScreen(
-    message: String = "Something went wrong. Please try again.",
+    message: String = stringResource(R.string.generic_error_message),
     onRetry: () -> Unit
 ) {
     Column(
@@ -36,7 +38,7 @@ fun GenericErrorScreen(
     ) {
         Text("⚠️", fontSize = 56.sp)
         Spacer(Modifier.height(16.dp))
-        Text("Oops!", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        Text(stringResource(R.string.oops), fontWeight = FontWeight.Bold, fontSize = 22.sp)
         Spacer(Modifier.height(8.dp))
         Text(
             message,
@@ -46,7 +48,7 @@ fun GenericErrorScreen(
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onRetry, modifier = Modifier.fillMaxWidth(0.6f)) {
-            Text("Try Again")
+            Text(stringResource(R.string.try_again))
         }
     }
 }
@@ -67,17 +69,17 @@ fun NoInternetScreen(
     ) {
         Text("📡", fontSize = 56.sp)
         Spacer(Modifier.height(16.dp))
-        Text("No Internet Connection", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        Text(stringResource(R.string.no_internet), fontWeight = FontWeight.Bold, fontSize = 22.sp)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Please check your connection and try again.\nCached data is still available.",
+            stringResource(R.string.no_internet_detail),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             fontSize = 15.sp
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onRetry, modifier = Modifier.fillMaxWidth(0.6f)) {
-            Text("Retry")
+            Text(stringResource(R.string.retry))
         }
     }
 }
@@ -87,7 +89,7 @@ fun NoInternetScreen(
  */
 @Composable
 fun NotFoundScreen(
-    message: String = "The page you're looking for doesn't exist.",
+    message: String = stringResource(R.string.not_found_message),
     onGoBack: () -> Unit
 ) {
     Column(
@@ -99,7 +101,7 @@ fun NotFoundScreen(
     ) {
         Text("🔍", fontSize = 56.sp)
         Spacer(Modifier.height(16.dp))
-        Text("Not Found", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        Text(stringResource(R.string.not_found), fontWeight = FontWeight.Bold, fontSize = 22.sp)
         Spacer(Modifier.height(8.dp))
         Text(
             message,
@@ -109,7 +111,7 @@ fun NotFoundScreen(
         )
         Spacer(Modifier.height(24.dp))
         OutlinedButton(onClick = onGoBack, modifier = Modifier.fillMaxWidth(0.6f)) {
-            Text("Go Back")
+            Text(stringResource(R.string.go_back))
         }
     }
 }
@@ -131,7 +133,7 @@ fun OfflineBanner() {
         Text("📡", fontSize = 14.sp)
         Spacer(Modifier.padding(horizontal = 4.dp))
         Text(
-            "You're offline — showing cached data",
+            stringResource(R.string.offline_showing_cached),
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
