@@ -200,6 +200,11 @@
     <string name="offline_banner">You are offline. Some features may be unavailable.</string>
     <string name="go_back">Go Back</string>
     <string name="loading">Loading…</string>
+    <string name="oops">Oops!</string>
+    <string name="generic_error_message">Something went wrong. Please try again.</string>
+    <string name="no_internet_detail">Please check your connection and try again.\nCached data is still available.</string>
+    <string name="not_found_message">The page you\'re looking for doesn\'t exist.</string>
+    <string name="offline_showing_cached">You\'re offline — showing cached data</string>
 
     <!-- Confirmation -->
     <string name="confirm">Confirm</string>
