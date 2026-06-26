@@ -33,7 +33,7 @@ Diamonds implements a **modular, offline-first architecture** with the following
 ### Data Management
 - **Room Database**: Local caching for all entities (Client, Provider, Booking, Review, Payment)
 - **SyncQueue**: Tracks pending/failed operations with retry logic
-- **DataStore**: Encrypted user session storage
+- **DataStore**: User session storage — ⚠️ the auth token **and** profile (userId/email/role) are stored in plaintext today; see Known Issue #4
 - **Mappers**: Convert between domain models, DTOs, and entities
 
 ### Backend Flexibility
@@ -98,7 +98,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 
 - **Jetpack Compose**: Modern declarative UI
 - **Room**: Local database with offline caching
-- **DataStore**: Encrypted preferences
+- **DataStore**: Preferences storage — ⚠️ the session (auth token + profile) is stored in plaintext today; see Known Issue #4
 - **WorkManager**: Background sync with backoff
 - **Hilt**: Dependency injection
 - **Coroutines & Flow**: Reactive programming
@@ -145,6 +145,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 ## Known Issues & Audit Findings
 
 > Last audited: **April 26, 2026**. Issues are prioritised P1 (blocker) → P3 (nice-to-have).
+>
+> **Update — 2026-06-25 (tech-lead review):** since the audit, the recurring-booking submit/load
+> hang and the silent offline message-loss were fixed (PR #2), and CI that builds + runs all unit
+> tests on every PR was added (PR #3). Issues #9, #13 and #18 below were found stale/inaccurate and
+> are corrected inline.
 
 ### 🔴 P1 — Production Blockers
 
@@ -163,11 +168,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 
 | #  | Issue                                                                                                                                                     | Location                         |
 |----|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
-| 9  | **Runtime locale switching not wired** — language saved to DataStore but `AppCompatDelegate.setApplicationLocales()` never called                         | `MainActivity.kt`                |
+| 9  | **Multi-language feature is inert** — runtime switching IS wired (`AppCompatDelegate.setApplicationLocales()` in `LanguageSelectorScreen`); the real gap is ~350 hardcoded `Text("…")` literals (`stringResource` used in 1 of 83 UI files), so switching locale has almost no visible effect                         | `LanguageSelectorScreen.kt`      |
 | 10 | **`ReviewDirection` always lost in Firebase** — `createReview` never writes the `direction` field to Firestore                                            | `FirebaseBackendService.kt:~200` |
 | 11 | **`DiamondsApplication` DI inconsistency** — manually constructs a second `ConnectivitySyncTrigger`; Hilt-injected instance is never started              | `DiamondsApplication.kt`         |
 | 12 | **`ConnectivityObserver.isOnline()` false positives on captive portals** — only checks `NET_CAPABILITY_INTERNET`, not `NET_CAPABILITY_VALIDATED`          | `ConnectivityObserver.kt`        |
-| 13 | **Full Firestore collection scans** — `searchProviders`, `getConversationsForUser`, `getReviewsForProvider` perform unfiltered reads; scalability blocker | `FirebaseBackendService.kt`      |
+| 13 | **Full Firestore collection scans** — `searchProviders` and `getConversationsForUser` perform unfiltered reads; scalability blocker (`getReviewsForProvider` IS filtered — earlier audit was inaccurate) | `FirebaseBackendService.kt`      |
 | 14 | **`android:allowBackup="true"`** — DataStore (incl. auth token) extractable via ADB                                                                       | `AndroidManifest.xml:14`         |
 | 15 | **Deep link `autoVerify="true"` with no Digital Asset Links file** — verification fails; any app can intercept `diamonds://` links                        | `AndroidManifest.xml:44`         |
 | 16 | **`proguard-rules.pro` is empty** — must be written before `isMinifyEnabled = true` is enabled                                                            | `proguard-rules.pro`             |
@@ -177,7 +182,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 
 | #  | Issue                                                                                                                                                                                                       | Location                 |
 |----|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| 18 | **Test coverage ~15–20%** (target 60%) — `SyncManager`, `ClientRepository`, `PreferencesDataStore`, all unimplemented repo methods lack tests; `BookingRepositoryTest` has only a no-op `assert(true)` test | `data/test/`, `ui/test/` |
+| 18 | **Coverage gaps in specific classes** (target 60%) — `SyncManager`, both Workers, `PreferencesDataStore`, `ConnectivityObserver` and several repos still lack tests. Stale claim: "~15–20% / `BookingRepositoryTest` is a no-op `assert(true)`" — that test now has real assertions, and PR #2's regression tests now run in CI | `data/test/`, `ui/test/` |
 | 19 | **Kotlin 1.9.0** — upgrade to 2.1.x for K2 compiler and latest stdlib                                                                                                                                       | `libs.versions.toml`     |
 | 20 | **Compose 1.6.0** — upgrade to 1.7.x for stability improvements                                                                                                                                             | `libs.versions.toml`     |
 | 21 | **`ACCESS_BACKGROUND_LOCATION` declared but likely unnecessary** — foreground-only suffices if tracking only occurs during active booking screen                                                            | `AndroidManifest.xml:9`  |
