@@ -19,7 +19,7 @@ JDK 17 is required to run the build (AGP 8.5); the project still targets JVM 11 
 
 CI (`.github/workflows/ci.yml`) runs `assembleDebug allUnitTests` on every PR to `develop` and on pushes to `develop`. **Treat a red CI run as blocking.** Instrumentation tests live only in `:app/src/androidTest` and need an emulator (`./gradlew :app:connectedDebugAndroidTest`); they are not part of CI yet.
 
-The debug build needs **no secrets**: it runs on mock/stub backends and the committed `google-services.json` (at `app/google-services.json`) is a placeholder; `MAPS_API_KEY` is read from `local.properties`/Gradle props and defaults to empty.
+The debug build needs **no secrets**: it runs on mock/stub backends and the committed `google-services.json` (at `app/google-services.json`) is a placeholder; `MAPS_API_KEY` is read via `project.findProperty(...)` from a Gradle property (`gradle.properties`, `-PMAPS_API_KEY=…`, or `ORG_GRADLE_PROJECT_MAPS_API_KEY`) and defaults to empty.
 
 ## Module structure
 
@@ -31,7 +31,7 @@ The debug build needs **no secrets**: it runs on mock/stub backends and the comm
 :app     Application entry point, Hilt DI wiring, navigation host, FCM, instrumentation tests.
 ```
 
-Dependency direction is strict and acyclic: `:core ← :data ← :ui ← :app` (and `:common` underneath). **Do not** make `:core` depend on Android, and prefer depending on `:core` interfaces over `:data` implementations.
+Dependency direction is strict and acyclic: `:core ← :data ← :ui ← :app`, with `:common` depending on `:core` and used by the upper layers (`:data`/`:ui`/`:app`). **Do not** make `:core` depend on Android, and prefer depending on `:core` interfaces over `:data` implementations.
 
 ## Architecture conventions
 
