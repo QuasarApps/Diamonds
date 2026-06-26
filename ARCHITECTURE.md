@@ -135,7 +135,7 @@ Backend responds with error → return error
 - Show tooltip "Requires internet connection"
 - Send immediately to backend when online
 - Never optimistically update cache for writes
-- **Offline writes fail** with `OfflineException` — they are *not* queued for later (the queue below is built but not wired into the write repos)
+- **Offline writes fail** with an offline error — `OfflineException` in most repos (a generic `Exception` in `SubscriptionRepository` and `MessageRepository.getOrCreateConversation`); they are *not* queued for later (the queue below is built but not wired into the write repos)
 
 ### Sync Queue (built, not currently wired)
 The queue infrastructure exists end-to-end but **no write repo enqueues operations**, so it is never populated (see `TECH_LEAD_REVIEW.md` §4):
@@ -279,5 +279,5 @@ DTOs separate from domain models:
 - **Optimistic updates**: Only for read data; never for writes
 - **Automatic retries (built, not wired)**: `SyncManager` supports retry-with-backoff, but write repos don't enqueue operations, so this path is dormant today
 - **User control**: the Sync Status screen can retry/cancel queued operations — once writes are wired to enqueue them
-- **Offline writes are not queued today**: they fail with `OfflineException` rather than persisting to the sync queue (the queue infrastructure exists but is not wired into the write repos — see `TECH_LEAD_REVIEW.md` §4)
+- **Offline writes are not queued today**: they fail with an offline error (`OfflineException` in most repos; a generic `Exception` in a couple) rather than persisting to the sync queue (the queue infrastructure exists but is not wired into the write repos — see `TECH_LEAD_REVIEW.md` §4)
 - **Battery aware**: WorkManager respects device constraints
