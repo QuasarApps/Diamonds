@@ -27,8 +27,8 @@ The debug build needs **no secrets**: it runs on mock/stub backends and the comm
 :core    Pure Kotlin/JVM domain — models, Result<T>, repository INTERFACES. No Android deps.
 :common  Small shared utilities/extensions.
 :data    Room, repositories (impl), sync, connectivity, remote (Firebase + Stub/Mock).
-:ui      Jetpack Compose screens + ViewModels.
-:app     Application entry point, Hilt DI wiring, navigation host, FCM, instrumentation tests.
+:ui      Jetpack Compose screens, ViewModels, and the navigation host (DiamondsNavHost / AppShell).
+:app     Entry point (MainActivity hosts the :ui nav graph), Hilt DI wiring, FCM, instrumentation tests.
 ```
 
 Dependency direction is strict and acyclic: `:core ← :data ← :ui ← :app`, with `:common` depending on `:core` and used by the upper layers (`:data`/`:ui`/`:app`). **Do not** make `:core` depend on Android, and prefer depending on `:core` interfaces over `:data` implementations.
