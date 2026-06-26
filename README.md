@@ -33,7 +33,7 @@ Diamonds implements a **modular, offline-first architecture** with the following
 ### Data Management
 - **Room Database**: Local caching for all entities (Client, Provider, Booking, Review, Payment)
 - **SyncQueue**: Tracks pending/failed operations with retry logic
-- **DataStore**: User session storage (⚠️ plaintext today — see Known Issue #4)
+- **DataStore**: User session storage — ⚠️ the auth token **and** profile (userId/email/role) are stored in plaintext today; see Known Issue #4
 - **Mappers**: Convert between domain models, DTOs, and entities
 
 ### Backend Flexibility
@@ -98,7 +98,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 
 - **Jetpack Compose**: Modern declarative UI
 - **Room**: Local database with offline caching
-- **DataStore**: Preferences storage (⚠️ session token plaintext today — see Known Issue #4)
+- **DataStore**: Preferences storage — ⚠️ the session (auth token + profile) is stored in plaintext today; see Known Issue #4
 - **WorkManager**: Background sync with backoff
 - **Hilt**: Dependency injection
 - **Coroutines & Flow**: Reactive programming
