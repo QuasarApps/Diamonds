@@ -161,9 +161,9 @@ service cloud.firestore {
   `SubscriptionRepository`, `SupportRepository` and the mappers now have tests.)
 - **`:ui/test`**: 13 ViewModel test files. Missing: `MapViewModel`, `NotificationViewModel`,
   `SplashViewModel` (and several support/profile VMs). `ChatViewModel`/`SyncStatusViewModel` now have tests.
-- **`:app/androidTest`**: 14 Compose instrumented tests (good). `ExampleInstrumentedTest.kt`
+- **`:app/androidTest`**: 17 Compose instrumented tests (good). `ExampleInstrumentedTest.kt`
   boilerplate never removed.
-- `ExampleUnitTest` in multiple modules is also unreplaced boilerplate
+- `ExampleUnitTest` (under `:app`) is also unreplaced boilerplate
 
 ### Priority Test Targets (for Phase 18)
 
