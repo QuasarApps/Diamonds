@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.LocationDetail
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.CleaningTypeSelector
 import com.example.diamonds.ui.components.LocationTypeSelector
 
@@ -97,28 +99,28 @@ fun BookingFormScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Booking", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text(stringResource(R.string.booking), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
                     Spacer(Modifier.height(4.dp))
                     Text(service.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    state.provider?.let { Text("with ${it.name}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer) }
+                    state.provider?.let { Text(stringResource(R.string.with_provider, it.name), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSecondaryContainer) }
                     Spacer(Modifier.height(8.dp))
                     HorizontalDivider()
                     Spacer(Modifier.height(8.dp))
                     Row {
-                        Text("Price", modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSecondaryContainer)
+                        Text(stringResource(R.string.price), modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSecondaryContainer)
                         Text("$${service.basePrice.toInt()}", fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.height(4.dp))
                     Row {
-                        Text("Duration", modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSecondaryContainer)
-                        Text("${service.duration} min")
+                        Text(stringResource(R.string.duration), modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSecondaryContainer)
+                        Text(stringResource(R.string.duration_minutes, service.duration))
                     }
                 }
             }
         }
 
         Spacer(Modifier.height(28.dp))
-        Text("Cleaning Type", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Text(stringResource(R.string.cleaning_type), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(8.dp))
         CleaningTypeSelector(
             selected = state.cleaningType,
@@ -126,7 +128,7 @@ fun BookingFormScreen(
         )
 
         Spacer(Modifier.height(24.dp))
-        Text("Property Details", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Text(stringResource(R.string.property_details), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(8.dp))
         LocationTypeSelector(
             detail = state.locationDetail ?: LocationDetail(),
@@ -134,7 +136,7 @@ fun BookingFormScreen(
         )
 
         Spacer(Modifier.height(28.dp))
-        Text("Schedule", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Text(stringResource(R.string.schedule), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(12.dp))
 
         // ── Date & Time pickers ────────────────────────────────────────
@@ -154,10 +156,10 @@ fun BookingFormScreen(
                             viewModel.onDateChange(DateTimeFormatUtil.millisToIsoDate(millis))
                         }
                         showDatePicker = false
-                    }) { Text("OK") }
+                    }) { Text(stringResource(R.string.ok)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                    TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) }
                 }
             ) {
                 DatePicker(state = datePickerState)
@@ -168,7 +170,7 @@ fun BookingFormScreen(
         if (showTimePicker) {
             AlertDialog(
                 onDismissRequest = { showTimePicker = false },
-                title = { Text("Select Time") },
+                title = { Text(stringResource(R.string.select_time_title)) },
                 text = { TimePicker(state = timePickerState) },
                 confirmButton = {
                     TextButton(onClick = {
@@ -179,10 +181,10 @@ fun BookingFormScreen(
                             )
                         )
                         showTimePicker = false
-                    }) { Text("OK") }
+                    }) { Text(stringResource(R.string.ok)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+                    TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.cancel)) }
                 }
             )
         }
@@ -201,8 +203,8 @@ fun BookingFormScreen(
                 value = if (state.date.isNotBlank()) DateTimeFormatUtil.formatDateForDisplay(state.date) else "",
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Date") },
-                placeholder = { Text("Select date") },
+                label = { Text(stringResource(R.string.date)) },
+                placeholder = { Text(stringResource(R.string.select_date)) },
                 singleLine = true,
                 isError = state.fieldErrors.containsKey(BookingField.DATE),
                 supportingText = state.fieldErrors[BookingField.DATE]?.let { msg -> { Text(msg) } },
@@ -223,8 +225,8 @@ fun BookingFormScreen(
                 value = if (state.time.isNotBlank()) DateTimeFormatUtil.formatTimeForDisplay(state.time) else "",
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Time") },
-                placeholder = { Text("Select time") },
+                label = { Text(stringResource(R.string.time)) },
+                placeholder = { Text(stringResource(R.string.select_time)) },
                 singleLine = true,
                 isError = state.fieldErrors.containsKey(BookingField.TIME),
                 supportingText = state.fieldErrors[BookingField.TIME]?.let { msg -> { Text(msg) } },
@@ -234,13 +236,13 @@ fun BookingFormScreen(
         }
 
         Spacer(Modifier.height(16.dp))
-        Text("Location", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Text(stringResource(R.string.location), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(12.dp))
 
         OutlinedTextField(
             value = state.address,
             onValueChange = viewModel::onAddressChange,
-            label = { Text("Service Address") },
+            label = { Text(stringResource(R.string.service_address)) },
             singleLine = true,
             isError = state.fieldErrors.containsKey(BookingField.ADDRESS),
             supportingText = state.fieldErrors[BookingField.ADDRESS]?.let { msg -> { Text(msg) } },
@@ -270,17 +272,17 @@ fun BookingFormScreen(
             onClick = onPickOnMap,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("📍 Pick on Map")
+            Text(stringResource(R.string.pick_on_map))
         }
 
         Spacer(Modifier.height(16.dp))
-        Text("Notes (optional)", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        Text(stringResource(R.string.notes_optional), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         Spacer(Modifier.height(12.dp))
 
         OutlinedTextField(
             value = state.notes,
             onValueChange = viewModel::onNotesChange,
-            label = { Text("Special instructions…") },
+            label = { Text(stringResource(R.string.special_instructions)) },
             minLines = 3,
             maxLines = 5,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
@@ -306,7 +308,7 @@ fun BookingFormScreen(
             if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {
-                Text("Review & Confirm", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.review_and_confirm), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
