@@ -147,8 +147,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 > Last audited: **April 26, 2026**. Issues are prioritised P1 (blocker) → P3 (nice-to-have).
 >
 > **Update — 2026-06-25 (tech-lead review):** since the audit, the recurring-booking submit/load
-> hang and the silent offline message-loss were fixed ([PR #2]), and CI that builds + runs all unit
-> tests on every PR was added ([PR #3]). Issues #9, #13 and #18 below were found stale/inaccurate and
+> hang and the silent offline message-loss were fixed (PR #2), and CI that builds + runs all unit
+> tests on every PR was added (PR #3). Issues #9, #13 and #18 below were found stale/inaccurate and
 > are corrected inline.
 
 ### 🔴 P1 — Production Blockers
@@ -168,7 +168,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 
 | #  | Issue                                                                                                                                                     | Location                         |
 |----|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
-| 9  | **Multi-language feature is inert** — runtime switching IS wired (`AppCompatDelegate.setApplicationLocales()` in `LanguageSelectorScreen`); the real gap is ~350 hardcoded `Text("…")` literals (`stringResource` used in 1 of 83 UI files), so switching locale has almost no visible effect                         | `MainActivity.kt`                |
+| 9  | **Multi-language feature is inert** — runtime switching IS wired (`AppCompatDelegate.setApplicationLocales()` in `LanguageSelectorScreen`); the real gap is ~350 hardcoded `Text("…")` literals (`stringResource` used in 1 of 83 UI files), so switching locale has almost no visible effect                         | `LanguageSelectorScreen.kt`      |
 | 10 | **`ReviewDirection` always lost in Firebase** — `createReview` never writes the `direction` field to Firestore                                            | `FirebaseBackendService.kt:~200` |
 | 11 | **`DiamondsApplication` DI inconsistency** — manually constructs a second `ConnectivitySyncTrigger`; Hilt-injected instance is never started              | `DiamondsApplication.kt`         |
 | 12 | **`ConnectivityObserver.isOnline()` false positives on captive portals** — only checks `NET_CAPABILITY_INTERNET`, not `NET_CAPABILITY_VALIDATED`          | `ConnectivityObserver.kt`        |

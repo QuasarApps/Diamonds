@@ -56,7 +56,7 @@ storage, no Firestore Security Rules, and `isMinifyEnabled = false` in the relea
 | 🟡       | `ServiceRepository.kt:150`          | TODO: `updateService` not called on backend.                                                                                                                                                    |
 | 🟡       | `PaymentRepository.kt:131`          | TODO: provider payments not fetched from backend.                                                                                                                                               |
 | 🔴       | `FirebaseBackendService.kt:485–524` | **14 methods** return `Result.Error("not yet implemented")`: support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations. Silent failures in production. |
-| 🔵       | `BookingRepositoryTest.kt:34`       | RESOLVED — no longer a no-op; now carries real MockK/assertion tests (offline / error / cache paths).                                                                                                                                |
+| ✅       | `BookingRepositoryTest.kt`          | RESOLVED — no longer a no-op; now carries real MockK/assertion tests (offline / error / cache paths).                                                                                                                                |
 | 🟡       | `FirebaseBackendService.kt:79`      | `searchProviders` performs a full Firestore collection scan with no geo-filtering. At scale, reads entire `providers` collection on every search.                                               |
 | 🟡       | `getConversationsForUser`           | Issues 2 separate Firestore queries merged in memory — doubles read cost; can miss ordering.                                                                                                    |
 
@@ -155,10 +155,12 @@ service cloud.firestore {
 - **`:data/test`**: `BookingRepositoryFullTest` (10 tests) and `BookingRepositoryTest` (6 tests) are
   both solid now — the latter is no longer a no-op `assert(true)`. PR #2 added regression tests for
   `RecurringBookingViewModel` and `MessageRepository`, which now execute in CI.
-- **Missing unit tests**: `SyncManager`, `ConnectivityObserver`, `PreferencesDataStore`,
-  `AuthRepository`, `MessageRepository`, `SubscriptionRepository`, `SupportRepository`, mappers
-- **`:ui/test`**: 6 ViewModel test files. Missing: `ChatViewModel`, `MapViewModel`,
-  `NotificationViewModel`, `SplashViewModel`, `SyncStatusViewModel`
+- **Missing unit tests**: `SyncManager`, both Workers (`SyncWorker`, `RecurringBookingWorker`),
+  `ConnectivityObserver`, `PreferencesDataStore`, and the `Provider`/`Service`/`Notification`/
+  `Location`/`SavedLocation`/`Client` repositories. (`AuthRepository`, `MessageRepository`,
+  `SubscriptionRepository`, `SupportRepository` and the mappers now have tests.)
+- **`:ui/test`**: 13 ViewModel test files. Missing: `MapViewModel`, `NotificationViewModel`,
+  `SplashViewModel` (and several support/profile VMs). `ChatViewModel`/`SyncStatusViewModel` now have tests.
 - **`:app/androidTest`**: 14 Compose instrumented tests (good). `ExampleInstrumentedTest.kt`
   boilerplate never removed.
 - `ExampleUnitTest` in multiple modules is also unreplaced boilerplate
