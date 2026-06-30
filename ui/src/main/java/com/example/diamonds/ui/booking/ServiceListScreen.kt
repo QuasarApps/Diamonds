@@ -28,11 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.Service
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,7 +70,7 @@ fun ServiceListScreen(
                     Spacer(Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("⭐ ${provider.rating}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
-                        Text("  ·  ${provider.reviewCount} reviews", fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(stringResource(R.string.provider_review_count, provider.reviewCount), fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                     provider.bio?.let { bio ->
                         Spacer(Modifier.height(6.dp))
@@ -86,7 +88,7 @@ fun ServiceListScreen(
             Text(error ?: "", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
         } else if (state.services.isEmpty()) {
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("No services listed yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.no_services_listed), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             if (error != null) {
@@ -94,7 +96,7 @@ fun ServiceListScreen(
             }
 
             Text(
-                "Available Services",
+                stringResource(R.string.available_services),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -135,7 +137,7 @@ private fun ServiceCard(service: Service, onClick: () -> Unit) {
                 Text(service.description, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "⏱ ${service.duration} min",
+                    stringResource(R.string.service_duration_minutes, service.duration),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -148,7 +150,7 @@ private fun ServiceCard(service: Service, onClick: () -> Unit) {
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Text("per visit", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.per_visit), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

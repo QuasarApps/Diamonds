@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.R
 
 @Composable
 fun BookingConfirmationScreen(
@@ -61,10 +63,10 @@ fun BookingConfirmationScreen(
         // Success icon
         Text("✅", fontSize = 64.sp)
         Spacer(Modifier.height(16.dp))
-        Text("Booking Confirmed!", fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.booking_confirmed_exclaim), fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Your booking request has been sent. The cleaner will confirm shortly.",
+            stringResource(R.string.booking_request_sent),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -75,30 +77,30 @@ fun BookingConfirmationScreen(
         state.booking?.let { booking ->
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(20.dp)) {
-                    Text("Booking Details", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    Text(stringResource(R.string.booking_details), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                     Spacer(Modifier.height(12.dp))
                     HorizontalDivider()
                     Spacer(Modifier.height(12.dp))
 
-                    DetailRow("Service",  state.service?.title ?: "—")
-                    DetailRow("Cleaner",  state.provider?.name ?: "—")
+                    DetailRow(stringResource(R.string.service),  state.service?.title ?: "—")
+                    DetailRow(stringResource(R.string.cleaner),  state.provider?.name ?: "—")
                     DetailRow(
-                        "Date",
+                        stringResource(R.string.date),
                         DateTimeFormatUtil.formatDateForDisplay(booking.scheduledDate)
                     )
                     DetailRow(
-                        "Time",
+                        stringResource(R.string.time),
                         DateTimeFormatUtil.formatTimeForDisplay(booking.scheduledTime)
                     )
-                    DetailRow("Address",  booking.address)
-                    booking.notes?.let { DetailRow("Notes", it) }
+                    DetailRow(stringResource(R.string.address),  booking.address)
+                    booking.notes?.let { DetailRow(stringResource(R.string.notes), it) }
 
                     Spacer(Modifier.height(12.dp))
                     HorizontalDivider()
                     Spacer(Modifier.height(12.dp))
 
                     Row(modifier = Modifier.fillMaxWidth()) {
-                        Text("Total", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.total), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                         Text(
                             "$${booking.totalPrice.toInt()}",
                             fontWeight = FontWeight.Bold,
@@ -121,7 +123,7 @@ fun BookingConfirmationScreen(
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Text("💳  Pay Now", fontSize = 16.sp)
+            Text(stringResource(R.string.pay_now_with_icon), fontSize = 16.sp)
         }
 
         Spacer(Modifier.height(8.dp))
@@ -132,7 +134,7 @@ fun BookingConfirmationScreen(
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Text("View My Bookings", fontSize = 16.sp)
+            Text(stringResource(R.string.view_my_bookings), fontSize = 16.sp)
         }
 
         Spacer(Modifier.height(12.dp))
@@ -143,7 +145,7 @@ fun BookingConfirmationScreen(
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Text("Book Another Service", fontSize = 16.sp)
+            Text(stringResource(R.string.book_another_service), fontSize = 16.sp)
         }
 
         } // end else
@@ -163,12 +165,12 @@ internal fun DetailRow(label: String, value: String) {
 @Composable
 internal fun StatusChip(status: BookingStatus) {
     val (label, color) = when (status) {
-        BookingStatus.PENDING     -> "Pending"     to MaterialTheme.colorScheme.tertiary
-        BookingStatus.ACCEPTED    -> "Accepted"    to MaterialTheme.colorScheme.primary
-        BookingStatus.IN_PROGRESS -> "In Progress" to MaterialTheme.colorScheme.secondary
-        BookingStatus.COMPLETED   -> "Completed"   to MaterialTheme.colorScheme.primary
-        BookingStatus.CANCELLED   -> "Cancelled"   to MaterialTheme.colorScheme.error
-        BookingStatus.NO_SHOW     -> "No Show"     to MaterialTheme.colorScheme.error
+        BookingStatus.PENDING     -> stringResource(R.string.pending)     to MaterialTheme.colorScheme.tertiary
+        BookingStatus.ACCEPTED    -> stringResource(R.string.accepted)    to MaterialTheme.colorScheme.primary
+        BookingStatus.IN_PROGRESS -> stringResource(R.string.in_progress) to MaterialTheme.colorScheme.secondary
+        BookingStatus.COMPLETED   -> stringResource(R.string.completed)   to MaterialTheme.colorScheme.primary
+        BookingStatus.CANCELLED   -> stringResource(R.string.cancelled)   to MaterialTheme.colorScheme.error
+        BookingStatus.NO_SHOW     -> stringResource(R.string.status_no_show)     to MaterialTheme.colorScheme.error
     }
     Card(
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f)),

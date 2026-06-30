@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.ConfirmationDialog
 import com.example.diamonds.ui.components.NotFoundScreen
 import com.example.diamonds.ui.components.PullToRefreshLayout
@@ -102,15 +104,15 @@ fun BookingsListScreen(
             ) {
                 Text("📋", fontSize = 48.sp)
                 Spacer(Modifier.height(16.dp))
-                Text("No bookings yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text(stringResource(R.string.no_bookings_yet), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Book your first cleaning service to get started.",
+                    stringResource(R.string.book_first_service),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(24.dp))
-                Button(onClick = onStartBooking) { Text("Find a Cleaner") }
+                Button(onClick = onStartBooking) { Text(stringResource(R.string.find_a_cleaner)) }
             }
         } else {
             LazyColumn(
@@ -202,10 +204,10 @@ fun BookingDetailScreen(
 
     if (showCancelDialog) {
         ConfirmationDialog(
-            title        = "Cancel Booking?",
-            message      = "This action cannot be undone. The cleaner will be notified.",
-            confirmLabel = "Cancel Booking",
-            dismissLabel = "Keep",
+            title        = stringResource(R.string.cancel_booking_question),
+            message      = stringResource(R.string.cancel_booking_message),
+            confirmLabel = stringResource(R.string.cancel_booking),
+            dismissLabel = stringResource(R.string.keep),
             isDestructive = true,
             onConfirm    = { showCancelDialog = false; viewModel.cancelBooking(bookingId) },
             onDismiss    = { showCancelDialog = false }
@@ -221,7 +223,7 @@ fun BookingDetailScreen(
 
     val booking = state.booking ?: run {
         NotFoundScreen(
-            message = error ?: "This booking could not be found.",
+            message = error ?: stringResource(R.string.booking_not_found),
             onGoBack = onCancelled
         )
         return
@@ -242,24 +244,24 @@ fun BookingDetailScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             StatusChip(booking.status)
             Spacer(Modifier.width(12.dp))
-            Text("Booking #${booking.id.takeLast(6)}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.booking_number, booking.id.takeLast(6)), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                SectionLabel("Service")
+                SectionLabel(stringResource(R.string.service))
                 Text(state.service?.title ?: "—", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                state.provider?.let { Text("by ${it.name}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                state.provider?.let { Text(stringResource(R.string.by_provider, it.name), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
         }
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SectionLabel("Schedule & Location")
-                DetailRow("Date", DateTimeFormatUtil.formatDateForDisplay(booking.scheduledDate))
-                DetailRow("Time", DateTimeFormatUtil.formatTimeForDisplay(booking.scheduledTime))
-                DetailRow("Address", booking.address)
-                booking.notes?.let { DetailRow("Notes", it) }
+                SectionLabel(stringResource(R.string.schedule_and_location))
+                DetailRow(stringResource(R.string.date), DateTimeFormatUtil.formatDateForDisplay(booking.scheduledDate))
+                DetailRow(stringResource(R.string.time), DateTimeFormatUtil.formatTimeForDisplay(booking.scheduledTime))
+                DetailRow(stringResource(R.string.address), booking.address)
+                booking.notes?.let { DetailRow(stringResource(R.string.notes), it) }
 
                 // Mini-map showing the booking location
                 if (booking.latitude != null && booking.longitude != null) {
@@ -276,13 +278,13 @@ fun BookingDetailScreen(
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                SectionLabel("Payment")
+                SectionLabel(stringResource(R.string.payment))
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text("Total", modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.total), modifier = Modifier.weight(1f))
                     Text("$${booking.totalPrice.toInt()}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text("Est. duration: ${state.service?.duration ?: "—"} min", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.est_duration, state.service?.duration ?: "—"), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -303,7 +305,7 @@ fun BookingDetailScreen(
                     .height(52.dp)
             ) {
                 if (state.isLoading) CircularProgressIndicator(modifier = Modifier.width(20.dp), strokeWidth = 2.dp)
-                else Text("Cancel This Booking", fontSize = 15.sp)
+                else Text(stringResource(R.string.cancel_this_booking), fontSize = 15.sp)
             }
         }
 
@@ -315,19 +317,22 @@ fun BookingDetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-            ) { Text("🗺️  Track Cleaner", fontSize = 15.sp) }
+            ) { Text(stringResource(R.string.track_cleaner_with_icon), fontSize = 15.sp) }
         }
 
         // Chat button — available for all non-cancelled bookings
         val canChat = booking.status != BookingStatus.CANCELLED
         if (canChat && state.provider != null) {
+            // Hoisted out of the onClick lambda: stringResource is @Composable and
+            // can't be called from a (non-composable) click handler.
+            val youLabel = stringResource(R.string.you_label)
             OutlinedButton(
                 onClick = {
                     onOpenChat(
                         OpenChatParams(
                             bookingId = bookingId,
                             clientId = booking.clientId,
-                            clientName = "You",  // Session name would be better, but not available here
+                            clientName = youLabel,  // Session name would be better, but not available here
                             providerId = booking.providerId,
                             providerName = state.provider!!.name
                         )
@@ -336,7 +341,7 @@ fun BookingDetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-            ) { Text("💬  Chat with Cleaner", fontSize = 15.sp) }
+            ) { Text(stringResource(R.string.chat_with_cleaner_with_icon), fontSize = 15.sp) }
         }
 
         if (booking.status == BookingStatus.COMPLETED && state.provider != null) {
@@ -351,7 +356,7 @@ fun BookingDetailScreen(
                         Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        SectionLabel("Your Review")
+                        SectionLabel(stringResource(R.string.your_review))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 "⭐".repeat(review.rating) + "☆".repeat(5 - review.rating),
@@ -359,7 +364,7 @@ fun BookingDetailScreen(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "${review.rating}/5",
+                                stringResource(R.string.rating_out_of_five, review.rating),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -386,7 +391,7 @@ fun BookingDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
-                ) { Text("⭐  Leave a Review", fontSize = 15.sp) }
+                ) { Text(stringResource(R.string.leave_a_review_with_icon), fontSize = 15.sp) }
             }
 
             OutlinedButton(
@@ -394,7 +399,7 @@ fun BookingDetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-            ) { Text("⚠️  Report an Issue", fontSize = 15.sp) }
+            ) { Text(stringResource(R.string.report_an_issue_with_icon), fontSize = 15.sp) }
         }
 
         // Edit / Reschedule for PENDING bookings
@@ -404,7 +409,7 @@ fun BookingDetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-            ) { Text("✏️  Edit / Reschedule", fontSize = 15.sp) }
+            ) { Text(stringResource(R.string.edit_reschedule_with_icon), fontSize = 15.sp) }
         }
 
         // Help & Support button for all active bookings
@@ -414,7 +419,7 @@ fun BookingDetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-            ) { Text("❓  Help & Support", fontSize = 15.sp) }
+            ) { Text(stringResource(R.string.help_and_support_with_icon), fontSize = 15.sp) }
         }
     }
     } // end PullToRefreshLayout

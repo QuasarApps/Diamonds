@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 
 /**
  * Review / rating form for a completed booking.
@@ -90,14 +92,14 @@ fun ReviewScreen(
     ) {
         Spacer(Modifier.height(8.dp))
 
-        Text("Leave a Review", style = MaterialTheme.typography.headlineSmall,
+        Text(stringResource(R.string.leave_a_review), style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold)
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
                 Text(state.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                 if (state.providerName.isNotBlank()) {
-                    Text("by ${state.providerName}", fontSize = 13.sp,
+                    Text(stringResource(R.string.by_provider, state.providerName), fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -105,7 +107,7 @@ fun ReviewScreen(
 
         // ── Star picker ───────────────────────────────────────────────────
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("How would you rate this service?",
+            Text(stringResource(R.string.rate_this_service_question),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center)
             Spacer(Modifier.height(12.dp))
@@ -128,8 +130,8 @@ fun ReviewScreen(
         OutlinedTextField(
             value          = state.comment,
             onValueChange  = viewModel::onCommentChange,
-            label          = { Text("Add a comment (optional)") },
-            placeholder    = { Text("Tell others about your experience…") },
+            label          = { Text(stringResource(R.string.add_a_comment_optional)) },
+            placeholder    = { Text(stringResource(R.string.review_comment_placeholder)) },
             minLines       = 3,
             maxLines       = 6,
             keyboardOptions = KeyboardOptions(
@@ -146,7 +148,7 @@ fun ReviewScreen(
 
         // "Having an issue?" link
         Text(
-            "Having an issue? File a claim",
+            stringResource(R.string.having_an_issue_file_claim),
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.clickable { onFileClaim(bookingId) }
@@ -166,7 +168,7 @@ fun ReviewScreen(
                     color       = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Submit Review", fontSize = 16.sp)
+                Text(stringResource(R.string.submit_review), fontSize = 16.sp)
             }
         }
     }
@@ -191,28 +193,28 @@ private fun ExistingReviewView(
     ) {
         Text("✅", fontSize = 56.sp)
         Spacer(Modifier.height(16.dp))
-        Text("Review Submitted", style = MaterialTheme.typography.headlineSmall,
+        Text(stringResource(R.string.review_submitted), style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Text("You already reviewed this booking.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.already_reviewed_this_booking), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
                 Text(serviceName, fontWeight = FontWeight.SemiBold)
                 if (providerName.isNotBlank())
-                    Text("by $providerName", fontSize = 13.sp,
+                    Text(stringResource(R.string.by_provider, providerName), fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(8.dp))
                 StarPicker(selected = review.rating, onSelect = {}, enabled = false, starSizeSp = 28)
                 review.comment?.let {
                     Spacer(Modifier.height(6.dp))
-                    Text("\"$it\"", fontSize = 14.sp,
+                    Text(stringResource(R.string.quoted_comment, it), fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text("Done") }
+        Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.done)) }
     }
 }
 

@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,20 +43,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.model.Provider
 import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.FilterCriteria
 import com.example.diamonds.ui.components.FilterSection
 import com.example.diamonds.ui.components.PullToRefreshLayout
 import com.example.diamonds.ui.components.cleaningTypeLabels
 
 private val categories = listOf(
-    null to "All",
-    ServiceCategory.APARTMENT_CLEANING to "Apartment",
-    ServiceCategory.HOUSE_CLEANING to "House",
-    ServiceCategory.DEEP_CLEANING to "Deep Clean",
-    ServiceCategory.OFFICE_CLEANING to "Office",
-    ServiceCategory.CARPET_CLEANING to "Carpet",
-    ServiceCategory.WINDOW_CLEANING to "Windows",
-    ServiceCategory.POST_CONSTRUCTION to "Post-Build"
+    null to R.string.category_all,
+    ServiceCategory.APARTMENT_CLEANING to R.string.category_apartment,
+    ServiceCategory.HOUSE_CLEANING to R.string.category_house,
+    ServiceCategory.DEEP_CLEANING to R.string.category_deep_clean,
+    ServiceCategory.OFFICE_CLEANING to R.string.category_office,
+    ServiceCategory.CARPET_CLEANING to R.string.category_carpet,
+    ServiceCategory.WINDOW_CLEANING to R.string.category_windows,
+    ServiceCategory.POST_CONSTRUCTION to R.string.category_post_build
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,11 +93,11 @@ fun ProviderSearchScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(categories) { (cat, label) ->
+                items(categories) { (cat, labelRes) ->
                     FilterChip(
                         selected = state.selectedCategory == cat,
                         onClick  = { viewModel.selectCategory(cat) },
-                        label    = { Text(label) }
+                        label    = { Text(stringResource(labelRes)) }
                     )
                 }
             }
@@ -125,7 +127,7 @@ fun ProviderSearchScreen(
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     CircularProgressIndicator()
                     Spacer(Modifier.height(12.dp))
-                    Text("Finding cleaners near you…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.finding_cleaners), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -140,7 +142,7 @@ fun ProviderSearchScreen(
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("😕", fontSize = 40.sp)
                     Spacer(Modifier.height(12.dp))
-                    Text("No cleaners found in your area.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.no_cleaners_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -202,8 +204,8 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit, onViewRatings:
                     modifier = Modifier.clickable(onClick = onViewRatings)
                 ) {
                     Text("⭐ ${provider.rating}", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
-                    Text("  ·  ${provider.reviewCount} reviews", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("  ›", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.provider_review_count, provider.reviewCount), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.chevron_link), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.height(4.dp))
                 CleanerTypeBadge(provider)
@@ -255,11 +257,11 @@ private fun CleanerTypeBadge(provider: Provider) {
 
     val (emoji, label, color) = when {
         isCompany ->
-            Triple("🏢", "Company", MaterialTheme.colorScheme.tertiary)
+            Triple("🏢", stringResource(R.string.badge_company), MaterialTheme.colorScheme.tertiary)
         provider.cleanerType == CleanerType.EMPLOYED ->
-            Triple("🏢", "Via ${provider.employerName ?: "a company"}", MaterialTheme.colorScheme.secondary)
+            Triple("🏢", stringResource(R.string.badge_via_company, provider.employerName ?: stringResource(R.string.a_company)), MaterialTheme.colorScheme.secondary)
         else ->
-            Triple("🧑‍💼", "Independent", MaterialTheme.colorScheme.primary)
+            Triple("🧑‍💼", stringResource(R.string.badge_independent), MaterialTheme.colorScheme.primary)
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
