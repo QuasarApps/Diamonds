@@ -480,4 +480,8 @@
     <string name="refresh">Refresh</string>
     <string name="no_results">No results found</string>
     <string name="per_hour">/hr</string>
+
+    <!-- Content descriptions (accessibility) -->
+    <string name="cd_back">Back</string>
+    <string name="cd_toggle">Toggle</string>
 </resources>

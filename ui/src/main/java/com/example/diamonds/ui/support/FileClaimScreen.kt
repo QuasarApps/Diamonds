@@ -82,7 +82,7 @@ fun FileClaimScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            "Back"
+                            stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -162,7 +162,7 @@ fun ClaimDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            "Back"
+                            stringResource(R.string.cd_back)
                         )
                     }
                 }

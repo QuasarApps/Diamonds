@@ -60,7 +60,7 @@ fun HelpCenterScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            "Back"
+                            stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -106,7 +106,7 @@ fun HelpCenterScreen(
                                 )
                                 Icon(
                                     if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    "Toggle"
+                                    stringResource(R.string.cd_toggle)
                                 )
                             }
                             AnimatedVisibility(visible = expanded) {
