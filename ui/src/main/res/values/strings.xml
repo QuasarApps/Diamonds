@@ -281,7 +281,10 @@
     <string name="category_post_build">Post-Build</string>
     <string name="finding_cleaners">Finding cleaners near you…</string>
     <string name="no_cleaners_found">No cleaners found in your area.</string>
-    <string name="provider_review_count">"  ·  %1$d reviews"</string>
+    <plurals name="review_count_inline">
+        <item quantity="one">"  ·  %1$d review"</item>
+        <item quantity="other">"  ·  %1$d reviews"</item>
+    </plurals>
     <string name="chevron_link">"  ›"</string>
     <string name="badge_company">Company</string>
     <string name="badge_via_company">Via %1$s</string>
@@ -290,13 +293,77 @@
     <string name="no_reviews_yet">No reviews yet</string>
     <string name="be_first_to_review">Be the first to review %1$s.</string>
     <string name="this_provider">this provider</string>
-    <string name="review_count_label">%1$d reviews</string>
-    <string name="reviews_count_header">%1$d Reviews</string>
-    <string name="review_count_header_singular">%1$d Review</string>
+    <plurals name="review_count">
+        <item quantity="one">%1$d review</item>
+        <item quantity="other">%1$d reviews</item>
+    </plurals>
+    <plurals name="review_count_header">
+        <item quantity="one">%1$d Review</item>
+        <item quantity="other">%1$d Reviews</item>
+    </plurals>
     <string name="no_services_listed">No services listed yet.</string>
     <string name="available_services">Available Services</string>
     <string name="service_duration_minutes">⏱ %1$d min</string>
     <string name="per_visit">per visit</string>
+
+    <!-- Cleaner screens -->
+    <string name="profile_saved">Profile saved ✓</string>
+    <string name="your_name_placeholder">Your Name</string>
+    <string name="specializations">Specializations</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="display_name">Display Name</string>
+    <string name="bio_about_you">Bio / About you</string>
+    <string name="my_specializations">My Specializations</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="help_and_support">Help &amp; Support</string>
+    <string name="help_support_subtitle">FAQ, claims, and contact support</string>
+    <string name="my_services">My Services</string>
+    <string name="services_active_total">%1$d active · %2$d total</string>
+    <string name="manage">Manage</string>
+    <string name="no_services_yet_hint">No services yet. Tap Manage to add your first service.</string>
+    <string name="service_off">Off</string>
+    <string name="more_count">+%1$d more…</string>
+    <string name="badge_employed">🏢 Employed</string>
+    <string name="badge_company_emoji">🏢 Company</string>
+    <string name="badge_independent_emoji">🧑‍💼 Independent</string>
+    <string name="requests">Requests</string>
+    <string name="history">History</string>
+    <string name="no_pending_requests">No pending requests</string>
+    <string name="new_requests_appear_here">New booking requests will appear here.</string>
+    <string name="no_upcoming_jobs">No upcoming jobs</string>
+    <string name="accepted_bookings_appear_here">Accepted bookings will appear here.</string>
+    <string name="no_completed_jobs_yet">No completed jobs yet</string>
+    <string name="completed_bookings_appear_here">Completed bookings will appear here.</string>
+    <string name="decline_request_question">Decline Request?</string>
+    <string name="decline_request_message">The customer will be notified that their request was not accepted.</string>
+    <string name="client_name">Client: %1$s</string>
+    <string name="detail_date">📅 Date</string>
+    <string name="detail_time">🕐 Time</string>
+    <string name="detail_address">📍 Address</string>
+    <string name="detail_notes">📝 Notes</string>
+    <string name="mark_complete">Mark Complete</string>
+    <string name="review_client">⭐ Review Client</string>
+    <string name="report_issue_with_client">⚠️ Report Issue with Client</string>
+    <string name="no_services_yet">No services yet</string>
+    <string name="add_first_service_hint">Add your first service so customers can book you.</string>
+    <string name="add_service">Add Service</string>
+    <string name="services_active_count">%1$d of %2$d active</string>
+    <string name="new_service">New Service</string>
+    <string name="service_title">Service Title</string>
+    <string name="description">Description</string>
+    <string name="price_dollars">Price ($)</string>
+    <string name="duration_min">Duration (min)</string>
+    <string name="category">Category</string>
+    <string name="this_week">This Week</string>
+    <plurals name="jobs_completed">
+        <item quantity="one">%1$d job completed</item>
+        <item quantity="other">%1$d jobs completed</item>
+    </plurals>
+    <string name="daily_earnings_last_7">Daily Earnings — Last 7 Days</string>
+    <string name="this_month">This Month</string>
+    <string name="revenue_stat">Revenue</string>
+    <string name="jobs_done_stat">Jobs Done</string>
+    <string name="avg_per_job_stat">Avg / Job</string>
 
     <!-- General -->
     <string name="ok">OK</string>

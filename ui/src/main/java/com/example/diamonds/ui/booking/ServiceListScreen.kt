@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -70,7 +71,7 @@ fun ServiceListScreen(
                     Spacer(Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("⭐ ${provider.rating}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
-                        Text(stringResource(R.string.provider_review_count, provider.reviewCount), fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(pluralStringResource(R.plurals.review_count_inline, provider.reviewCount, provider.reviewCount), fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                     provider.bio?.let { bio ->
                         Spacer(Modifier.height(6.dp))
