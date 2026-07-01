@@ -139,6 +139,39 @@
     <string name="view_bookings">View Bookings</string>
     <string name="back_to_home">Back to Home</string>
 
+    <!-- Payment screen (card entry) -->
+    <string name="diamonds_pay">DIAMONDS PAY</string>
+    <string name="card_holder_label">CARD HOLDER</string>
+    <string name="your_name_uppercase">YOUR NAME</string>
+    <string name="expires_label">EXPIRES</string>
+    <string name="mm_yy">MM/YY</string>
+    <string name="card_number_placeholder">1234 5678 9012 3456</string>
+    <string name="cardholder_name">Cardholder Name</string>
+    <string name="name_as_on_card">NAME AS ON CARD</string>
+    <string name="cvv_placeholder">123</string>
+    <string name="card_declined_message">"❌  Card declined. Please check your details or use a different card."</string>
+    <string name="processing">Processing…</string>
+    <string name="pay_amount">Pay $%1$d</string>
+    <string name="secure_payment_prefix">"🔒 Secure payment  ·  "</string>
+    <string name="accepted_card_brands">"VISA  MC  AMEX  DISCOVER"</string>
+
+    <!-- Payment history -->
+    <string name="no_payments_yet">No payments yet</string>
+    <string name="payment_receipts_appear_here">Your payment receipts will appear here.</string>
+    <plurals name="transaction_count">
+        <item quantity="one">%1$d transaction</item>
+        <item quantity="other">%1$d transactions</item>
+    </plurals>
+
+    <!-- Payment success (receipt) -->
+    <string name="payment_successful_exclaim">Payment Successful!</string>
+    <string name="booking_confirmed_payment_received">Your booking is confirmed and payment received.</string>
+    <string name="provider">Provider</string>
+    <string name="amount_paid">Amount Paid</string>
+    <string name="payment_id">Payment ID</string>
+    <string name="status">Status</string>
+    <string name="status_succeeded">✅ Succeeded</string>
+
     <!-- Reviews -->
     <string name="poor">Poor</string>
     <string name="fair">Fair</string>

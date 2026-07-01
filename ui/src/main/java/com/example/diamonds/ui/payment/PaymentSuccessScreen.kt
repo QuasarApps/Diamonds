@@ -19,11 +19,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 
 /**
  * Shown after a successful payment — receipt-style summary.
@@ -50,10 +52,10 @@ fun PaymentSuccessScreen(
     ) {
         Text("✅", fontSize = 72.sp)
         Spacer(Modifier.height(20.dp))
-        Text("Payment Successful!", fontSize = 26.sp, fontWeight = FontWeight.Bold,
+        Text(stringResource(R.string.payment_successful_exclaim), fontSize = 26.sp, fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center)
         Spacer(Modifier.height(8.dp))
-        Text("Your booking is confirmed and payment received.",
+        Text(stringResource(R.string.booking_confirmed_payment_received),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center, fontSize = 14.sp)
 
@@ -62,12 +64,12 @@ fun PaymentSuccessScreen(
         // Receipt card
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(20.dp)) {
-                ReceiptRow("Service",  state.serviceName.ifBlank { "—" })
-                ReceiptRow("Provider", state.providerName.ifBlank { "—" })
+                ReceiptRow(stringResource(R.string.service),  state.serviceName.ifBlank { "—" })
+                ReceiptRow(stringResource(R.string.provider), state.providerName.ifBlank { "—" })
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                ReceiptRow("Amount Paid", "$${state.amount.toInt()}", bold = true)
-                ReceiptRow("Payment ID",  paymentId.takeLast(12), small = true)
-                ReceiptRow("Status",      "✅ Succeeded")
+                ReceiptRow(stringResource(R.string.amount_paid), "$${state.amount.toInt()}", bold = true)
+                ReceiptRow(stringResource(R.string.payment_id),  paymentId.takeLast(12), small = true)
+                ReceiptRow(stringResource(R.string.status),      stringResource(R.string.status_succeeded))
             }
         }
 
@@ -77,14 +79,14 @@ fun PaymentSuccessScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)) {
-            Text("View My Bookings")
+            Text(stringResource(R.string.view_my_bookings))
         }
         Spacer(Modifier.height(12.dp))
         OutlinedButton(onClick = onDone,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)) {
-            Text("Back to Home")
+            Text(stringResource(R.string.back_to_home))
         }
     }
 }

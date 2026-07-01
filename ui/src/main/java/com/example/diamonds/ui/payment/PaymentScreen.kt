@@ -28,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 
 /**
  * Payment screen — card entry form for a booking.
@@ -55,6 +57,10 @@ fun PaymentScreen(
 ) {
     val state by viewModel.paymentState.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    val serviceFallback = stringResource(R.string.service)
+    val cardHolderPlaceholder = stringResource(R.string.your_name_uppercase)
+    val expiryPlaceholder = stringResource(R.string.mm_yy)
 
     LaunchedEffect(bookingId) { viewModel.loadForBooking(bookingId) }
     LaunchedEffect(state.paymentSuccess) {
@@ -90,11 +96,11 @@ fun PaymentScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text(state.serviceName.ifBlank { "Service" },
+                    Text(state.serviceName.ifBlank { serviceFallback },
                         fontWeight = FontWeight.SemiBold, fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer)
                     if (state.providerName.isNotBlank()) {
-                        Text("by ${state.providerName}", fontSize = 13.sp,
+                        Text(stringResource(R.string.by_provider, state.providerName), fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
@@ -120,7 +126,7 @@ fun PaymentScreen(
                 Row(Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("💳", fontSize = 28.sp)
-                    Text("DIAMONDS PAY", fontSize = 11.sp,
+                    Text(stringResource(R.string.diamonds_pay), fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
                         letterSpacing = 2.sp)
@@ -136,21 +142,21 @@ fun PaymentScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("CARD HOLDER", fontSize = 9.sp,
+                        Text(stringResource(R.string.card_holder_label), fontSize = 9.sp,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
                             letterSpacing = 1.sp)
                         Text(
-                            state.cardHolder.ifBlank { "YOUR NAME" },
+                            state.cardHolder.ifBlank { cardHolderPlaceholder },
                             fontSize = 13.sp, fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("EXPIRES", fontSize = 9.sp,
+                        Text(stringResource(R.string.expires_label), fontSize = 9.sp,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
                             letterSpacing = 1.sp)
                         Text(
-                            state.expiry.ifBlank { "MM/YY" },
+                            state.expiry.ifBlank { expiryPlaceholder },
                             fontSize = 13.sp, fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
@@ -165,8 +171,8 @@ fun PaymentScreen(
         OutlinedTextField(
             value         = state.cardNumber,
             onValueChange = viewModel::onCardNumberChange,
-            label         = { Text("Card Number") },
-            placeholder   = { Text("1234 5678 9012 3456") },
+            label         = { Text(stringResource(R.string.card_number)) },
+            placeholder   = { Text(stringResource(R.string.card_number_placeholder)) },
             singleLine    = true,
             isError       = state.cardNumberError != null,
             supportingText = state.cardNumberError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
@@ -181,8 +187,8 @@ fun PaymentScreen(
         OutlinedTextField(
             value         = state.cardHolder,
             onValueChange = viewModel::onCardHolderChange,
-            label         = { Text("Cardholder Name") },
-            placeholder   = { Text("NAME AS ON CARD") },
+            label         = { Text(stringResource(R.string.cardholder_name)) },
+            placeholder   = { Text(stringResource(R.string.name_as_on_card)) },
             singleLine    = true,
             isError       = state.cardHolderError != null,
             supportingText = state.cardHolderError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
@@ -198,8 +204,8 @@ fun PaymentScreen(
             OutlinedTextField(
                 value         = state.expiry,
                 onValueChange = viewModel::onExpiryChange,
-                label         = { Text("Expiry") },
-                placeholder   = { Text("MM/YY") },
+                label         = { Text(stringResource(R.string.expiry)) },
+                placeholder   = { Text(stringResource(R.string.mm_yy)) },
                 singleLine    = true,
                 isError       = state.expiryError != null,
                 supportingText = state.expiryError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
@@ -212,8 +218,8 @@ fun PaymentScreen(
             OutlinedTextField(
                 value         = state.cvv,
                 onValueChange = viewModel::onCvvChange,
-                label         = { Text("CVV") },
-                placeholder   = { Text("123") },
+                label         = { Text(stringResource(R.string.cvv)) },
+                placeholder   = { Text(stringResource(R.string.cvv_placeholder)) },
                 singleLine    = true,
                 isError       = state.cvvError != null,
                 supportingText = state.cvvError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
@@ -234,7 +240,7 @@ fun PaymentScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    "❌  Card declined. Please check your details or use a different card.",
+                    stringResource(R.string.card_declined_message),
                     modifier = Modifier.padding(16.dp),
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     fontSize = 13.sp
@@ -261,9 +267,9 @@ fun PaymentScreen(
                     color       = MaterialTheme.colorScheme.onPrimary
                 )
                 Spacer(Modifier.width(12.dp))
-                Text("Processing…", fontSize = 16.sp)
+                Text(stringResource(R.string.processing), fontSize = 16.sp)
             } else {
-                Text("Pay $${state.amount.toInt()}", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.pay_amount, state.amount.toInt()), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -272,7 +278,7 @@ fun PaymentScreen(
             onClick  = onSkip,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Skip Payment (Demo)", fontSize = 13.sp,
+            Text(stringResource(R.string.skip_payment_demo), fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
@@ -282,9 +288,9 @@ fun PaymentScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🔒 Secure payment  ·  ", fontSize = 11.sp,
+            Text(stringResource(R.string.secure_payment_prefix), fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("VISA  MC  AMEX  DISCOVER", fontSize = 11.sp,
+            Text(stringResource(R.string.accepted_card_brands), fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium)
         }
