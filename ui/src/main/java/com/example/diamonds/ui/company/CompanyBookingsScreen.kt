@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -59,11 +61,15 @@ fun CompanyBookingsScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     var isRefreshing by remember { mutableStateOf(false) }
     // Show '—' counts while refreshing so stale numbers don't persist
-    val tabs = if (isRefreshing) listOf("Pending (—)", "Active (—)", "Completed (—)")
+    val tabs = if (isRefreshing) listOf(
+        stringResource(R.string.company_tab_pending, "—"),
+        stringResource(R.string.company_tab_active, "—"),
+        stringResource(R.string.company_tab_completed, "—")
+    )
     else listOf(
-        "Pending (${state.pending.size})",
-        "Active (${state.active.size})",
-        "Completed (${state.completed.size})"
+        stringResource(R.string.company_tab_pending, state.pending.size.toString()),
+        stringResource(R.string.company_tab_active, state.active.size.toString()),
+        stringResource(R.string.company_tab_completed, state.completed.size.toString())
     )
 
     LaunchedEffect(Unit) { viewModel.loadBookings() }
@@ -118,9 +124,9 @@ fun CompanyBookingsScreen(
                     Spacer(Modifier.height(12.dp))
                     Text(
                         when (selectedTab) {
-                            0 -> "No pending requests right now."
-                            1 -> "No active jobs at the moment."
-                            else -> "No completed jobs yet."
+                            0 -> stringResource(R.string.company_no_pending_requests)
+                            1 -> stringResource(R.string.company_no_active_jobs)
+                            else -> stringResource(R.string.company_no_completed_jobs)
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -159,15 +165,15 @@ private fun CompanyBookingCard(
     if (showDeclineDialog) {
         AlertDialog(
             onDismissRequest = { showDeclineDialog = false },
-            title   = { Text("Decline Request?") },
-            text    = { Text("The customer will be notified.") },
+            title   = { Text(stringResource(R.string.decline_request_question)) },
+            text    = { Text(stringResource(R.string.company_decline_customer_notified)) },
             confirmButton = {
                 TextButton(onClick = { showDeclineDialog = false; onDecline() }) {
-                    Text("Decline", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.decline), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeclineDialog = false }) { Text("Keep") }
+                TextButton(onClick = { showDeclineDialog = false }) { Text(stringResource(R.string.keep)) }
             }
         )
     }
@@ -177,7 +183,7 @@ private fun CompanyBookingCard(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                    Text("Client: ${item.clientName}", fontSize = 13.sp,
+                    Text(stringResource(R.string.client_name, item.clientName), fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text("$${item.servicePrice.toInt()}", fontWeight = FontWeight.Bold,
@@ -197,7 +203,7 @@ private fun CompanyBookingCard(
                             )
                         }",
                         fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("👤 Cleaner: ${item.cleanerName}", fontSize = 13.sp,
+                    Text(stringResource(R.string.company_cleaner_name, item.cleanerName), fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 2.dp))
                 }
@@ -213,9 +219,9 @@ private fun CompanyBookingCard(
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         )
-                    ) { Text("Decline") }
+                    ) { Text(stringResource(R.string.decline)) }
                     Button(onClick = onAccept, modifier = Modifier.weight(1f)) {
-                        Text("Accept")
+                        Text(stringResource(R.string.accept))
                     }
                 }
             }
@@ -226,11 +232,11 @@ private fun CompanyBookingCard(
 @Composable
 private fun BookingStatusPill(status: BookingStatus) {
     val (label, color) = when (status) {
-        BookingStatus.PENDING     -> "Pending"     to MaterialTheme.colorScheme.tertiary
-        BookingStatus.ACCEPTED    -> "Accepted"    to MaterialTheme.colorScheme.primary
-        BookingStatus.IN_PROGRESS -> "In Progress" to MaterialTheme.colorScheme.secondary
-        BookingStatus.COMPLETED   -> "Completed"   to MaterialTheme.colorScheme.primary
-        BookingStatus.CANCELLED   -> "Cancelled"   to MaterialTheme.colorScheme.error
+        BookingStatus.PENDING     -> stringResource(R.string.pending)     to MaterialTheme.colorScheme.tertiary
+        BookingStatus.ACCEPTED    -> stringResource(R.string.accepted)    to MaterialTheme.colorScheme.primary
+        BookingStatus.IN_PROGRESS -> stringResource(R.string.in_progress) to MaterialTheme.colorScheme.secondary
+        BookingStatus.COMPLETED   -> stringResource(R.string.completed)   to MaterialTheme.colorScheme.primary
+        BookingStatus.CANCELLED   -> stringResource(R.string.cancelled)   to MaterialTheme.colorScheme.error
         else                      -> status.name   to MaterialTheme.colorScheme.onSurfaceVariant
     }
     Card(colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f))) {

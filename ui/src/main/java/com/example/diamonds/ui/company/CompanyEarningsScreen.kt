@@ -27,12 +27,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -80,7 +83,7 @@ fun CompanyEarningsScreen(
                 )
             ) {
                 Column(Modifier.padding(20.dp)) {
-                    Text("This Week's Revenue", fontWeight = FontWeight.SemiBold,
+                    Text(stringResource(R.string.company_this_weeks_revenue), fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Spacer(Modifier.height(4.dp))
                     Text(
@@ -90,7 +93,11 @@ fun CompanyEarningsScreen(
                     )
                     Text(
                         if (isRefreshing) "—"
-                        else "${state.weekJobCount} job${if (state.weekJobCount != 1) "s" else ""} completed across ${state.teamSize} cleaner${if (state.teamSize != 1) "s" else ""}",
+                        else stringResource(
+                            R.string.company_jobs_across_cleaners,
+                            pluralStringResource(R.plurals.company_jobs_plural, state.weekJobCount, state.weekJobCount),
+                            pluralStringResource(R.plurals.company_cleaners_plural, state.teamSize, state.teamSize)
+                        ),
                         fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
@@ -101,21 +108,21 @@ fun CompanyEarningsScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("This Month", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.this_month), fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(12.dp))
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         CompanyKpi(
-                            "Revenue",
+                            stringResource(R.string.revenue),
                             if (isRefreshing) "—" else "$${String.format("%.2f", state.monthTotal)}"
                         )
                         CompanyKpi(
-                            "Jobs",
+                            stringResource(R.string.company_jobs),
                             if (isRefreshing) "—" else "${state.monthJobCount}"
                         )
-                        CompanyKpi("Avg / Job",
+                        CompanyKpi(stringResource(R.string.avg_per_job_stat),
                             if (isRefreshing) "—"
                             else if (state.monthJobCount > 0)
                                 "$${String.format("%.0f", state.monthTotal / state.monthJobCount)}"
@@ -129,7 +136,7 @@ fun CompanyEarningsScreen(
         // ── Per-cleaner breakdown ─────────────────────────────────────────
         if (!isRefreshing && state.cleanerBreakdown.isNotEmpty()) {
             item {
-                Text("By Cleaner", style = MaterialTheme.typography.titleMedium,
+                Text(stringResource(R.string.company_by_cleaner), style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 4.dp))
             }
             items(state.cleanerBreakdown, key = { row: CleanerRevenueRow -> row.cleanerName }) { row ->
@@ -140,7 +147,7 @@ fun CompanyEarningsScreen(
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(row.cleanerName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text("${row.jobCount} job${if (row.jobCount != 1) "s" else ""} this month",
+                            Text(pluralStringResource(R.plurals.company_jobs_this_month, row.jobCount, row.jobCount),
                                 fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Text("$${row.revenue.toInt()}",
@@ -154,7 +161,7 @@ fun CompanyEarningsScreen(
         // ── Recent completed bookings ─────────────────────────────────────
         if (!isRefreshing && state.recentCompleted.isNotEmpty()) {
             item {
-                Text("Recent Completed Jobs", style = MaterialTheme.typography.titleMedium,
+                Text(stringResource(R.string.company_recent_completed_jobs), style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 4.dp))
             }
             items(state.recentCompleted, key = { item: CompanyBookingItem -> item.booking.id }) { item ->
@@ -186,7 +193,7 @@ fun CompanyEarningsScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("💰", fontSize = 48.sp)
                         Spacer(Modifier.height(12.dp))
-                        Text("No completed jobs yet.",
+                        Text(stringResource(R.string.company_no_completed_jobs),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center)
                     }

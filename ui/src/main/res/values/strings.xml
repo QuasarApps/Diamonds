@@ -128,6 +128,77 @@
     <string name="team_size">Team Size</string>
     <string name="active_jobs">Active Jobs</string>
 
+    <!-- Company (screens) -->
+    <string name="company_tab_pending">Pending (%1$s)</string>
+    <string name="company_tab_active">Active (%1$s)</string>
+    <string name="company_tab_completed">Completed (%1$s)</string>
+    <string name="company_no_pending_requests">No pending requests right now.</string>
+    <string name="company_no_active_jobs">No active jobs at the moment.</string>
+    <string name="company_no_completed_jobs">No completed jobs yet.</string>
+    <string name="company_cleaner_name">👤 Cleaner: %1$s</string>
+    <string name="company_decline_customer_notified">The customer will be notified.</string>
+    <string name="company_this_weeks_revenue">This Week\'s Revenue</string>
+    <string name="company_jobs">Jobs</string>
+    <string name="company_by_cleaner">By Cleaner</string>
+    <string name="company_recent_completed_jobs">Recent Completed Jobs</string>
+    <plurals name="company_jobs_this_month">
+        <item quantity="one">%1$d job this month</item>
+        <item quantity="other">%1$d jobs this month</item>
+    </plurals>
+    <plurals name="company_jobs_plural">
+        <item quantity="one">%1$d job</item>
+        <item quantity="other">%1$d jobs</item>
+    </plurals>
+    <plurals name="company_cleaners_plural">
+        <item quantity="one">%1$d cleaner</item>
+        <item quantity="other">%1$d cleaners</item>
+    </plurals>
+    <string name="company_jobs_across_cleaners">%1$s completed across %2$s</string>
+    <plurals name="company_pending_action">
+        <item quantity="one">%1$d request across your team needs action.</item>
+        <item quantity="other">%1$d requests across your team need action.</item>
+    </plurals>
+    <string name="company_overview">Company overview</string>
+    <string name="company_team">Team</string>
+    <string name="company_active">Active</string>
+    <string name="company_no_requests_awaiting">No requests awaiting approval.</string>
+    <string name="company_completed_jobs">Completed jobs</string>
+    <string name="company_no_team_members">No team members yet</string>
+    <string name="company_no_team_members_hint">Cleaners who list your company as their employer will appear here.</string>
+    <string name="company_week_earnings">Week Earnings</string>
+    <plurals name="company_team_members">
+        <item quantity="one">%1$d team member</item>
+        <item quantity="other">%1$d team members</item>
+    </plurals>
+
+    <!-- Support / Claims -->
+    <string name="file_a_claim">File a Claim</string>
+    <string name="claim_what_happened">What happened?</string>
+    <string name="claim_describe_issue">Describe the issue</string>
+    <string name="submit_claim">Submit Claim</string>
+    <string name="claim_details">Claim Details</string>
+    <string name="claim_type_label">Type: %1$s</string>
+    <string name="claim_filed_label">Filed: %1$s</string>
+    <string name="claim_resolution">Resolution</string>
+    <string name="claim_not_found">Claim not found</string>
+    <string name="help_center">Help Center</string>
+    <string name="faq_title">Frequently Asked Questions</string>
+    <string name="my_tickets">My Tickets</string>
+    <string name="support_ticket_created">✅ Your support ticket has been created!</string>
+    <string name="contact_support">Contact Support</string>
+    <string name="subject">Subject</string>
+    <string name="describe_your_issue">Describe your issue</string>
+    <string name="submit_ticket">Submit Ticket</string>
+    <string name="why_cancelling">Why are you cancelling?</string>
+    <string name="additional_notes_optional">Additional notes (optional)</string>
+    <string name="confirm_cancellation">Confirm Cancellation</string>
+    <string name="full_refund_if_applicable">A full refund will be issued if applicable.</string>
+    <string name="booking_date_at_time">%1$s at %2$s</string>
+    <string name="edit_booking">Edit Booking</string>
+    <string name="only_pending_editable">Only PENDING bookings can be edited.</string>
+    <string name="what_help_with">What do you need help with?</string>
+    <string name="status_label">Status: %1$s</string>
+
     <!-- Payments -->
     <string name="card_number">Card Number</string>
     <string name="card_holder">Card Holder</string>

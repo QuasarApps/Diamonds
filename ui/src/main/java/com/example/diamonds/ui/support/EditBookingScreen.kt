@@ -27,8 +27,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +49,7 @@ fun EditBookingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Booking") },
+                title = { Text(stringResource(R.string.edit_booking)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -76,14 +78,14 @@ fun EditBookingScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    "Only PENDING bookings can be edited.",
+                    stringResource(R.string.only_pending_editable),
                     style = MaterialTheme.typography.bodySmall
                 )
 
                 OutlinedTextField(
                     value = state.address,
                     onValueChange = viewModel::onAddressChanged,
-                    label = { Text("Address") },
+                    label = { Text(stringResource(R.string.address)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -100,7 +102,7 @@ fun EditBookingScreen(
                         Modifier.size(20.dp),
                         strokeWidth = 2.dp
                     )
-                    else Text("Save Changes")
+                    else Text(stringResource(R.string.save_changes))
                 }
             }
         }

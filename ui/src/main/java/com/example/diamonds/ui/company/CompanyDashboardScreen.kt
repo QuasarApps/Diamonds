@@ -27,10 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -70,7 +73,7 @@ fun CompanyDashboardScreen(
         Spacer(Modifier.height(8.dp))
         Text(state.companyName, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text(
-            "Company overview",
+            stringResource(R.string.company_overview),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
@@ -84,19 +87,19 @@ fun CompanyDashboardScreen(
             KpiCard(
                 modifier = Modifier.weight(1f),
                 emoji = "👥",
-                label = "Team",
+                label = stringResource(R.string.company_team),
                 value = if (isRefreshing) "—" else "${state.teamSize}"
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 emoji = "⚡",
-                label = "Active",
+                label = stringResource(R.string.company_active),
                 value = if (isRefreshing) "—" else "${state.activeJobCount}"
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 emoji = "📅",
-                label = "Today",
+                label = stringResource(R.string.today),
                 value = if (isRefreshing) "—" else "${state.todayJobCount}"
             )
         }
@@ -121,7 +124,7 @@ fun CompanyDashboardScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Pending Requests", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.pending_requests), fontWeight = FontWeight.SemiBold)
                         if (!isRefreshing && state.pendingCount > 0) {
                             Badge { Text("${state.pendingCount}") }
                         }
@@ -129,8 +132,8 @@ fun CompanyDashboardScreen(
                     Text(
                         when {
                             isRefreshing -> "—"
-                            state.pendingCount == 0 -> "No requests awaiting approval."
-                            else -> "${state.pendingCount} request${if (state.pendingCount > 1) "s" else ""} across your team need${if (state.pendingCount == 1) "s" else ""} action."
+                            state.pendingCount == 0 -> stringResource(R.string.company_no_requests_awaiting)
+                            else -> pluralStringResource(R.plurals.company_pending_action, state.pendingCount, state.pendingCount)
                         },
                         fontSize = 13.sp,
                         color = if (!isRefreshing && state.pendingCount > 0)
@@ -146,7 +149,7 @@ fun CompanyDashboardScreen(
         // ── Weekly earnings ────────────────────────────────────────────────
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("This Week's Revenue", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.company_this_weeks_revenue), fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(6.dp))
                 Text(
                     if (isRefreshing) "—" else "$${String.format("%.2f", state.weekEarnings)}",
@@ -155,7 +158,7 @@ fun CompanyDashboardScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    "Completed jobs",
+                    stringResource(R.string.company_completed_jobs),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
