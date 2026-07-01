@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -118,7 +119,7 @@ fun ProviderRatingsScreen(
                                 enabled    = false,
                                 starSizeSp = 18
                             )
-                            Text(stringResource(R.string.review_count_label, state.totalCount),
+                            Text(pluralStringResource(R.plurals.review_count, state.totalCount, state.totalCount),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -153,10 +154,7 @@ fun ProviderRatingsScreen(
 
         item {
             Text(
-                if (state.totalCount != 1)
-                    stringResource(R.string.reviews_count_header, state.totalCount)
-                else
-                    stringResource(R.string.review_count_header_singular, state.totalCount),
+                pluralStringResource(R.plurals.review_count_header, state.totalCount, state.totalCount),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 4.dp))
         }

@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -204,7 +205,7 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit, onViewRatings:
                     modifier = Modifier.clickable(onClick = onViewRatings)
                 ) {
                     Text("⭐ ${provider.rating}", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
-                    Text(stringResource(R.string.provider_review_count, provider.reviewCount), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(pluralStringResource(R.plurals.review_count_inline, provider.reviewCount, provider.reviewCount), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(stringResource(R.string.chevron_link), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.height(4.dp))

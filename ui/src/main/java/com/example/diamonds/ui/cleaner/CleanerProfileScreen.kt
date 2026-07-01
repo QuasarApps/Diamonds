@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -137,7 +138,7 @@ fun CleanerProfileScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("⭐ ${state.averageRating}", fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
-                        Text(stringResource(R.string.provider_review_count, state.reviewCount), fontSize = 13.sp,
+                        Text(pluralStringResource(R.plurals.review_count_inline, state.reviewCount, state.reviewCount), fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(Modifier.height(4.dp))
