@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,10 +90,10 @@ fun CleanerScheduleScreen(
         ) {
             Text("📅", fontSize = 48.sp)
             Spacer(Modifier.height(16.dp))
-            Text("No upcoming jobs", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            Text(stringResource(R.string.no_upcoming_jobs), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
                 Text(
-                    "Accepted bookings will appear here.",
+                    stringResource(R.string.accepted_bookings_appear_here),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
         }
@@ -103,7 +105,7 @@ fun CleanerScheduleScreen(
             ) {
         if (state.todayJobs.isNotEmpty()) {
             item {
-                SectionHeader("Today")
+                SectionHeader(stringResource(R.string.today))
             }
             items(state.todayJobs, key = { "today-${it.booking.id}" }) { item ->
                 ScheduledJobCard(
@@ -119,7 +121,7 @@ fun CleanerScheduleScreen(
         if (state.upcomingJobs.isNotEmpty()) {
             item {
                 if (state.todayJobs.isNotEmpty()) Spacer(Modifier.height(4.dp))
-                SectionHeader("Upcoming")
+                SectionHeader(stringResource(R.string.upcoming))
             }
             items(state.upcomingJobs, key = { "upcoming-${it.booking.id}" }) { item ->
                 ScheduledJobCard(
@@ -164,7 +166,7 @@ private fun ScheduledJobCard(
                     Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "Client: ${item.clientName}",
+                            stringResource(R.string.client_name, item.clientName),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -217,7 +219,7 @@ private fun ScheduledJobCard(
                         onClick  = { viewModel.startJob(item.booking.id) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Start Job")
+                        Text(stringResource(R.string.start_job))
                     }
                 }
                 BookingStatus.IN_PROGRESS -> {
@@ -226,7 +228,7 @@ private fun ScheduledJobCard(
                         onClick  = { viewModel.completeJob(item.booking.id) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Mark Complete")
+                        Text(stringResource(R.string.mark_complete))
                     }
                 }
                 BookingStatus.COMPLETED -> {
@@ -236,7 +238,7 @@ private fun ScheduledJobCard(
                             onClick = { onReviewClient(item.booking.id, item.booking.clientId) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("⭐ Review Client")
+                            Text(stringResource(R.string.review_client))
                         }
                     }
                     if (onFileClaim != null) {
@@ -245,7 +247,7 @@ private fun ScheduledJobCard(
                             onClick = { onFileClaim(item.booking.id) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("⚠️ Report Issue with Client")
+                            Text(stringResource(R.string.report_issue_with_client))
                         }
                     }
                 }
@@ -258,9 +260,9 @@ private fun ScheduledJobCard(
 @Composable
 private fun JobStatusPill(status: BookingStatus) {
     val (label, color) = when (status) {
-        BookingStatus.ACCEPTED    -> "Accepted"    to MaterialTheme.colorScheme.primary
-        BookingStatus.IN_PROGRESS -> "In Progress" to MaterialTheme.colorScheme.secondary
-        BookingStatus.COMPLETED   -> "Completed"   to MaterialTheme.colorScheme.primary
+        BookingStatus.ACCEPTED    -> stringResource(R.string.accepted)    to MaterialTheme.colorScheme.primary
+        BookingStatus.IN_PROGRESS -> stringResource(R.string.in_progress) to MaterialTheme.colorScheme.secondary
+        BookingStatus.COMPLETED   -> stringResource(R.string.completed)   to MaterialTheme.colorScheme.primary
         else                      -> status.name   to MaterialTheme.colorScheme.onSurfaceVariant
     }
     Card(

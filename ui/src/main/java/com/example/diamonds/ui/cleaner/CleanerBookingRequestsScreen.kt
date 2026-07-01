@@ -33,12 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,10 +89,10 @@ fun CleanerBookingRequestsScreen(
             ) {
                 Text("🎉", fontSize = 48.sp)
                 Spacer(Modifier.height(16.dp))
-                Text("No pending requests", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text(stringResource(R.string.no_pending_requests), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "New booking requests will appear here.",
+                    stringResource(R.string.new_requests_appear_here),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
             }
@@ -123,15 +125,15 @@ private fun BookingRequestCard(
     if (showDeclineDialog) {
         AlertDialog(
             onDismissRequest = { showDeclineDialog = false },
-            title   = { Text("Decline Request?") },
-            text    = { Text("The customer will be notified that their request was not accepted.") },
+            title   = { Text(stringResource(R.string.decline_request_question)) },
+            text    = { Text(stringResource(R.string.decline_request_message)) },
             confirmButton = {
                 TextButton(onClick = { showDeclineDialog = false; onDecline() }) {
-                    Text("Decline", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.decline), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeclineDialog = false }) { Text("Keep") }
+                TextButton(onClick = { showDeclineDialog = false }) { Text(stringResource(R.string.keep)) }
             }
         )
     }
@@ -146,7 +148,7 @@ private fun BookingRequestCard(
                 Column(Modifier.weight(1f)) {
                     Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                     Text(
-                        "Client: ${item.clientName}",
+                        stringResource(R.string.client_name, item.clientName),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -165,15 +167,15 @@ private fun BookingRequestCard(
 
             // Details
             RequestDetailRow(
-                "📅 Date",
+                stringResource(R.string.detail_date),
                 DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate)
             )
             RequestDetailRow(
-                "🕐 Time",
+                stringResource(R.string.detail_time),
                 DateTimeFormatUtil.formatTimeForDisplay(item.booking.scheduledTime)
             )
-            RequestDetailRow("📍 Address", item.booking.address)
-            item.booking.notes?.let { RequestDetailRow("📝 Notes", it) }
+            RequestDetailRow(stringResource(R.string.detail_address), item.booking.address)
+            item.booking.notes?.let { RequestDetailRow(stringResource(R.string.detail_notes), it) }
 
             Spacer(Modifier.height(14.dp))
 
@@ -186,13 +188,13 @@ private fun BookingRequestCard(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Decline")
+                    Text(stringResource(R.string.decline))
                 }
                 Button(
                     onClick = onAccept,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Accept")
+                    Text(stringResource(R.string.accept))
                 }
             }
         }

@@ -30,12 +30,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.ui.R
 
 /**
  * Full-screen form to add or edit a service.
@@ -95,7 +97,7 @@ fun ServiceEditScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            if (isNew) "New Service" else "Edit Service",
+            if (isNew) stringResource(R.string.new_service) else stringResource(R.string.edit_service),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -105,7 +107,7 @@ fun ServiceEditScreen(
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
-            label = { Text("Service Title") },
+            label = { Text(stringResource(R.string.service_title)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -113,7 +115,7 @@ fun ServiceEditScreen(
         OutlinedTextField(
             value = desc,
             onValueChange = { desc = it },
-            label = { Text("Description") },
+            label = { Text(stringResource(R.string.description)) },
             minLines = 2,
             maxLines = 4,
             modifier = Modifier.fillMaxWidth()
@@ -123,7 +125,7 @@ fun ServiceEditScreen(
             OutlinedTextField(
                 value = price,
                 onValueChange = { price = it.filter { c -> c.isDigit() || c == '.' } },
-                label = { Text("Price ($)") },
+                label = { Text(stringResource(R.string.price_dollars)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f)
@@ -131,7 +133,7 @@ fun ServiceEditScreen(
             OutlinedTextField(
                 value = duration,
                 onValueChange = { duration = it.filter { c -> c.isDigit() } },
-                label = { Text("Duration (min)") },
+                label = { Text(stringResource(R.string.duration_min)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
@@ -148,7 +150,7 @@ fun ServiceEditScreen(
                     .replaceFirstChar { it.uppercase() },
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Category") },
+                label = { Text(stringResource(R.string.category)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(catExpanded) },
                 modifier = Modifier
                     .menuAnchor()
@@ -173,7 +175,7 @@ fun ServiceEditScreen(
         Spacer(Modifier.height(8.dp))
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TextButton(onClick = onDone, modifier = Modifier.weight(1f)) { Text("Cancel") }
+            TextButton(onClick = onDone, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.cancel)) }
             Button(
                 onClick = {
                     val priceVal    = price.toDoubleOrNull()    ?: return@Button
@@ -195,7 +197,7 @@ fun ServiceEditScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text(if (isNew) "Add Service" else "Save Changes")
+                    Text(if (isNew) stringResource(R.string.add_service) else stringResource(R.string.save_changes))
                 }
             }
         }

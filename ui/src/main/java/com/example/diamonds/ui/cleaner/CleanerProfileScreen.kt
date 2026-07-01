@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
+import com.example.diamonds.ui.R
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.components.CleaningTypeMultiSelector
 import com.example.diamonds.ui.components.PullToRefreshLayout
@@ -76,13 +78,14 @@ fun CleanerProfileScreen(
     val error       by viewModel.error.collectAsState()
     val snackbar    = remember { SnackbarHostState() }
     var isRefreshing by remember { mutableStateOf(false) }
+    val profileSavedMessage = stringResource(R.string.profile_saved)
 
     LaunchedEffect(Unit) { viewModel.loadProfile() }
     LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
     LaunchedEffect(state.savedSuccess) {
         if (state.savedSuccess) {
-            snackbar.showSnackbar("Profile saved ✓")
+            snackbar.showSnackbar(profileSavedMessage)
             viewModel.clearSavedSuccess()
         }
     }
@@ -128,20 +131,21 @@ fun CleanerProfileScreen(
                 }
                 Spacer(Modifier.width(16.dp))
                 Column {
-                    Text(editName.ifBlank { "Your Name" },
+                    val yourNamePlaceholder = stringResource(R.string.your_name_placeholder)
+                    Text(editName.ifBlank { yourNamePlaceholder },
                         fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("⭐ ${state.averageRating}", fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
-                        Text("  ·  ${state.reviewCount} reviews", fontSize = 13.sp,
+                        Text(stringResource(R.string.provider_review_count, state.reviewCount), fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(Modifier.height(4.dp))
                     // Employment badge
                     val (badgeText, badgeColor) = when (session.cleanerType) {
-                        CleanerType.EMPLOYED -> ("🏢 Employed" to MaterialTheme.colorScheme.secondary)
-                        CleanerType.COMPANY  -> ("🏢 Company"  to MaterialTheme.colorScheme.tertiary)
-                        else                 -> ("🧑‍💼 Independent" to MaterialTheme.colorScheme.primary)
+                        CleanerType.EMPLOYED -> (stringResource(R.string.badge_employed) to MaterialTheme.colorScheme.secondary)
+                        CleanerType.COMPANY  -> (stringResource(R.string.badge_company_emoji) to MaterialTheme.colorScheme.tertiary)
+                        else                 -> (stringResource(R.string.badge_independent_emoji) to MaterialTheme.colorScheme.primary)
                     }
                     Card(
                         colors = CardDefaults.cardColors(
@@ -160,7 +164,7 @@ fun CleanerProfileScreen(
             // ── Specializations ───────────────────────────────────────────
             val providerSpecializations = state.provider?.specializations ?: emptyList()
             if (providerSpecializations.isNotEmpty()) {
-                Text("Specializations", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.specializations), style = MaterialTheme.typography.titleMedium)
                 @OptIn(ExperimentalLayoutApi::class)
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -175,12 +179,12 @@ fun CleanerProfileScreen(
             }
 
             // ── Editable fields ───────────────────────────────────────────
-            Text("Edit Profile", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.edit_profile), style = MaterialTheme.typography.titleMedium)
 
             OutlinedTextField(
                 value = editName,
                 onValueChange = viewModel::onNameChange,
-                label = { Text("Display Name") },
+                label = { Text(stringResource(R.string.display_name)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 modifier = Modifier.fillMaxWidth()
@@ -189,7 +193,7 @@ fun CleanerProfileScreen(
             OutlinedTextField(
                 value = editPhone,
                 onValueChange = viewModel::onPhoneChange,
-                label = { Text("Phone Number") },
+                label = { Text(stringResource(R.string.phone_number)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
@@ -198,14 +202,14 @@ fun CleanerProfileScreen(
             OutlinedTextField(
                 value = editBio,
                 onValueChange = viewModel::onBioChange,
-                label = { Text("Bio / About you") },
+                label = { Text(stringResource(R.string.bio_about_you)) },
                 minLines = 3,
                 maxLines = 6,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Text("My Specializations", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(stringResource(R.string.my_specializations), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             CleaningTypeMultiSelector(
                 selected = editSpecializations,
                 onToggle = viewModel::onToggleSpecialization
@@ -223,7 +227,7 @@ fun CleanerProfileScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Save Changes")
+                    Text(stringResource(R.string.save_changes))
                 }
             }
 
@@ -241,9 +245,9 @@ fun CleanerProfileScreen(
                     Text("🌐", fontSize = 24.sp)
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Language", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(stringResource(R.string.language), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         Text(
-                            "Change app language", fontSize = 12.sp,
+                            stringResource(R.string.change_app_language), fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -263,9 +267,9 @@ fun CleanerProfileScreen(
                     Text("❓", fontSize = 24.sp)
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Help & Support", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(stringResource(R.string.help_and_support), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         Text(
-                            "FAQ, claims, and contact support", fontSize = 12.sp,
+                            stringResource(R.string.help_support_subtitle), fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -282,20 +286,24 @@ fun CleanerProfileScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("My Services", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.my_services), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "${state.services.count { it.isActive }} active · ${state.services.size} total",
+                        stringResource(
+                            R.string.services_active_total,
+                            state.services.count { it.isActive },
+                            state.services.size
+                        ),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                OutlinedButton(onClick = onManageServices) { Text("Manage") }
+                OutlinedButton(onClick = onManageServices) { Text(stringResource(R.string.manage)) }
             }
 
             if (state.services.isEmpty()) {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        "No services yet. Tap Manage to add your first service.",
+                        stringResource(R.string.no_services_yet_hint),
                         modifier = Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
@@ -320,7 +328,7 @@ fun CleanerProfileScreen(
                                 color = MaterialTheme.colorScheme.primary)
                             if (!svc.isActive) {
                                 Spacer(Modifier.width(8.dp))
-                                Text("Off", fontSize = 11.sp,
+                                Text(stringResource(R.string.service_off), fontSize = 11.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
@@ -328,7 +336,7 @@ fun CleanerProfileScreen(
                 }
                 if (state.services.size > 3) {
                     Text(
-                        "+${state.services.size - 3} more…",
+                        stringResource(R.string.more_count, state.services.size - 3),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 4.dp)

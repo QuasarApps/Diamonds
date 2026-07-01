@@ -30,11 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -81,7 +83,7 @@ fun CleanerEarningsScreen(
                 )
             ) {
                 Column(Modifier.padding(20.dp)) {
-                    Text("This Week", fontWeight = FontWeight.SemiBold,
+                    Text(stringResource(R.string.this_week), fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Spacer(Modifier.height(4.dp))
                     Text(
@@ -91,7 +93,11 @@ fun CleanerEarningsScreen(
                     )
                     Text(
                         if (isRefreshing) "—"
-                        else "${state.weekCompletedCount} job${if (state.weekCompletedCount != 1) "s" else ""} completed",
+                        else stringResource(
+                            R.string.jobs_completed_count,
+                            state.weekCompletedCount,
+                            if (state.weekCompletedCount != 1) "s" else ""
+                        ),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -103,7 +109,7 @@ fun CleanerEarningsScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Daily Earnings — Last 7 Days", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.daily_earnings_last_7), fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(12.dp))
                     DailyBarChart(
                         dailyTotals = state.dailyTotals,
@@ -133,21 +139,21 @@ fun CleanerEarningsScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("This Month", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.this_month), fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(8.dp))
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         EarningsStat(
-                            "Revenue",
+                            stringResource(R.string.revenue_stat),
                             if (isRefreshing) "—" else "$${String.format("%.2f", state.monthTotal)}"
                         )
                         EarningsStat(
-                            "Jobs Done",
+                            stringResource(R.string.jobs_done_stat),
                             if (isRefreshing) "—" else "${state.monthCompletedCount}"
                         )
-                        EarningsStat("Avg / Job",
+                        EarningsStat(stringResource(R.string.avg_per_job_stat),
                             if (isRefreshing) "—"
                             else if (state.monthCompletedCount > 0)
                                 "$${String.format("%.0f", state.monthTotal / state.monthCompletedCount)}"

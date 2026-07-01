@@ -41,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.BookingStatus
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 import kotlinx.coroutines.launch
 
@@ -65,7 +67,11 @@ fun CleanerBookingsScreen(
     onFileClaim: ((bookingId: String) -> Unit)? = null,
     viewModel: CleanerViewModel = hiltViewModel()
 ) {
-    val tabTitles = listOf("Requests", "Upcoming", "History")
+    val tabTitles = listOf(
+        stringResource(R.string.requests),
+        stringResource(R.string.upcoming),
+        stringResource(R.string.history)
+    )
     val pagerState = rememberPagerState(pageCount = { tabTitles.size })
     val scope = rememberCoroutineScope()
 
@@ -149,10 +155,10 @@ private fun RequestsTab(viewModel: CleanerViewModel) {
             ) {
                 Text("🎉", fontSize = 48.sp)
                 Spacer(Modifier.height(16.dp))
-                Text("No pending requests", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text(stringResource(R.string.no_pending_requests), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "New booking requests will appear here.",
+                    stringResource(R.string.new_requests_appear_here),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
             }
@@ -225,10 +231,10 @@ private fun UpcomingTab(
             ) {
                 Text("📅", fontSize = 48.sp)
                 Spacer(Modifier.height(16.dp))
-                Text("No upcoming jobs", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text(stringResource(R.string.no_upcoming_jobs), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Accepted bookings will appear here.",
+                    stringResource(R.string.accepted_bookings_appear_here),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
             }
@@ -239,7 +245,7 @@ private fun UpcomingTab(
                 modifier = Modifier.fillMaxSize()
             ) {
                 if (state.todayJobs.isNotEmpty()) {
-                    item { SectionHeader("Today") }
+                    item { SectionHeader(stringResource(R.string.today)) }
                     items(state.todayJobs, key = { "today-${it.booking.id}" }) { item ->
                         ScheduleJobCard(
                             item,
@@ -253,7 +259,7 @@ private fun UpcomingTab(
                 if (state.upcomingJobs.isNotEmpty()) {
                     item {
                         if (state.todayJobs.isNotEmpty()) Spacer(Modifier.height(4.dp))
-                        SectionHeader("Upcoming")
+                        SectionHeader(stringResource(R.string.upcoming))
                     }
                     items(state.upcomingJobs, key = { "upcoming-${it.booking.id}" }) { item ->
                         ScheduleJobCard(
@@ -322,10 +328,10 @@ private fun HistoryTab(
             ) {
                 Text("📜", fontSize = 48.sp)
                 Spacer(Modifier.height(16.dp))
-                Text("No completed jobs yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text(stringResource(R.string.no_completed_jobs_yet), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Completed bookings will appear here.",
+                    stringResource(R.string.completed_bookings_appear_here),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
             }
@@ -358,15 +364,15 @@ private fun RequestCard(
     if (showDeclineDialog) {
         AlertDialog(
             onDismissRequest = { showDeclineDialog = false },
-            title = { Text("Decline Request?") },
-            text = { Text("The customer will be notified that their request was not accepted.") },
+            title = { Text(stringResource(R.string.decline_request_question)) },
+            text = { Text(stringResource(R.string.decline_request_message)) },
             confirmButton = {
                 TextButton(onClick = { showDeclineDialog = false; onDecline() }) {
-                    Text("Decline", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.decline), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeclineDialog = false }) { Text("Keep") }
+                TextButton(onClick = { showDeclineDialog = false }) { Text(stringResource(R.string.keep)) }
             }
         )
     }
@@ -380,7 +386,7 @@ private fun RequestCard(
                 Column(Modifier.weight(1f)) {
                     Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                     Text(
-                        "Client: ${item.clientName}",
+                        stringResource(R.string.client_name, item.clientName),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -396,10 +402,10 @@ private fun RequestCard(
             HorizontalDivider()
             Spacer(Modifier.height(10.dp))
 
-            DetailRow("📅 Date", DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate))
-            DetailRow("🕐 Time", DateTimeFormatUtil.formatTimeForDisplay(item.booking.scheduledTime))
-            DetailRow("📍 Address", item.booking.address)
-            item.booking.notes?.let { DetailRow("📝 Notes", it) }
+            DetailRow(stringResource(R.string.detail_date), DateTimeFormatUtil.formatDateForDisplay(item.booking.scheduledDate))
+            DetailRow(stringResource(R.string.detail_time), DateTimeFormatUtil.formatTimeForDisplay(item.booking.scheduledTime))
+            DetailRow(stringResource(R.string.detail_address), item.booking.address)
+            item.booking.notes?.let { DetailRow(stringResource(R.string.detail_notes), it) }
 
             Spacer(Modifier.height(14.dp))
 
@@ -408,8 +414,8 @@ private fun RequestCard(
                     onClick = { showDeclineDialog = true },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) { Text("Decline") }
-                Button(onClick = onAccept, modifier = Modifier.weight(1f)) { Text("Accept") }
+                ) { Text(stringResource(R.string.decline)) }
+                Button(onClick = onAccept, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.accept)) }
             }
         }
     }
@@ -430,7 +436,7 @@ private fun ScheduleJobCard(
                     Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "Client: ${item.clientName}",
+                            stringResource(R.string.client_name, item.clientName),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -479,7 +485,7 @@ private fun ScheduleJobCard(
                         onClick = { viewModel.startJob(item.booking.id) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Start Job")
+                        Text(stringResource(R.string.start_job))
                     }
                 }
 
@@ -489,7 +495,7 @@ private fun ScheduleJobCard(
                         onClick = { viewModel.completeJob(item.booking.id) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Mark Complete")
+                        Text(stringResource(R.string.mark_complete))
                     }
                 }
 
@@ -499,14 +505,14 @@ private fun ScheduleJobCard(
                         OutlinedButton(
                             onClick = { onReviewClient(item.booking.id, item.booking.clientId) },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("⭐ Review Client") }
+                        ) { Text(stringResource(R.string.review_client)) }
                     }
                     if (onFileClaim != null) {
                         Spacer(Modifier.height(8.dp))
                         TextButton(
                             onClick = { onFileClaim(item.booking.id) },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("⚠️ Report Issue with Client") }
+                        ) { Text(stringResource(R.string.report_issue_with_client)) }
                     }
                 }
 
@@ -530,7 +536,7 @@ private fun HistoryJobCard(
                     Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "Client: ${item.clientName}",
+                            stringResource(R.string.client_name, item.clientName),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -576,14 +582,14 @@ private fun HistoryJobCard(
                 OutlinedButton(
                     onClick = { onReviewClient(item.booking.id, item.booking.clientId) },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("⭐ Review Client") }
+                ) { Text(stringResource(R.string.review_client)) }
             }
             if (onFileClaim != null) {
                 Spacer(Modifier.height(8.dp))
                 TextButton(
                     onClick = { onFileClaim(item.booking.id) },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("⚠️ Report Issue with Client") }
+                ) { Text(stringResource(R.string.report_issue_with_client)) }
             }
         }
     }
@@ -620,9 +626,9 @@ private fun DetailRow(label: String, value: String) {
 @Composable
 private fun StatusPill(status: BookingStatus) {
     val (label, color) = when (status) {
-        BookingStatus.ACCEPTED -> "Accepted" to MaterialTheme.colorScheme.primary
-        BookingStatus.IN_PROGRESS -> "In Progress" to MaterialTheme.colorScheme.secondary
-        BookingStatus.COMPLETED -> "Completed" to MaterialTheme.colorScheme.primary
+        BookingStatus.ACCEPTED -> stringResource(R.string.accepted) to MaterialTheme.colorScheme.primary
+        BookingStatus.IN_PROGRESS -> stringResource(R.string.in_progress) to MaterialTheme.colorScheme.secondary
+        BookingStatus.COMPLETED -> stringResource(R.string.completed) to MaterialTheme.colorScheme.primary
         else -> status.name to MaterialTheme.colorScheme.onSurfaceVariant
     }
     Card(colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f))) {
