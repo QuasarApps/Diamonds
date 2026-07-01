@@ -28,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
 import com.example.diamonds.domain.model.PaymentStatus
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -74,9 +77,9 @@ fun PaymentHistoryScreen(
         ) {
             Text("💳", fontSize = 48.sp)
             Spacer(Modifier.height(12.dp))
-            Text("No payments yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            Text(stringResource(R.string.no_payments_yet), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
-            Text("Your payment receipts will appear here.",
+            Text(stringResource(R.string.payment_receipts_appear_here),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center)
         }
@@ -88,7 +91,7 @@ fun PaymentHistoryScreen(
         ) {
             item {
                 Text(
-                    "${state.items.size} transaction${if (state.items.size != 1) "s" else ""}",
+                    pluralStringResource(R.plurals.transaction_count, state.items.size, state.items.size),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -111,7 +114,7 @@ private fun PaymentHistoryCard(item: PaymentHistoryItem) {
             Column(Modifier.weight(1f)) {
                 Text(item.serviceName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 if (item.providerName.isNotBlank()) {
-                    Text("by ${item.providerName}", fontSize = 12.sp,
+                    Text(stringResource(R.string.by_provider, item.providerName), fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(
