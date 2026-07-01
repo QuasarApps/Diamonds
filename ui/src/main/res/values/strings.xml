@@ -347,7 +347,10 @@
     <string name="duration_min">Duration (min)</string>
     <string name="category">Category</string>
     <string name="this_week">This Week</string>
-    <string name="jobs_completed_count">%1$d job%2$s completed</string>
+    <plurals name="jobs_completed">
+        <item quantity="one">%1$d job completed</item>
+        <item quantity="other">%1$d jobs completed</item>
+    </plurals>
     <string name="daily_earnings_last_7">Daily Earnings — Last 7 Days</string>
     <string name="this_month">This Month</string>
     <string name="revenue_stat">Revenue</string>

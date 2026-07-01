@@ -73,13 +73,21 @@ class CleanerEarningsViewModelTest {
 
     @Test
     fun `loadEarnings calculates week and month totals from completed bookings`() = runTest {
-        val today  = LocalDate.now().toString()
-        val weekStart = LocalDate.now().minusDays(LocalDate.now().dayOfWeek.value.toLong() - 1).toString()
+        val now = LocalDate.now()
+        val today = now.toString()
+        val weekStart = now.minusDays(now.dayOfWeek.value.toLong() - 1)
+        val monthStart = now.withDayOfMonth(1)
+        // A date guaranteed to fall in BOTH the current week and the current month.
+        // Previously b3 was placed at weekStart, which lands in the *previous* month
+        // whenever the week straddles a month boundary (e.g. the first days of a
+        // month), flakily making monthCompletedCount 2 instead of 3.
+        val weekAndMonthStart =
+            (if (weekStart.isBefore(monthStart)) monthStart else weekStart).toString()
 
         val bookings = listOf(
             completedBooking("b1", 79.0, today),
             completedBooking("b2", 119.0, today),
-            completedBooking("b3", 50.0, weekStart)
+            completedBooking("b3", 50.0, weekAndMonthStart)
         )
         coEvery { bookingRepository.getProviderBookings("p1") } returns Result.Success(bookings)
         coEvery { serviceRepository.getService(any()) } returns Result.Error(Exception())

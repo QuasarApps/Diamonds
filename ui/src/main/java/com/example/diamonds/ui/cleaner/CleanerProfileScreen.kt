@@ -83,7 +83,7 @@ fun CleanerProfileScreen(
     LaunchedEffect(Unit) { viewModel.loadProfile() }
     LaunchedEffect(state.isLoading) { if (!state.isLoading) isRefreshing = false }
 
-    LaunchedEffect(state.savedSuccess) {
+    LaunchedEffect(state.savedSuccess, profileSavedMessage) {
         if (state.savedSuccess) {
             snackbar.showSnackbar(profileSavedMessage)
             viewModel.clearSavedSuccess()

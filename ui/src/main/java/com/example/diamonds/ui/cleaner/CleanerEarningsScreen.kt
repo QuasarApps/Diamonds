@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -93,10 +94,10 @@ fun CleanerEarningsScreen(
                     )
                     Text(
                         if (isRefreshing) "—"
-                        else stringResource(
-                            R.string.jobs_completed_count,
+                        else pluralStringResource(
+                            R.plurals.jobs_completed,
                             state.weekCompletedCount,
-                            if (state.weekCompletedCount != 1) "s" else ""
+                            state.weekCompletedCount
                         ),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
