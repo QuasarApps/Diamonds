@@ -24,11 +24,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.diamonds.domain.model.CleaningType
 import com.example.diamonds.domain.model.ServiceCategory
+import com.example.diamonds.ui.R
 
 /**
  * Filter criteria selected by the user.
@@ -60,14 +62,14 @@ fun FilterSection(
     var selectedSpecialization by remember(currentFilters) { mutableStateOf(currentFilters.specialization) }
 
     val categoryLabels = listOf(
-        null to "All",
-        ServiceCategory.APARTMENT_CLEANING to "Apartment",
-        ServiceCategory.HOUSE_CLEANING to "House",
-        ServiceCategory.DEEP_CLEANING to "Deep Clean",
-        ServiceCategory.OFFICE_CLEANING to "Office",
-        ServiceCategory.CARPET_CLEANING to "Carpet",
-        ServiceCategory.WINDOW_CLEANING to "Windows",
-        ServiceCategory.POST_CONSTRUCTION to "Post-Build"
+        null to stringResource(R.string.category_all),
+        ServiceCategory.APARTMENT_CLEANING to stringResource(R.string.category_apartment),
+        ServiceCategory.HOUSE_CLEANING to stringResource(R.string.category_house),
+        ServiceCategory.DEEP_CLEANING to stringResource(R.string.category_deep_clean),
+        ServiceCategory.OFFICE_CLEANING to stringResource(R.string.category_office),
+        ServiceCategory.CARPET_CLEANING to stringResource(R.string.category_carpet),
+        ServiceCategory.WINDOW_CLEANING to stringResource(R.string.category_windows),
+        ServiceCategory.POST_CONSTRUCTION to stringResource(R.string.category_post_build)
     )
 
     AnimatedVisibility(
@@ -84,10 +86,10 @@ fun FilterSection(
         ) {
             HorizontalDivider()
 
-            Text("Filters", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.filters), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             // ── Category ──────────────────────────────────────────────────
-            Text("Category", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(stringResource(R.string.category), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -102,7 +104,7 @@ fun FilterSection(
             }
 
             // ── Min rating ────────────────────────────────────────────────
-            Text("Minimum Rating: ${"%.1f".format(minRating)} ★", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(stringResource(R.string.minimum_rating, minRating), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Slider(
                 value = minRating,
                 onValueChange = { minRating = it },
@@ -111,7 +113,7 @@ fun FilterSection(
             )
 
             // ── Max price ─────────────────────────────────────────────────
-            Text("Max Price: $${maxPrice.toInt()}", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(stringResource(R.string.max_price, maxPrice.toInt()), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Slider(
                 value = maxPrice,
                 onValueChange = { maxPrice = it },
@@ -120,7 +122,7 @@ fun FilterSection(
             )
 
             // ── Specialization ────────────────────────────────────────────
-            Text("Specialization", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(stringResource(R.string.specialization), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             CleaningTypeSelector(
                 selected = selectedSpecialization,
                 onSelect = { selectedSpecialization = it }
@@ -136,7 +138,7 @@ fun FilterSection(
                         selectedSpecialization = null
                     },
                     modifier = Modifier.weight(1f)
-                ) { Text("Reset") }
+                ) { Text(stringResource(R.string.reset)) }
 
                 Button(
                     onClick = {
@@ -151,7 +153,7 @@ fun FilterSection(
                         onDismiss()
                     },
                     modifier = Modifier.weight(1f)
-                ) { Text("Apply Filters") }
+                ) { Text(stringResource(R.string.apply_filters)) }
             }
 
             HorizontalDivider()

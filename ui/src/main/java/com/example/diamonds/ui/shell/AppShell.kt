@@ -1,6 +1,7 @@
 package com.example.diamonds.ui.shell
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,6 +53,7 @@ import androidx.navigation.navDeepLink
 import com.example.diamonds.domain.model.NotificationType
 import com.example.diamonds.domain.repository.UserRole
 import com.example.diamonds.domain.repository.UserSession
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.booking.BookingConfirmationScreen
 import com.example.diamonds.ui.booking.BookingDetailScreen
 import com.example.diamonds.ui.booking.BookingFormScreen
@@ -149,46 +152,47 @@ private fun NavController.isAtTabRoot(): Boolean {
     return dest.id == parent.startDestinationId
 }
 
-/** Derive the top-bar title from the current route and session context. */
-private fun titleForRoute(route: String?, session: UserSession): String {
-    val appName = if (session.role == UserRole.CLEANER) "Diamonds Pro" else "Diamonds"
+/** Derive the top-bar title string resource from the current route and session context. */
+@StringRes
+private fun titleResForRoute(route: String?, session: UserSession): Int {
+    val appNameRes = if (session.role == UserRole.CLEANER) R.string.app_name_pro else R.string.app_name
     return when {
-        route == null -> appName
-        route.startsWith("customer/search")   -> "Find a Cleaner"
-        route.startsWith("customer/services") -> "Services"
-        route.startsWith("customer/book")     -> "Book Service"
-        route.startsWith("customer/confirm")  -> "Booking Confirmed"
-        route.startsWith("customer/booking")  -> "Booking Details"
-        route.startsWith("customer/review")   -> "Leave a Review"
-        route.startsWith("customer/ratings")  -> "Ratings & Reviews"
-        route.startsWith("cleaner/review-client") -> "Review Client"
-        route.startsWith("cleaner/client-ratings") -> "Client Ratings"
-        route.startsWith("customer/pay/success") -> "Payment Successful"
-        route.startsWith("customer/pay")      -> "Secure Payment"
-        route.startsWith("customer/payments") -> "Payment History"
-        route.startsWith("customer/profile")  -> "My Profile"
-        route.startsWith("cleaner/requests")  -> "Booking Requests"
-        route.startsWith("cleaner/schedule")  -> "My Schedule"
-        route.startsWith("cleaner/earnings")  -> "Earnings"
-        route.startsWith("cleaner/profile")   -> "My Profile"
-        route.startsWith("cleaner/services/edit") -> "Edit Service"
-        route.startsWith("cleaner/services")  -> "Manage Services"
-        route.startsWith("company/dashboard") -> "Overview"
-        route.startsWith("company/bookings")  -> "All Bookings"
-        route.startsWith("company/team")      -> "My Team"
-        route.startsWith("company/earnings")  -> "Revenue"
-        route.startsWith("company/profile")   -> "Company Profile"
-        route.startsWith("company/services/edit") -> "Edit Service"
-        route.startsWith("company/services")  -> "Manage Services"
-        route.startsWith("notifications/preferences") -> "Notification Settings"
-        route.startsWith("notifications") -> "Notifications"
-        route.startsWith("sync_status") -> "Sync Status"
-        route.startsWith("customer/map") -> "Pick Location"
-        route.startsWith("customer/tracking") -> "Track Cleaner"
-        route.startsWith("chat/conversations") -> "Messages"
-        route.startsWith("chat/") -> "Chat"
-        route.startsWith("settings/language") -> "Language"
-        else -> appName
+        route == null -> appNameRes
+        route.startsWith("customer/search")   -> R.string.find_a_cleaner
+        route.startsWith("customer/services") -> R.string.services
+        route.startsWith("customer/book")     -> R.string.book_service
+        route.startsWith("customer/confirm")  -> R.string.booking_confirmed
+        route.startsWith("customer/booking")  -> R.string.booking_details
+        route.startsWith("customer/review")   -> R.string.leave_a_review
+        route.startsWith("customer/ratings")  -> R.string.ratings_and_reviews
+        route.startsWith("cleaner/review-client") -> R.string.review_client_title
+        route.startsWith("cleaner/client-ratings") -> R.string.client_ratings
+        route.startsWith("customer/pay/success") -> R.string.payment_successful
+        route.startsWith("customer/pay")      -> R.string.secure_payment
+        route.startsWith("customer/payments") -> R.string.payment_history
+        route.startsWith("customer/profile")  -> R.string.my_profile
+        route.startsWith("cleaner/requests")  -> R.string.booking_requests
+        route.startsWith("cleaner/schedule")  -> R.string.my_schedule
+        route.startsWith("cleaner/earnings")  -> R.string.earnings
+        route.startsWith("cleaner/profile")   -> R.string.my_profile
+        route.startsWith("cleaner/services/edit") -> R.string.edit_service
+        route.startsWith("cleaner/services")  -> R.string.manage_services
+        route.startsWith("company/dashboard") -> R.string.overview
+        route.startsWith("company/bookings")  -> R.string.all_bookings
+        route.startsWith("company/team")      -> R.string.my_team
+        route.startsWith("company/earnings")  -> R.string.revenue
+        route.startsWith("company/profile")   -> R.string.company_profile
+        route.startsWith("company/services/edit") -> R.string.edit_service
+        route.startsWith("company/services")  -> R.string.manage_services
+        route.startsWith("notifications/preferences") -> R.string.notification_settings
+        route.startsWith("notifications") -> R.string.notifications
+        route.startsWith("sync_status") -> R.string.sync_status
+        route.startsWith("customer/map") -> R.string.pick_location
+        route.startsWith("customer/tracking") -> R.string.track_cleaner_title
+        route.startsWith("chat/conversations") -> R.string.messages
+        route.startsWith("chat/") -> R.string.chat
+        route.startsWith("settings/language") -> R.string.language
+        else -> appNameRes
     }
 }
 
@@ -255,7 +259,7 @@ fun AppShell(
     // Whether the current tab is the default start tab.
     val isOnStartTab = selectedTabRoute == startTab.route
 
-    val title = titleForRoute(currentRoute, s)
+    val title = stringResource(titleResForRoute(currentRoute, s))
 
     // ── Back press handling ─────────────────────────────────────────────────
     // When inside an overlay (Notifications / Chat): let the system pop the overlay naturally.
@@ -278,10 +282,10 @@ fun AppShell(
     var showSignOutDialog by remember { mutableStateOf(false) }
     if (showSignOutDialog) {
         ConfirmationDialog(
-            title        = "Sign Out?",
-            message      = "You'll need to sign in again to access your account.",
-            confirmLabel = "Sign Out",
-            dismissLabel = "Cancel",
+            title        = stringResource(R.string.sign_out_question),
+            message      = stringResource(R.string.sign_out_dialog_message),
+            confirmLabel = stringResource(R.string.sign_out),
+            dismissLabel = stringResource(R.string.cancel),
             isDestructive = true,
             onConfirm    = { showSignOutDialog = false; viewModel.logout(onLogout) },
             onDismiss    = { showSignOutDialog = false }
@@ -304,7 +308,7 @@ fun AppShell(
                 navigationIcon = {
                     if (!atTabRoot) {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.cd_back))
                         }
                     }
                 },
@@ -374,13 +378,13 @@ fun AppShell(
                             ) {
                                 Icon(
                                     Icons.Filled.Notifications,
-                                    contentDescription = "Notifications"
+                                    contentDescription = stringResource(R.string.notifications)
                                 )
                             }
                         }
                         TextButton(onClick = { showSignOutDialog = true }) {
                             Text(
-                                "Sign Out",
+                                stringResource(R.string.sign_out),
                                 color = androidx.compose.ui.graphics.Color.White
                             )
                         }
