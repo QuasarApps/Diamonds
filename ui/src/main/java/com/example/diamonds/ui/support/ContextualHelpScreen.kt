@@ -30,8 +30,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,12 +49,12 @@ fun ContextualHelpScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Help & Support") },
+                title = { Text(stringResource(R.string.help_and_support)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            "Back"
+                            stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -79,18 +81,18 @@ fun ContextualHelpScreen(
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp)) {
                             Text(
-                                "Booking #${b.id.takeLast(6)}",
+                                stringResource(R.string.booking_number, b.id.takeLast(6)),
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                "Status: ${b.status.name}",
+                                stringResource(R.string.status_label, b.status.name),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
                 }
 
-                Text("What do you need help with?", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.what_help_with), style = MaterialTheme.typography.titleMedium)
 
                 state.actions.forEach { action ->
                     val isEmergency = action.route == "EMERGENCY"

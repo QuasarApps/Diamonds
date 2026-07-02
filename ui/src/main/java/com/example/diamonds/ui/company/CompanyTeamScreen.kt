@@ -30,11 +30,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
 /**
@@ -83,10 +86,10 @@ fun CompanyTeamScreen(
         ) {
             Text("👥", fontSize = 48.sp)
             Spacer(Modifier.height(16.dp))
-            Text("No team members yet", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            Text(stringResource(R.string.company_no_team_members), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
                 Text(
-                    "Cleaners who list your company as their employer will appear here.",
+                    stringResource(R.string.company_no_team_members_hint),
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
         }
@@ -98,7 +101,7 @@ fun CompanyTeamScreen(
             ) {
                 item {
                     Text(
-                        "${state.members.size} team member${if (state.members.size > 1) "s" else ""}",
+                        pluralStringResource(R.plurals.company_team_members, state.members.size, state.members.size),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -168,9 +171,9 @@ private fun TeamMemberCard(member: CompanyTeamMember) {
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatCell(label = "Active Jobs",    value = "${member.activeJobCount}")
-                StatCell(label = "Pending",        value = "${member.pendingRequestCount}")
-                StatCell(label = "Week Earnings",  value = "$${member.weekEarnings.toInt()}")
+                StatCell(label = stringResource(R.string.active_jobs),    value = "${member.activeJobCount}")
+                StatCell(label = stringResource(R.string.pending),        value = "${member.pendingRequestCount}")
+                StatCell(label = stringResource(R.string.company_week_earnings),  value = "$${member.weekEarnings.toInt()}")
             }
         }
     }

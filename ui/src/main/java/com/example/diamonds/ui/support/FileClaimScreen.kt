@@ -35,9 +35,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.ClaimType
+import com.example.diamonds.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -75,12 +77,12 @@ fun FileClaimScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("File a Claim") },
+                title = { Text(stringResource(R.string.file_a_claim)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            "Back"
+                            stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -95,7 +97,7 @@ fun FileClaimScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("What happened?", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.claim_what_happened), style = MaterialTheme.typography.titleMedium)
 
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -117,7 +119,7 @@ fun FileClaimScreen(
             OutlinedTextField(
                 value = state.description,
                 onValueChange = viewModel::onDescriptionChanged,
-                label = { Text("Describe the issue") },
+                label = { Text(stringResource(R.string.claim_describe_issue)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4
             )
@@ -137,7 +139,7 @@ fun FileClaimScreen(
                     Modifier.size(20.dp),
                     strokeWidth = 2.dp
                 )
-                else Text("Submit Claim")
+                else Text(stringResource(R.string.submit_claim))
             }
         }
     }
@@ -155,12 +157,12 @@ fun ClaimDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Claim Details") },
+                title = { Text(stringResource(R.string.claim_details)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            "Back"
+                            stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -193,11 +195,11 @@ fun ClaimDetailScreen(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Status", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.status), style = MaterialTheme.typography.labelMedium)
                             AssistChip(onClick = {}, label = { Text(claim.status.name) })
                         }
-                        Text("Type: ${claim.claimType.name.replace("_", " ")}")
-                        Text("Filed: ${claim.createdAt}")
+                        Text(stringResource(R.string.claim_type_label, claim.claimType.name.replace("_", " ")))
+                        Text(stringResource(R.string.claim_filed_label, claim.createdAt))
                         HorizontalDivider()
                         Text(claim.description, style = MaterialTheme.typography.bodyMedium)
                     }
@@ -210,7 +212,7 @@ fun ClaimDetailScreen(
                         )
                     ) {
                         Column(Modifier.padding(16.dp)) {
-                            Text("Resolution", style = MaterialTheme.typography.titleSmall)
+                            Text(stringResource(R.string.claim_resolution), style = MaterialTheme.typography.titleSmall)
                             Text(it)
                             claim.refundAmount?.let { amt ->
                                 Text(
@@ -227,7 +229,7 @@ fun ClaimDetailScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(padding), contentAlignment = Alignment.Center) {
-                Text(state.error ?: "Claim not found")
+                Text(state.error ?: stringResource(R.string.claim_not_found))
             }
         }
     }

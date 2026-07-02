@@ -39,8 +39,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,12 +55,12 @@ fun HelpCenterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Help Center") },
+                title = { Text(stringResource(R.string.help_center)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            "Back"
+                            stringResource(R.string.cd_back)
                         )
                     }
                 }
@@ -82,7 +84,7 @@ fun HelpCenterScreen(
             ) {
                 // FAQ section
                 item {
-                    Text("Frequently Asked Questions", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.faq_title), style = MaterialTheme.typography.titleLarge)
                 }
 
                 items(state.articles) { article ->
@@ -104,7 +106,7 @@ fun HelpCenterScreen(
                                 )
                                 Icon(
                                     if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    "Toggle"
+                                    if (expanded) stringResource(R.string.cd_collapse) else stringResource(R.string.cd_expand)
                                 )
                             }
                             AnimatedVisibility(visible = expanded) {
@@ -122,7 +124,7 @@ fun HelpCenterScreen(
                 if (state.tickets.isNotEmpty()) {
                     item {
                         Spacer(Modifier.height(8.dp))
-                        Text("My Tickets", style = MaterialTheme.typography.titleLarge)
+                        Text(stringResource(R.string.my_tickets), style = MaterialTheme.typography.titleLarge)
                     }
                     items(state.tickets) { ticket ->
                         Card(Modifier.fillMaxWidth()) {
@@ -155,7 +157,7 @@ fun HelpCenterScreen(
                             Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                         ) {
-                            Text("✅ Your support ticket has been created!", Modifier.padding(16.dp))
+                            Text(stringResource(R.string.support_ticket_created), Modifier.padding(16.dp))
                         }
                     }
 
@@ -163,7 +165,7 @@ fun HelpCenterScreen(
                         onClick = viewModel::toggleContactForm,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(if (state.showContactForm) "Close" else "Contact Support")
+                        Text(if (state.showContactForm) stringResource(R.string.close) else stringResource(R.string.contact_support))
                     }
 
                     AnimatedVisibility(visible = state.showContactForm) {
@@ -171,13 +173,13 @@ fun HelpCenterScreen(
                             OutlinedTextField(
                                 value = state.contactSubject,
                                 onValueChange = viewModel::onSubjectChanged,
-                                label = { Text("Subject") },
+                                label = { Text(stringResource(R.string.subject)) },
                                 modifier = Modifier.fillMaxWidth()
                             )
                             OutlinedTextField(
                                 value = state.contactDescription,
                                 onValueChange = viewModel::onDescriptionChanged,
-                                label = { Text("Describe your issue") },
+                                label = { Text(stringResource(R.string.describe_your_issue)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 minLines = 3
                             )
@@ -186,7 +188,7 @@ fun HelpCenterScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 enabled = state.contactSubject.isNotBlank() && state.contactDescription.isNotBlank()
                             ) {
-                                Text("Submit Ticket")
+                                Text(stringResource(R.string.submit_ticket))
                             }
                         }
                     }
