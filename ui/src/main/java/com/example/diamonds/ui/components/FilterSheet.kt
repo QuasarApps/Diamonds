@@ -104,7 +104,7 @@ fun FilterSection(
             }
 
             // ── Min rating ────────────────────────────────────────────────
-            Text(stringResource(R.string.minimum_rating, "%.1f".format(minRating)), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+            Text(stringResource(R.string.minimum_rating, minRating), fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Slider(
                 value = minRating,
                 onValueChange = { minRating = it },

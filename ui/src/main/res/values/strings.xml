@@ -483,7 +483,7 @@
 
     <!-- Filters -->
     <string name="filters">Filters</string>
-    <string name="minimum_rating">Minimum Rating: %1$s ★</string>
+    <string name="minimum_rating">Minimum Rating: %1$.1f ★</string>
     <string name="max_price">Max Price: $%1$d</string>
     <string name="specialization">Specialization</string>
     <string name="reset">Reset</string>
