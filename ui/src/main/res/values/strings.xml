@@ -631,4 +631,34 @@
     <string name="cd_add_location">Add location</string>
     <string name="cd_delete">Delete</string>
     <string name="cd_cancel">Cancel</string>
+
+    <!-- Star-rating labels (review picker) -->
+    <string name="rating_great">Great</string>
+    <string name="rating_excellent">Excellent!</string>
+    <string name="tap_to_rate">Tap to rate</string>
+
+    <!-- Relative notification timestamps -->
+    <string name="time_just_now">Just now</string>
+    <string name="time_minutes_ago">%1$dm ago</string>
+    <string name="time_hours_ago">%1$dh ago</string>
+    <string name="time_days_ago">%1$dd ago</string>
+
+    <!-- Sync operation status badges -->
+    <string name="sync_status_pending">⏳ Pending</string>
+    <string name="sync_status_failed">❌ Failed</string>
+    <string name="sync_status_conflict">⚠️ Conflict</string>
+    <string name="sync_status_synced">✅ Synced</string>
+    <string name="sync_status_cancelled">🚫 Cancelled</string>
+    <string name="sync_status_read_only">📖 Read-only</string>
+
+    <!-- Cleaning-type chip labels -->
+    <string name="cleaning_type_standard">Standard</string>
+    <string name="cleaning_type_deep_clean">Deep Clean</string>
+    <string name="cleaning_type_end_of_tenancy">End of Tenancy</string>
+    <string name="cleaning_type_post_construction">Post-Construction</string>
+    <string name="cleaning_type_carpet">Carpet &amp; Upholstery</string>
+    <string name="cleaning_type_window">Window Cleaning</string>
+    <string name="cleaning_type_oven">Oven &amp; Appliance</string>
+    <string name="cleaning_type_move">Move In/Out</string>
+    <string name="cleaning_type_office">Office/Commercial</string>
 </resources>

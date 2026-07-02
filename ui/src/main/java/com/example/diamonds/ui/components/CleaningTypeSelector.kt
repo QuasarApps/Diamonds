@@ -8,21 +8,42 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.diamonds.domain.model.CleaningType
+import com.example.diamonds.ui.R
 
-/** Human-readable labels and icons for each cleaning type. */
-val cleaningTypeLabels: Map<CleaningType, Pair<String, String>> = mapOf(
-    CleaningType.STANDARD to ("🏠" to "Standard"),
-    CleaningType.DEEP_CLEAN to ("🧹" to "Deep Clean"),
-    CleaningType.END_OF_TENANCY to ("🔑" to "End of Tenancy"),
-    CleaningType.POST_CONSTRUCTION to ("🏗️" to "Post-Construction"),
-    CleaningType.CARPET_AND_UPHOLSTERY to ("🛋️" to "Carpet & Upholstery"),
-    CleaningType.WINDOW_CLEANING to ("🪟" to "Window Cleaning"),
-    CleaningType.OVEN_AND_APPLIANCE to ("🍳" to "Oven & Appliance"),
-    CleaningType.MOVE_IN_MOVE_OUT to ("📦" to "Move In/Out"),
-    CleaningType.OFFICE_COMMERCIAL to ("🏢" to "Office/Commercial")
+/** Emoji icon for each cleaning type. */
+val cleaningTypeIcons: Map<CleaningType, String> = mapOf(
+    CleaningType.STANDARD to "🏠",
+    CleaningType.DEEP_CLEAN to "🧹",
+    CleaningType.END_OF_TENANCY to "🔑",
+    CleaningType.POST_CONSTRUCTION to "🏗️",
+    CleaningType.CARPET_AND_UPHOLSTERY to "🛋️",
+    CleaningType.WINDOW_CLEANING to "🪟",
+    CleaningType.OVEN_AND_APPLIANCE to "🍳",
+    CleaningType.MOVE_IN_MOVE_OUT to "📦",
+    CleaningType.OFFICE_COMMERCIAL to "🏢"
 )
+
+/** Localized human-readable label for a [CleaningType]. */
+@Composable
+fun cleaningTypeLabel(type: CleaningType): String = when (type) {
+    CleaningType.STANDARD -> stringResource(R.string.cleaning_type_standard)
+    CleaningType.DEEP_CLEAN -> stringResource(R.string.cleaning_type_deep_clean)
+    CleaningType.END_OF_TENANCY -> stringResource(R.string.cleaning_type_end_of_tenancy)
+    CleaningType.POST_CONSTRUCTION -> stringResource(R.string.cleaning_type_post_construction)
+    CleaningType.CARPET_AND_UPHOLSTERY -> stringResource(R.string.cleaning_type_carpet)
+    CleaningType.WINDOW_CLEANING -> stringResource(R.string.cleaning_type_window)
+    CleaningType.OVEN_AND_APPLIANCE -> stringResource(R.string.cleaning_type_oven)
+    CleaningType.MOVE_IN_MOVE_OUT -> stringResource(R.string.cleaning_type_move)
+    CleaningType.OFFICE_COMMERCIAL -> stringResource(R.string.cleaning_type_office)
+}
+
+/** Emoji + localized label for a [CleaningType], e.g. "🏠 Standard". */
+@Composable
+fun cleaningTypeIconLabel(type: CleaningType): String =
+    "${cleaningTypeIcons[type] ?: "🔷"} ${cleaningTypeLabel(type)}"
 
 /**
  * Single-select chip grid for picking a [CleaningType].
@@ -41,11 +62,10 @@ fun CleaningTypeSelector(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CleaningType.entries.forEach { type ->
-            val (icon, label) = cleaningTypeLabels[type] ?: ("🔷" to type.name)
             FilterChip(
                 selected = selected == type,
                 onClick = { onSelect(if (selected == type) null else type) },
-                label = { Text("$icon $label") }
+                label = { Text(cleaningTypeIconLabel(type)) }
             )
         }
     }
@@ -67,11 +87,10 @@ fun CleaningTypeMultiSelector(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CleaningType.entries.forEach { type ->
-            val (icon, label) = cleaningTypeLabels[type] ?: ("🔷" to type.name)
             FilterChip(
                 selected = type in selected,
                 onClick = { onToggle(type) },
-                label = { Text("$icon $label") }
+                label = { Text(cleaningTypeIconLabel(type)) }
             )
         }
     }

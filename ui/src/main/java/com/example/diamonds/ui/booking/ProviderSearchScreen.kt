@@ -48,7 +48,7 @@ import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.FilterCriteria
 import com.example.diamonds.ui.components.FilterSection
 import com.example.diamonds.ui.components.PullToRefreshLayout
-import com.example.diamonds.ui.components.cleaningTypeLabels
+import com.example.diamonds.ui.components.cleaningTypeIconLabel
 
 private val categories = listOf(
     null to R.string.category_all,
@@ -219,10 +219,9 @@ private fun ProviderCard(provider: Provider, onClick: () -> Unit, onViewRatings:
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         provider.specializations.take(3).forEach { spec ->
-                            val (icon, label) = cleaningTypeLabels[spec] ?: ("🔷" to spec.name)
                             AssistChip(
                                 onClick = {},
-                                label = { Text("$icon $label", fontSize = 11.sp) }
+                                label = { Text(cleaningTypeIconLabel(spec), fontSize = 11.sp) }
                             )
                         }
                     }

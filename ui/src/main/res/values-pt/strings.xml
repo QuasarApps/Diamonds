@@ -584,4 +584,34 @@
     <string name="cd_add_location">Adicionar local</string>
     <string name="cd_delete">Excluir</string>
     <string name="cd_cancel">Cancelar</string>
+
+    <!-- Star-rating labels (review picker) -->
+    <string name="rating_great">Muito bom</string>
+    <string name="rating_excellent">Excelente!</string>
+    <string name="tap_to_rate">Toque para avaliar</string>
+
+    <!-- Relative notification timestamps -->
+    <string name="time_just_now">Agora mesmo</string>
+    <string name="time_minutes_ago">Há %1$d min</string>
+    <string name="time_hours_ago">Há %1$d h</string>
+    <string name="time_days_ago">Há %1$d d</string>
+
+    <!-- Sync operation status badges -->
+    <string name="sync_status_pending">⏳ Pendente</string>
+    <string name="sync_status_failed">❌ Falhou</string>
+    <string name="sync_status_conflict">⚠️ Conflito</string>
+    <string name="sync_status_synced">✅ Sincronizado</string>
+    <string name="sync_status_cancelled">🚫 Cancelado</string>
+    <string name="sync_status_read_only">📖 Somente leitura</string>
+
+    <!-- Cleaning-type chip labels -->
+    <string name="cleaning_type_standard">Padrão</string>
+    <string name="cleaning_type_deep_clean">Limpeza profunda</string>
+    <string name="cleaning_type_end_of_tenancy">Fim de contrato</string>
+    <string name="cleaning_type_post_construction">Pós-obra</string>
+    <string name="cleaning_type_carpet">Carpetes e estofados</string>
+    <string name="cleaning_type_window">Limpeza de janelas</string>
+    <string name="cleaning_type_oven">Forno e eletrodomésticos</string>
+    <string name="cleaning_type_move">Mudança</string>
+    <string name="cleaning_type_office">Escritório/Comercial</string>
 </resources>

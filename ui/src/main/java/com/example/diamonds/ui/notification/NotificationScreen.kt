@@ -271,21 +271,17 @@ private fun NotificationCard(
     }
 }
 
+@Composable
 private fun formatNotificationTime(timestamp: String): String {
-    return try {
-        val millis = timestamp.toLongOrNull() ?: return timestamp
-        val diff = System.currentTimeMillis() - millis
-        val minutes = diff / 60_000
-        val hours = minutes / 60
-        val days = hours / 24
-        when {
-            minutes < 1 -> "Just now"
-            minutes < 60 -> "${minutes}m ago"
-            hours < 24 -> "${hours}h ago"
-            days < 7 -> "${days}d ago"
-            else -> DateTimeFormatUtil.formatTimestampAsDate(millis)
-        }
-    } catch (_: Exception) {
-        timestamp
+    val millis = timestamp.toLongOrNull() ?: return timestamp
+    val minutes = (System.currentTimeMillis() - millis) / 60_000
+    val hours = minutes / 60
+    val days = hours / 24
+    return when {
+        minutes < 1 -> stringResource(R.string.time_just_now)
+        minutes < 60 -> stringResource(R.string.time_minutes_ago, minutes)
+        hours < 24 -> stringResource(R.string.time_hours_ago, hours)
+        days < 7 -> stringResource(R.string.time_days_ago, days)
+        else -> DateTimeFormatUtil.formatTimestampAsDate(millis)
     }
 }

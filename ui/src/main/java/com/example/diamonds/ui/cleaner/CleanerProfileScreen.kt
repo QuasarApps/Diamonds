@@ -51,7 +51,7 @@ import com.example.diamonds.ui.R
 import com.example.diamonds.domain.repository.UserSession
 import com.example.diamonds.ui.components.CleaningTypeMultiSelector
 import com.example.diamonds.ui.components.PullToRefreshLayout
-import com.example.diamonds.ui.components.cleaningTypeLabels
+import com.example.diamonds.ui.components.cleaningTypeIconLabel
 
 /**
  * Profile screen for individual cleaners (INDEPENDENT or EMPLOYED).
@@ -172,8 +172,7 @@ fun CleanerProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     providerSpecializations.forEach { spec ->
-                        val (icon, label) = cleaningTypeLabels[spec] ?: ("🔷" to spec.name)
-                        AssistChip(onClick = {}, label = { Text("$icon $label", fontSize = 12.sp) })
+                        AssistChip(onClick = {}, label = { Text(cleaningTypeIconLabel(spec), fontSize = 12.sp) })
                     }
                 }
                 HorizontalDivider()
