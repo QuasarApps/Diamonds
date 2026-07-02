@@ -591,9 +591,18 @@
 
     <!-- Relative notification timestamps -->
     <string name="time_just_now">Ahora mismo</string>
-    <string name="time_minutes_ago">Hace %1$d min</string>
-    <string name="time_hours_ago">Hace %1$d h</string>
-    <string name="time_days_ago">Hace %1$d d</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">Hace %1$d min</item>
+        <item quantity="other">Hace %1$d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">Hace %1$d h</item>
+        <item quantity="other">Hace %1$d h</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">Hace %1$d d</item>
+        <item quantity="other">Hace %1$d d</item>
+    </plurals>
 
     <!-- Sync operation status badges -->
     <string name="sync_status_pending">⏳ Pendiente</string>

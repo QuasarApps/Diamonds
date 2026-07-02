@@ -639,9 +639,18 @@
 
     <!-- Relative notification timestamps -->
     <string name="time_just_now">Just now</string>
-    <string name="time_minutes_ago">%1$dm ago</string>
-    <string name="time_hours_ago">%1$dh ago</string>
-    <string name="time_days_ago">%1$dd ago</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">%1$dm ago</item>
+        <item quantity="other">%1$dm ago</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">%1$dh ago</item>
+        <item quantity="other">%1$dh ago</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">%1$dd ago</item>
+        <item quantity="other">%1$dd ago</item>
+    </plurals>
 
     <!-- Sync operation status badges -->
     <string name="sync_status_pending">⏳ Pending</string>

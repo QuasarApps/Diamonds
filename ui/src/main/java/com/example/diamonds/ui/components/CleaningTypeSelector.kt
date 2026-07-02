@@ -14,7 +14,7 @@ import com.example.diamonds.domain.model.CleaningType
 import com.example.diamonds.ui.R
 
 /** Emoji icon for each cleaning type. */
-val cleaningTypeIcons: Map<CleaningType, String> = mapOf(
+private val cleaningTypeIcons: Map<CleaningType, String> = mapOf(
     CleaningType.STANDARD to "🏠",
     CleaningType.DEEP_CLEAN to "🧹",
     CleaningType.END_OF_TENANCY to "🔑",

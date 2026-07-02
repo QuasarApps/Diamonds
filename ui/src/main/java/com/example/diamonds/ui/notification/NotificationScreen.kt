@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -279,9 +280,9 @@ private fun formatNotificationTime(timestamp: String): String {
     val days = hours / 24
     return when {
         minutes < 1 -> stringResource(R.string.time_just_now)
-        minutes < 60 -> stringResource(R.string.time_minutes_ago, minutes)
-        hours < 24 -> stringResource(R.string.time_hours_ago, hours)
-        days < 7 -> stringResource(R.string.time_days_ago, days)
+        minutes < 60 -> pluralStringResource(R.plurals.time_minutes_ago, minutes.toInt(), minutes.toInt())
+        hours < 24 -> pluralStringResource(R.plurals.time_hours_ago, hours.toInt(), hours.toInt())
+        days < 7 -> pluralStringResource(R.plurals.time_days_ago, days.toInt(), days.toInt())
         else -> DateTimeFormatUtil.formatTimestampAsDate(millis)
     }
 }

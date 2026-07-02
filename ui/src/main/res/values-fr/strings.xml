@@ -593,9 +593,18 @@
 
     <!-- Relative notification timestamps -->
     <string name="time_just_now">À l\'instant</string>
-    <string name="time_minutes_ago">Il y a %1$d min</string>
-    <string name="time_hours_ago">Il y a %1$d h</string>
-    <string name="time_days_ago">Il y a %1$d j</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="one">Il y a %1$d min</item>
+        <item quantity="other">Il y a %1$d min</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="one">Il y a %1$d h</item>
+        <item quantity="other">Il y a %1$d h</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="one">Il y a %1$d j</item>
+        <item quantity="other">Il y a %1$d j</item>
+    </plurals>
 
     <!-- Sync operation status badges -->
     <string name="sync_status_pending">⏳ En attente</string>
