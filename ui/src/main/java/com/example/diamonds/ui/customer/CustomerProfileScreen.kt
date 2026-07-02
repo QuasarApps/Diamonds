@@ -22,10 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.diamonds.domain.repository.UserSession
+import com.example.diamonds.ui.R
 
 /**
  * Customer profile tab.
@@ -68,7 +70,7 @@ fun CustomerProfileScreen(
             Spacer(Modifier.width(16.dp))
             Column {
                 Text(
-                    session.displayName ?: "Customer",
+                    session.displayName ?: stringResource(R.string.customer),
                     fontWeight = FontWeight.Bold, fontSize = 18.sp
                 )
                 Text(session.email,
@@ -79,7 +81,7 @@ fun CustomerProfileScreen(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
-                    Text("👤 Customer",
+                    Text(stringResource(R.string.badge_customer_emoji),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                         fontSize = 12.sp, fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary)
@@ -90,60 +92,60 @@ fun CustomerProfileScreen(
         HorizontalDivider()
 
         // ── Quick links ───────────────────────────────────────────────────
-        Text("My Account", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.my_account), style = MaterialTheme.typography.titleMedium)
 
         ProfileLinkCard(
             icon    = "📋",
-            title   = "My Bookings",
-            subtitle = "View all your booking history",
+            title   = stringResource(R.string.my_bookings),
+            subtitle = stringResource(R.string.view_all_bookings),
             onClick  = onMyBookings
         )
 
         ProfileLinkCard(
             icon    = "💳",
-            title   = "Payment History",
-            subtitle = "View receipts and transaction history",
+            title   = stringResource(R.string.payment_history),
+            subtitle = stringResource(R.string.view_receipts),
             onClick  = onPaymentHistory
         )
 
         ProfileLinkCard(
             icon = "🔄",
-            title = "Recurring Bookings",
-            subtitle = "Manage your scheduled cleaning plans",
+            title = stringResource(R.string.recurring_bookings),
+            subtitle = stringResource(R.string.manage_scheduled_plans),
             onClick = onSubscriptions
         )
 
         ProfileLinkCard(
             icon = "📍",
-            title = "My Locations",
-            subtitle = "Save and manage your cleaning locations",
+            title = stringResource(R.string.my_locations),
+            subtitle = stringResource(R.string.save_manage_locations),
             onClick = onSavedLocations
         )
 
         ProfileLinkCard(
             icon = "🌐",
-            title = "Language",
-            subtitle = "Change app language",
+            title = stringResource(R.string.language),
+            subtitle = stringResource(R.string.change_app_language),
             onClick = onLanguage
         )
 
         ProfileLinkCard(
             icon = "❓",
-            title = "Help & Support",
-            subtitle = "FAQ, claims, and contact support",
+            title = stringResource(R.string.help_and_support),
+            subtitle = stringResource(R.string.help_support_subtitle),
             onClick = onHelpCenter
         )
 
         HorizontalDivider()
 
         // ── Account info ──────────────────────────────────────────────────
-        Text("Account", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.account), style = MaterialTheme.typography.titleMedium)
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                AccountRow("Email",   session.email)
-                AccountRow("Member since", "2025")   // placeholder — would come from Client model
-                AccountRow("Account type", "Customer")
+                AccountRow(stringResource(R.string.email),   session.email)
+                AccountRow(stringResource(R.string.member_since), "2025")   // placeholder — would come from Client model
+                AccountRow(stringResource(R.string.account_type), stringResource(R.string.customer))
             }
         }
 
@@ -159,7 +161,7 @@ fun CustomerProfileScreen(
                 contentColor = MaterialTheme.colorScheme.error
             )
         ) {
-            Text("Sign Out", fontWeight = FontWeight.Medium)
+            Text(stringResource(R.string.sign_out), fontWeight = FontWeight.Medium)
         }
     }
 }

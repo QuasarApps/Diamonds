@@ -29,11 +29,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.RecurringBooking
 import com.example.diamonds.domain.model.RecurringBookingStatus
+import com.example.diamonds.ui.R
 
 @Composable
 fun SubscriptionManagementScreen(
@@ -49,7 +51,7 @@ fun SubscriptionManagementScreen(
             .padding(16.dp)
     ) {
         Text(
-            "My Recurring Bookings",
+            stringResource(R.string.my_recurring_bookings),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -73,11 +75,11 @@ fun SubscriptionManagementScreen(
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "No recurring bookings yet",
+                            stringResource(R.string.no_recurring_bookings),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            "Set up a recurring booking from any service page",
+                            stringResource(R.string.setup_recurring_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -131,7 +133,7 @@ private fun RecurringBookingCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "by ${recurringBooking.providerName}",
+                        stringResource(R.string.by_provider, recurringBooking.providerName),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -176,7 +178,7 @@ private fun RecurringBookingCard(
 
             Spacer(Modifier.height(4.dp))
             Text(
-                "Next booking: ${recurringBooking.nextBookingDate}",
+                stringResource(R.string.next_booking_date, recurringBooking.nextBookingDate),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary
@@ -187,17 +189,17 @@ private fun RecurringBookingCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (recurringBooking.status == RecurringBookingStatus.ACTIVE) {
                         FilledTonalButton(onClick = onPause) {
-                            Text("⏸ Pause", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.pause_with_icon), style = MaterialTheme.typography.labelMedium)
                         }
                     } else if (recurringBooking.status == RecurringBookingStatus.PAUSED) {
                         FilledTonalButton(onClick = onResume) {
-                            Text("▶ Resume", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.resume_with_icon), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                     IconButton(onClick = onCancel) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "Cancel",
+                            contentDescription = stringResource(R.string.cd_cancel),
                             tint = MaterialTheme.colorScheme.error
                         )
                     }

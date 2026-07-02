@@ -27,12 +27,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.Conversation
+import com.example.diamonds.ui.R
 
 @Composable
 fun ConversationListScreen(
@@ -58,12 +60,12 @@ fun ConversationListScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("💬", fontSize = 48.sp)
                         Text(
-                            "No conversations yet",
+                            stringResource(R.string.no_conversations),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 12.dp)
                         )
                         Text(
-                            "Your chats with cleaners will appear here",
+                            stringResource(R.string.chats_appear_here),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 4.dp)
@@ -92,6 +94,7 @@ private fun ConversationRow(
     conversation: Conversation,
     onClick: () -> Unit
 ) {
+    val startChatting = stringResource(R.string.start_chatting)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -153,7 +156,7 @@ private fun ConversationRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = conversation.lastMessage.ifEmpty { "Start chatting" },
+                    text = conversation.lastMessage.ifEmpty { startChatting },
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (conversation.unreadCount > 0)
                         MaterialTheme.colorScheme.onSurface
