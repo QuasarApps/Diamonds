@@ -106,7 +106,7 @@ fun HelpCenterScreen(
                                 )
                                 Icon(
                                     if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    stringResource(R.string.cd_toggle)
+                                    if (expanded) stringResource(R.string.cd_collapse) else stringResource(R.string.cd_expand)
                                 )
                             }
                             AnimatedVisibility(visible = expanded) {

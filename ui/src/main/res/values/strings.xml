@@ -483,5 +483,6 @@
 
     <!-- Content descriptions (accessibility) -->
     <string name="cd_back">Back</string>
-    <string name="cd_toggle">Toggle</string>
+    <string name="cd_expand">Expand</string>
+    <string name="cd_collapse">Collapse</string>
 </resources>
