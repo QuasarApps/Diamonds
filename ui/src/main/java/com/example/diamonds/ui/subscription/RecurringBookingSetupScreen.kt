@@ -33,10 +33,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.RecurringFrequency
+import com.example.diamonds.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +69,7 @@ fun RecurringBookingSetupScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            "Set Up Recurring Booking",
+            stringResource(R.string.setup_recurring),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -79,16 +81,16 @@ fun RecurringBookingSetupScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "Provider: ${state.providerName.ifEmpty { providerId }}",
+                    stringResource(R.string.provider_label, state.providerName.ifEmpty { providerId }),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    "Service: ${state.serviceName.ifEmpty { serviceId }}",
+                    stringResource(R.string.service_label, state.serviceName.ifEmpty { serviceId }),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 if (state.totalPrice > 0) {
                     Text(
-                        "Price per visit: $${String.format("%.2f", state.totalPrice)}",
+                        stringResource(R.string.price_per_visit, "$" + String.format("%.2f", state.totalPrice)),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -97,7 +99,7 @@ fun RecurringBookingSetupScreen(
         }
 
         // Frequency picker
-        Text("Frequency", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.frequency), style = MaterialTheme.typography.titleMedium)
         var freqExpanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(expanded = freqExpanded, onExpandedChange = { freqExpanded = it }) {
             OutlinedTextField(
@@ -127,8 +129,8 @@ fun RecurringBookingSetupScreen(
         // Day picker
         val dayLabel = when (state.frequency) {
             RecurringFrequency.DAILY -> null
-            RecurringFrequency.WEEKLY, RecurringFrequency.FORTNIGHTLY -> "Day of Week"
-            RecurringFrequency.MONTHLY -> "Day of Month"
+            RecurringFrequency.WEEKLY, RecurringFrequency.FORTNIGHTLY -> stringResource(R.string.day_of_week)
+            RecurringFrequency.MONTHLY -> stringResource(R.string.day_of_month)
         }
         if (dayLabel != null) {
             Text(dayLabel, style = MaterialTheme.typography.titleMedium)
@@ -159,20 +161,20 @@ fun RecurringBookingSetupScreen(
                 }
             } else {
                 val days = listOf(
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday",
-                    "Sunday"
+                    stringResource(R.string.monday),
+                    stringResource(R.string.tuesday),
+                    stringResource(R.string.wednesday),
+                    stringResource(R.string.thursday),
+                    stringResource(R.string.friday),
+                    stringResource(R.string.saturday),
+                    stringResource(R.string.sunday)
                 )
                 var dayExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = dayExpanded,
                     onExpandedChange = { dayExpanded = it }) {
                     OutlinedTextField(
-                        value = days.getOrElse(state.preferredDay - 1) { "Monday" },
+                        value = days.getOrElse(state.preferredDay - 1) { days.first() },
                         onValueChange = {},
                         readOnly = true,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dayExpanded) },
@@ -195,7 +197,7 @@ fun RecurringBookingSetupScreen(
         }
 
         // Time picker (simplified text field)
-        Text("Preferred Time", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.preferred_time), style = MaterialTheme.typography.titleMedium)
         var timeExpanded by remember { mutableStateOf(false) }
         val times = listOf(
             "07:00",
@@ -234,11 +236,11 @@ fun RecurringBookingSetupScreen(
         }
 
         // Address
-        Text("Address", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.address), style = MaterialTheme.typography.titleMedium)
         OutlinedTextField(
             value = state.address,
             onValueChange = { viewModel.onAddressChanged(it) },
-            placeholder = { Text("Enter your address") },
+            placeholder = { Text(stringResource(R.string.enter_your_address)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -265,7 +267,7 @@ fun RecurringBookingSetupScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(Icons.Default.Check, contentDescription = null)
-                    Text("Create Recurring Booking", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.create_recurring_booking), style = MaterialTheme.typography.titleMedium)
                 }
             }
         }

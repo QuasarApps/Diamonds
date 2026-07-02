@@ -24,10 +24,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.RequireLocationPermission
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -52,6 +54,7 @@ fun BookingMapScreen(
 ) {
     val state by viewModel.mapState.collectAsState()
     val error by viewModel.error.collectAsState()
+    val tapToSelect = stringResource(R.string.tap_to_select)
 
     LaunchedEffect(providerId) {
         viewModel.initMap(providerId)
@@ -96,8 +99,8 @@ fun BookingMapScreen(
             state.selectedLocation?.let { loc ->
                 Marker(
                     state = MarkerState(position = LatLng(loc.latitude, loc.longitude)),
-                    title = "Booking Location",
-                    snippet = state.selectedAddress.ifBlank { "Tap to select" }
+                    title = stringResource(R.string.booking_location),
+                    snippet = state.selectedAddress.ifBlank { tapToSelect }
                 )
             }
 
@@ -122,14 +125,14 @@ fun BookingMapScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(Modifier.padding(16.dp)) {
-                Text("Select Location", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(stringResource(R.string.select_location), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = state.selectedAddress,
                     onValueChange = viewModel::onAddressEntered,
-                    label = { Text("Address") },
-                    placeholder = { Text("Tap the map or type an address") },
+                    label = { Text(stringResource(R.string.address)) },
+                    placeholder = { Text(stringResource(R.string.tap_map_or_type_address)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -160,7 +163,7 @@ fun BookingMapScreen(
                         onClick = { viewModel.useMyLocation() },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("📍 My Location")
+                        Text(stringResource(R.string.my_location_with_icon))
                     }
                     Spacer(Modifier.width(12.dp))
                     Button(
@@ -180,7 +183,7 @@ fun BookingMapScreen(
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
-                            Text("Confirm")
+                            Text(stringResource(R.string.confirm))
                         }
                     }
                 }

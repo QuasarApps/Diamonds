@@ -261,12 +261,19 @@
     <string name="payment_alerts">Payment Alerts</string>
     <string name="promotions">Promotions</string>
     <string name="no_notifications">No notifications yet</string>
+    <string name="mark_all_read">Mark All Read</string>
+    <string name="notifications_empty_hint">You\'ll see booking updates, payments, and more here.</string>
+    <string name="delete_with_icon">🗑️ Delete</string>
 
     <!-- Chat -->
     <string name="messages">Messages</string>
     <string name="chat">Chat</string>
     <string name="type_a_message">Type a message…</string>
     <string name="no_conversations">No conversations yet</string>
+    <string name="say_hello">Say hello!</string>
+    <string name="send_message_to_start">Send a message to start the conversation.</string>
+    <string name="chats_appear_here">Your chats with cleaners will appear here</string>
+    <string name="start_chatting">Start chatting</string>
 
     <!-- Sync -->
     <string name="sync_status">Sync Status</string>
@@ -277,12 +284,47 @@
     <string name="retry_all">Retry All</string>
     <string name="keep_local">Keep Local</string>
     <string name="use_server">Use Server</string>
+    <string name="all_synced">All Synced</string>
+    <string name="no_pending_operations">No pending operations</string>
+    <string name="sync_tab_pending">Pending (%1$d)</string>
+    <string name="sync_tab_failed">Failed (%1$d)</string>
+    <string name="sync_tab_conflicts">Conflicts (%1$d)</string>
+    <string name="retry_all_with_icon">🔄 Retry All</string>
+    <string name="all_synced_with_icon">✅ All Synced</string>
+    <string name="sync_failed_summary">❌ %1$d Failed</string>
+    <string name="sync_pending_summary">⏳ %1$d Pending</string>
+    <string name="online_with_icon">🟢 Online</string>
+    <string name="offline_with_icon">🔴 Offline</string>
+    <string name="sync_now">Sync Now</string>
+    <string name="sync_entity_id">ID: %1$s…</string>
+    <string name="sync_error">Error: %1$s</string>
+    <string name="sync_retries">Retries: %1$d</string>
+    <string name="retry_with_icon">🔄 Retry</string>
+    <string name="sync_conflict_label">Conflict: %1$s %2$s</string>
+    <string name="conflict_choose_which">The server has a different version of this data. Choose which to keep:</string>
+    <string name="keep_local_with_icon">📱 Keep Local</string>
+    <string name="use_server_with_icon">☁️ Use Server</string>
+    <plurals name="sync_conflicts_summary">
+        <item quantity="one">⚠️ %1$d Conflict</item>
+        <item quantity="other">⚠️ %1$d Conflicts</item>
+    </plurals>
 
     <!-- Maps -->
     <string name="pick_location">Pick Location</string>
     <string name="search_address">Search address…</string>
     <string name="my_location">My Location</string>
     <string name="confirm_location">Confirm Location</string>
+    <string name="booking_location">Booking Location</string>
+    <string name="tap_to_select">Tap to select</string>
+    <string name="select_location">Select Location</string>
+    <string name="tap_map_or_type_address">Tap the map or type an address</string>
+    <string name="my_location_with_icon">📍 My Location</string>
+    <string name="loading_tracking">Loading tracking…</string>
+    <string name="en_route">En route</string>
+    <string name="service_location">Service Location</string>
+    <string name="is_on_the_way">is on the way</string>
+    <string name="eta">ETA</string>
+    <string name="distance">Distance</string>
 
     <!-- Subscription -->
     <string name="setup_recurring">Set Up Recurring Booking</string>
@@ -294,6 +336,30 @@
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
     <string name="next_booking">Next Booking</string>
+    <string name="provider_label">Provider: %1$s</string>
+    <string name="service_label">Service: %1$s</string>
+    <string name="price_per_visit">Price per visit: %1$s</string>
+    <string name="frequency">Frequency</string>
+    <string name="day_of_week">Day of Week</string>
+    <string name="day_of_month">Day of Month</string>
+    <string name="preferred_time">Preferred Time</string>
+    <string name="enter_your_address">Enter your address</string>
+    <string name="create_recurring_booking">Create Recurring Booking</string>
+    <string name="my_recurring_bookings">My Recurring Bookings</string>
+    <string name="no_recurring_bookings">No recurring bookings yet</string>
+    <string name="setup_recurring_hint">Set up a recurring booking from any service page</string>
+    <string name="next_booking_date">Next booking: %1$s</string>
+    <string name="pause_with_icon">⏸ Pause</string>
+    <string name="resume_with_icon">▶ Resume</string>
+
+    <!-- Days of week -->
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
 
     <!-- Profile -->
     <string name="member_since">Member since</string>
@@ -301,6 +367,16 @@
     <string name="bio">Bio</string>
     <string name="save">Save</string>
     <string name="edit">Edit</string>
+    <string name="badge_customer_emoji">👤 Customer</string>
+    <string name="my_locations">My Locations</string>
+    <string name="save_manage_locations">Save and manage your cleaning locations</string>
+
+    <!-- Saved locations -->
+    <string name="my_saved_locations">My Saved Locations</string>
+    <string name="no_saved_locations">No saved locations yet</string>
+    <string name="tap_plus_add_location">Tap + to add a location</string>
+    <string name="add_location">Add Location</string>
+    <string name="location_label_hint">Label (e.g. Home, Office)</string>
 
     <!-- Language Selector -->
     <string name="language">Language</string>
@@ -551,4 +627,8 @@
     <string name="cd_back">Back</string>
     <string name="cd_expand">Expand</string>
     <string name="cd_collapse">Collapse</string>
+    <string name="cd_send">Send</string>
+    <string name="cd_add_location">Add location</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_cancel">Cancel</string>
 </resources>

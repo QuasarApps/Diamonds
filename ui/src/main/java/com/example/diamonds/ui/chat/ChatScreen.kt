@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.Message
+import com.example.diamonds.ui.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -96,12 +98,12 @@ fun ChatScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("👋", fontSize = 40.sp)
                         Text(
-                            "Say hello!",
+                            stringResource(R.string.say_hello),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                         Text(
-                            "Send a message to start the conversation.",
+                            stringResource(R.string.send_message_to_start),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -153,7 +155,7 @@ fun ChatScreen(
             OutlinedTextField(
                 value = messageText,
                 onValueChange = { messageText = it },
-                placeholder = { Text("Type a message…") },
+                placeholder = { Text(stringResource(R.string.type_a_message)) },
                 modifier = Modifier
                     .weight(1f)
                     .heightIn(min = 40.dp, max = 120.dp),
@@ -196,7 +198,7 @@ fun ChatScreen(
                 } else {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send",
+                        contentDescription = stringResource(R.string.cd_send),
                         tint = if (messageText.isNotBlank())
                             MaterialTheme.colorScheme.onPrimary
                         else

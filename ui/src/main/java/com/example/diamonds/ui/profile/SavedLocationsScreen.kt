@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -38,12 +39,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.LocationDetail
 import com.example.diamonds.domain.model.SavedLocation
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.components.LocationTypeSelector
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,15 +66,17 @@ fun SavedLocationsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Saved Locations") },
+                title = { Text(stringResource(R.string.my_saved_locations)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Text("←", fontSize = 20.sp) }
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+                    }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add location")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_add_location))
             }
         }
     ) { padding ->
@@ -89,9 +94,9 @@ fun SavedLocationsScreen(
                 ) {
                     Text("📍", fontSize = 48.sp)
                     Spacer(Modifier.height(8.dp))
-                    Text("No saved locations yet", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.no_saved_locations), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Tap + to add a location",
+                        stringResource(R.string.tap_plus_add_location),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -166,7 +171,7 @@ private fun SavedLocationCard(
             IconButton(onClick = onDelete, modifier = Modifier.size(40.dp)) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "Delete",
+                    contentDescription = stringResource(R.string.cd_delete),
                     tint = MaterialTheme.colorScheme.error
                 )
             }
@@ -185,23 +190,23 @@ private fun AddLocationDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Location") },
+        title = { Text(stringResource(R.string.add_location)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = label,
                     onValueChange = { label = it },
-                    label = { Text("Label (e.g. Home, Office)") },
+                    label = { Text(stringResource(R.string.location_label_hint)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = address,
                     onValueChange = { address = it },
-                    label = { Text("Address") },
+                    label = { Text(stringResource(R.string.address)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 HorizontalDivider()
-                Text("Property Details", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.property_details), fontWeight = FontWeight.SemiBold)
                 LocationTypeSelector(detail = detail, onDetailChange = { detail = it })
             }
         },
@@ -215,10 +220,10 @@ private fun AddLocationDialog(
                     )
                 },
                 enabled = label.isNotBlank() && address.isNotBlank()
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.save)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

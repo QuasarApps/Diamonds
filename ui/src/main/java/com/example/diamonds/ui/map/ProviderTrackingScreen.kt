@@ -25,11 +25,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.common.util.DateTimeFormatUtil
+import com.example.diamonds.ui.R
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -68,7 +70,7 @@ fun ProviderTrackingScreen(
         ) {
             CircularProgressIndicator()
             Spacer(Modifier.height(12.dp))
-            Text("Loading tracking…")
+            Text(stringResource(R.string.loading_tracking))
         }
         return
     }
@@ -83,7 +85,7 @@ fun ProviderTrackingScreen(
         ) {
             Text("⚠️", fontSize = 40.sp)
             Spacer(Modifier.height(12.dp))
-            Text(error ?: "Something went wrong", color = MaterialTheme.colorScheme.error)
+            Text(error ?: stringResource(R.string.something_went_wrong), color = MaterialTheme.colorScheme.error)
         }
         return
     }
@@ -140,8 +142,8 @@ fun ProviderTrackingScreen(
                             loc.location.longitude
                         )
                     ),
-                    title = state.provider?.name ?: "Cleaner",
-                    snippet = "En route"
+                    title = state.provider?.name ?: stringResource(R.string.cleaner),
+                    snippet = stringResource(R.string.en_route)
                 )
             }
 
@@ -149,7 +151,7 @@ fun ProviderTrackingScreen(
             jobLoc?.let { loc ->
                 Marker(
                     state = MarkerState(position = LatLng(loc.latitude, loc.longitude)),
-                    title = "Service Location",
+                    title = stringResource(R.string.service_location),
                     snippet = state.booking?.address ?: ""
                 )
             }
@@ -180,13 +182,13 @@ fun ProviderTrackingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    state.provider?.name ?: "Cleaner",
+                    state.provider?.name ?: stringResource(R.string.cleaner),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "is on the way",
+                    stringResource(R.string.is_on_the_way),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -205,7 +207,7 @@ fun ProviderTrackingScreen(
                         } ?: "—"
                         Text(etaText, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Text(
-                            "ETA",
+                            stringResource(R.string.eta),
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -227,7 +229,7 @@ fun ProviderTrackingScreen(
                         } ?: "—"
                         Text(distText, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Text(
-                            "Distance",
+                            stringResource(R.string.distance),
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -251,7 +253,7 @@ fun ProviderTrackingScreen(
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(
-                            "Booking #${booking.id.takeLast(6)}",
+                            stringResource(R.string.booking_number, booking.id.takeLast(6)),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

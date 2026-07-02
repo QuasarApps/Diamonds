@@ -34,6 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.EntityType
 import com.example.diamonds.domain.repository.SyncOperation
+import com.example.diamonds.ui.R
 import kotlinx.coroutines.launch
 
 /**
@@ -89,13 +92,13 @@ fun SyncStatusScreen(
                     Text("✅", style = MaterialTheme.typography.displayMedium)
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        "All Synced",
+                        stringResource(R.string.all_synced),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "No pending operations",
+                        stringResource(R.string.no_pending_operations),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -103,10 +106,18 @@ fun SyncStatusScreen(
             }
         } else {
             // ── Tabbed pager ────────────────────────────────────────────────
+            // Compute each tab label only when its list is non-empty (matching tab
+            // visibility), so no stringResource formatting runs for hidden tabs.
+            val pendingLabel = if (state.pendingOps.isNotEmpty())
+                stringResource(R.string.sync_tab_pending, state.pendingOps.size) else null
+            val failedLabel = if (state.failedOps.isNotEmpty())
+                stringResource(R.string.sync_tab_failed, state.failedOps.size) else null
+            val conflictsLabel = if (state.conflictOps.isNotEmpty())
+                stringResource(R.string.sync_tab_conflicts, state.conflictOps.size) else null
             val tabs = buildList {
-                if (state.pendingOps.isNotEmpty()) add("Pending (${state.pendingOps.size})")
-                if (state.failedOps.isNotEmpty()) add("Failed (${state.failedOps.size})")
-                if (state.conflictOps.isNotEmpty()) add("Conflicts (${state.conflictOps.size})")
+                pendingLabel?.let { add(it) }
+                failedLabel?.let { add(it) }
+                conflictsLabel?.let { add(it) }
             }
             val tabTypes = buildList {
                 if (state.pendingOps.isNotEmpty()) add(TabType.PENDING)
@@ -135,7 +146,7 @@ fun SyncStatusScreen(
                     horizontalArrangement = Arrangement.End
                 ) {
                     FilledTonalButton(onClick = { viewModel.retryAllFailed() }) {
-                        Text("🔄 Retry All")
+                        Text(stringResource(R.string.retry_all_with_icon))
                     }
                 }
             }
@@ -200,17 +211,21 @@ private fun SyncSummaryHeader(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = when {
-                        state.allSynced -> "✅ All Synced"
-                        state.conflictOps.isNotEmpty() -> "⚠️ ${state.conflictOps.size} Conflict(s)"
-                        state.failedOps.isNotEmpty() -> "❌ ${state.failedOps.size} Failed"
-                        else -> "⏳ ${state.pendingOps.size} Pending"
+                        state.allSynced -> stringResource(R.string.all_synced_with_icon)
+                        state.conflictOps.isNotEmpty() -> pluralStringResource(
+                            R.plurals.sync_conflicts_summary,
+                            state.conflictOps.size,
+                            state.conflictOps.size
+                        )
+                        state.failedOps.isNotEmpty() -> stringResource(R.string.sync_failed_summary, state.failedOps.size)
+                        else -> stringResource(R.string.sync_pending_summary, state.pendingOps.size)
                     },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = if (state.isOnline) "🟢 Online" else "🔴 Offline",
+                    text = if (state.isOnline) stringResource(R.string.online_with_icon) else stringResource(R.string.offline_with_icon),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -220,7 +235,7 @@ private fun SyncSummaryHeader(
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                 } else {
                     Button(onClick = onSyncNow) {
-                        Text("Sync Now")
+                        Text(stringResource(R.string.sync_now))
                     }
                 }
             }
@@ -284,7 +299,7 @@ private fun SyncOperationCard(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "ID: ${operation.entityId.take(12)}…",
+                        text = stringResource(R.string.sync_entity_id, operation.entityId.take(12)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -297,10 +312,11 @@ private fun SyncOperationCard(
                 )
             }
 
-            if (operation.error != null) {
+            val errorText = operation.error
+            if (errorText != null) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Error: ${operation.error}",
+                    text = stringResource(R.string.sync_error, errorText),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                     maxLines = 2,
@@ -310,7 +326,7 @@ private fun SyncOperationCard(
 
             if (operation.retryCount > 0) {
                 Text(
-                    text = "Retries: ${operation.retryCount}",
+                    text = stringResource(R.string.sync_retries, operation.retryCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -322,7 +338,7 @@ private fun SyncOperationCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (onRetry != null && operation.status == SyncStatus.FAILED) {
                         FilledTonalButton(onClick = { onRetry(operation.id) }) {
-                            Text("🔄 Retry")
+                            Text(stringResource(R.string.retry_with_icon))
                         }
                     }
                     if (onCancel != null) {
@@ -332,7 +348,7 @@ private fun SyncOperationCard(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
                         ) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 }
@@ -383,12 +399,16 @@ private fun ConflictCard(
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Conflict: ${operation.operationType.name} ${operation.entityType.name}",
+                        text = stringResource(
+                            R.string.sync_conflict_label,
+                            operation.operationType.name,
+                            operation.entityType.name
+                        ),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "ID: ${operation.entityId.take(12)}…",
+                        text = stringResource(R.string.sync_entity_id, operation.entityId.take(12)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -406,7 +426,7 @@ private fun ConflictCard(
 
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "The server has a different version of this data. Choose which to keep:",
+                text = stringResource(R.string.conflict_choose_which),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -417,13 +437,13 @@ private fun ConflictCard(
                     onClick = onUseLocal,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("📱 Keep Local")
+                    Text(stringResource(R.string.keep_local_with_icon))
                 }
                 OutlinedButton(
                     onClick = onUseServer,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("☁️ Use Server")
+                    Text(stringResource(R.string.use_server_with_icon))
                 }
             }
         }
