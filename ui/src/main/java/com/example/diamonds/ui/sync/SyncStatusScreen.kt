@@ -312,10 +312,11 @@ private fun SyncOperationCard(
                 )
             }
 
-            if (operation.error != null) {
+            val errorText = operation.error
+            if (errorText != null) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = stringResource(R.string.sync_error, operation.error.orEmpty()),
+                    text = stringResource(R.string.sync_error, errorText),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                     maxLines = 2,
