@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -67,7 +68,9 @@ fun SavedLocationsScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.my_saved_locations)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Text("←", fontSize = 20.sp) }
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+                    }
                 }
             )
         },

@@ -106,13 +106,18 @@ fun SyncStatusScreen(
             }
         } else {
             // ── Tabbed pager ────────────────────────────────────────────────
-            val pendingLabel = stringResource(R.string.sync_tab_pending, state.pendingOps.size)
-            val failedLabel = stringResource(R.string.sync_tab_failed, state.failedOps.size)
-            val conflictsLabel = stringResource(R.string.sync_tab_conflicts, state.conflictOps.size)
+            // Compute each tab label only when its list is non-empty (matching tab
+            // visibility), so no stringResource formatting runs for hidden tabs.
+            val pendingLabel = if (state.pendingOps.isNotEmpty())
+                stringResource(R.string.sync_tab_pending, state.pendingOps.size) else null
+            val failedLabel = if (state.failedOps.isNotEmpty())
+                stringResource(R.string.sync_tab_failed, state.failedOps.size) else null
+            val conflictsLabel = if (state.conflictOps.isNotEmpty())
+                stringResource(R.string.sync_tab_conflicts, state.conflictOps.size) else null
             val tabs = buildList {
-                if (state.pendingOps.isNotEmpty()) add(pendingLabel)
-                if (state.failedOps.isNotEmpty()) add(failedLabel)
-                if (state.conflictOps.isNotEmpty()) add(conflictsLabel)
+                pendingLabel?.let { add(it) }
+                failedLabel?.let { add(it) }
+                conflictsLabel?.let { add(it) }
             }
             val tabTypes = buildList {
                 if (state.pendingOps.isNotEmpty()) add(TabType.PENDING)
