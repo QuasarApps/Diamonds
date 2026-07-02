@@ -11,21 +11,35 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.diamonds.domain.model.LocationDetail
 import com.example.diamonds.domain.model.LocationType
+import com.example.diamonds.ui.R
 
-private val locationTypeLabels: Map<LocationType, Pair<String, String>> = mapOf(
-    LocationType.APARTMENT to ("🏢" to "Apartment"),
-    LocationType.HOUSE to ("🏠" to "House"),
-    LocationType.STUDIO to ("🛏️" to "Studio"),
-    LocationType.OFFICE to ("💼" to "Office"),
-    LocationType.RETAIL to ("🛍️" to "Retail"),
-    LocationType.WAREHOUSE to ("🏭" to "Warehouse"),
-    LocationType.AIRBNB to ("🔑" to "Airbnb/Short-term"),
-    LocationType.OTHER to ("📍" to "Other")
+private val locationTypeIcons: Map<LocationType, String> = mapOf(
+    LocationType.APARTMENT to "🏢",
+    LocationType.HOUSE to "🏠",
+    LocationType.STUDIO to "🛏️",
+    LocationType.OFFICE to "💼",
+    LocationType.RETAIL to "🛍️",
+    LocationType.WAREHOUSE to "🏭",
+    LocationType.AIRBNB to "🔑",
+    LocationType.OTHER to "📍"
 )
+
+@Composable
+private fun locationTypeLabel(type: LocationType): String = when (type) {
+    LocationType.APARTMENT -> stringResource(R.string.category_apartment)
+    LocationType.HOUSE -> stringResource(R.string.category_house)
+    LocationType.STUDIO -> stringResource(R.string.location_type_studio)
+    LocationType.OFFICE -> stringResource(R.string.category_office)
+    LocationType.RETAIL -> stringResource(R.string.location_type_retail)
+    LocationType.WAREHOUSE -> stringResource(R.string.location_type_warehouse)
+    LocationType.AIRBNB -> stringResource(R.string.location_type_airbnb)
+    LocationType.OTHER -> stringResource(R.string.location_type_other)
+}
 
 /**
  * Composite component that allows selecting a [LocationType] and entering room/bathroom/sqft details.
@@ -44,7 +58,8 @@ fun LocationTypeSelector(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             LocationType.entries.forEach { type ->
-                val (icon, label) = locationTypeLabels[type] ?: ("📍" to type.name)
+                val icon = locationTypeIcons[type] ?: "📍"
+                val label = locationTypeLabel(type)
                 FilterChip(
                     selected = detail.locationType == type,
                     onClick = { onDetailChange(detail.copy(locationType = type)) },
@@ -63,7 +78,7 @@ fun LocationTypeSelector(
                 onValueChange = { v ->
                     v.toIntOrNull()?.let { onDetailChange(detail.copy(roomCount = it)) }
                 },
-                label = { Text("Rooms") },
+                label = { Text(stringResource(R.string.rooms)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
             )
@@ -72,7 +87,7 @@ fun LocationTypeSelector(
                 onValueChange = { v ->
                     v.toIntOrNull()?.let { onDetailChange(detail.copy(bathroomCount = it)) }
                 },
-                label = { Text("Bathrooms") },
+                label = { Text(stringResource(R.string.bathrooms)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
             )
@@ -81,7 +96,7 @@ fun LocationTypeSelector(
                 onValueChange = { v ->
                     onDetailChange(detail.copy(sqFootage = if (v.isBlank()) null else v.toIntOrNull()))
                 },
-                label = { Text("Sq Ft (optional)") },
+                label = { Text(stringResource(R.string.sq_ft_optional)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
             )

@@ -14,7 +14,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
+import com.example.diamonds.ui.R
 
 /**
  * Composable wrapper that requests location permissions (FINE + COARSE).
@@ -51,8 +53,8 @@ fun RequireLocationPermission(
     if (showRationale) {
         AlertDialog(
             onDismissRequest = { showRationale = false },
-            title = { Text("Location Permission") },
-            text = { Text("Diamonds needs your location to show nearby cleaners, pick a booking address on the map, and track cleaner arrivals.") },
+            title = { Text(stringResource(R.string.location_permission)) },
+            text = { Text(stringResource(R.string.location_permission_rationale)) },
             confirmButton = {
                 TextButton(onClick = {
                     showRationale = false
@@ -62,13 +64,13 @@ fun RequireLocationPermission(
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         )
                     )
-                }) { Text("Allow") }
+                }) { Text(stringResource(R.string.allow)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showRationale = false
                     onPermissionDenied()
-                }) { Text("Deny") }
+                }) { Text(stringResource(R.string.deny)) }
             }
         )
     }

@@ -31,12 +31,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.diamonds.domain.model.CleanerType
 import com.example.diamonds.domain.repository.UserSession
+import com.example.diamonds.ui.R
 import com.example.diamonds.ui.cleaner.CleanerViewModel
 import com.example.diamonds.ui.components.PullToRefreshLayout
 
@@ -66,10 +69,10 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
         verticalArrangement = Arrangement.Top
     ) {
         Spacer(Modifier.height(24.dp))
-        Text("Welcome, $displayName!", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.welcome_user, displayName), fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text(
-            "What would you like cleaned today?",
+            stringResource(R.string.what_to_clean_today),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(32.dp))
@@ -82,10 +85,10 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(Modifier.padding(20.dp)) {
-                Text("🔍  Find a Cleaner", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.find_a_cleaner_with_icon), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Browse cleaners near you and book a service in minutes.",
+                    stringResource(R.string.browse_cleaners_subtitle),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontSize = 14.sp
                 )
@@ -98,10 +101,10 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
             .fillMaxWidth()
             .clickable { showQuickOptions = !showQuickOptions }) {
             Column(Modifier.padding(16.dp)) {
-                Text("⚡  Quick Book", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.quick_book_with_icon), fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Pick a service category and jump straight in.",
+                    stringResource(R.string.quick_book_subtitle),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -122,12 +125,12 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf(
-                        "🏠" to "House Cleaning",
-                        "🏢" to "Office Cleaning",
-                        "🧹" to "Deep Cleaning",
-                        "🪟" to "Window Cleaning",
-                        "🏗️" to "Post-Construction",
-                        "🧽" to "Carpet Cleaning",
+                        "🏠" to stringResource(R.string.house_cleaning),
+                        "🏢" to stringResource(R.string.office_cleaning),
+                        "🧹" to stringResource(R.string.deep_cleaning),
+                        "🪟" to stringResource(R.string.window_cleaning),
+                        "🏗️" to stringResource(R.string.post_construction),
+                        "🧽" to stringResource(R.string.carpet_cleaning),
                     ).forEach { (icon, label) ->
                         Row(
                             modifier = Modifier
@@ -150,9 +153,14 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("Popular Services", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.popular_services), fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
-                listOf("🏠 House Clean", "🏢 Office Clean", "🧹 Deep Clean", "🪟 Window Clean").forEach { svc ->
+                listOf(
+                    stringResource(R.string.house_clean_with_icon),
+                    stringResource(R.string.office_clean_with_icon),
+                    stringResource(R.string.deep_clean_with_icon),
+                    stringResource(R.string.window_clean_with_icon)
+                ).forEach { svc ->
                     Text(
                         svc,
                         fontSize = 14.sp,
@@ -169,7 +177,7 @@ fun CustomerHomeTab(displayName: String, onStartBooking: () -> Unit = {}) {
         Spacer(Modifier.height(24.dp))
 
         Button(onClick = onStartBooking, modifier = Modifier.fillMaxWidth()) {
-            Text("Book a Service")
+            Text(stringResource(R.string.book_a_service))
         }
     }
     } // end PullToRefreshLayout
@@ -207,7 +215,7 @@ fun CleanerDashboardTab(
     ) {
         Spacer(Modifier.height(8.dp))
 
-        Text("Hello, $displayName!", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.hello_user, displayName), fontSize = 22.sp, fontWeight = FontWeight.Bold)
 
         // Show employer badge for employed cleaners
         if (session.cleanerType == CleanerType.EMPLOYED) {
@@ -218,7 +226,7 @@ fun CleanerDashboardTab(
                 )
             ) {
                 Text(
-                    "🏢  Employed cleaner",
+                    stringResource(R.string.employed_cleaner_with_icon),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
@@ -229,14 +237,14 @@ fun CleanerDashboardTab(
 
         Spacer(Modifier.height(8.dp))
         Text(
-            "Here's your day at a glance.",
+            stringResource(R.string.day_at_a_glance),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(24.dp))
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("Today's Jobs", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.todays_jobs), fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
                 if (isRefreshing) {
                     Text(
@@ -245,13 +253,13 @@ fun CleanerDashboardTab(
                     )
                 } else if (dashState.todayCount == 0) {
                     Text(
-                        "No jobs scheduled for today. Check back soon!",
+                        stringResource(R.string.no_jobs_today),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                 } else {
                     Text(
-                        "${dashState.todayCount} job${if (dashState.todayCount > 1) "s" else ""} scheduled today",
+                        pluralStringResource(R.plurals.jobs_scheduled_today, dashState.todayCount, dashState.todayCount),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary
@@ -270,7 +278,7 @@ fun CleanerDashboardTab(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("New Requests", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.new_requests), fontWeight = FontWeight.SemiBold)
                     if (!isRefreshing && dashState.pendingCount > 0) {
                         Badge { Text("${dashState.pendingCount}") }
                     }
@@ -283,13 +291,13 @@ fun CleanerDashboardTab(
                     )
                 } else if (dashState.pendingCount == 0) {
                     Text(
-                        "No new booking requests right now.",
+                        stringResource(R.string.no_new_requests),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                 } else {
                     Text(
-                        "${dashState.pendingCount} request${if (dashState.pendingCount > 1) "s" else ""} awaiting your response",
+                        pluralStringResource(R.plurals.requests_awaiting_response, dashState.pendingCount, dashState.pendingCount),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.tertiary
@@ -300,7 +308,7 @@ fun CleanerDashboardTab(
         Spacer(Modifier.height(12.dp))
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("This Week's Earnings", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.this_weeks_earnings), fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(4.dp))
                 Text(
                     if (isRefreshing) "—"

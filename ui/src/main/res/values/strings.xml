@@ -481,6 +481,72 @@
     <string name="no_results">No results found</string>
     <string name="per_hour">/hr</string>
 
+    <!-- Filters -->
+    <string name="filters">Filters</string>
+    <string name="minimum_rating">Minimum Rating: %1$s ★</string>
+    <string name="max_price">Max Price: $%1$d</string>
+    <string name="specialization">Specialization</string>
+    <string name="reset">Reset</string>
+    <string name="apply_filters">Apply Filters</string>
+
+    <!-- Location type selector -->
+    <string name="location_type_studio">Studio</string>
+    <string name="location_type_retail">Retail</string>
+    <string name="location_type_warehouse">Warehouse</string>
+    <string name="location_type_airbnb">Airbnb/Short-term</string>
+    <string name="location_type_other">Other</string>
+    <string name="rooms">Rooms</string>
+    <string name="bathrooms">Bathrooms</string>
+    <string name="sq_ft_optional">Sq Ft (optional)</string>
+
+    <!-- Location permission -->
+    <string name="location_permission">Location Permission</string>
+    <string name="location_permission_rationale">Diamonds needs your location to show nearby cleaners, pick a booking address on the map, and track cleaner arrivals.</string>
+    <string name="allow">Allow</string>
+    <string name="deny">Deny</string>
+
+    <!-- Home / Dashboard tabs -->
+    <string name="welcome_user">Welcome, %1$s!</string>
+    <string name="what_to_clean_today">What would you like cleaned today?</string>
+    <string name="find_a_cleaner_with_icon">"🔍  Find a Cleaner"</string>
+    <string name="browse_cleaners_subtitle">Browse cleaners near you and book a service in minutes.</string>
+    <string name="quick_book_with_icon">"⚡  Quick Book"</string>
+    <string name="quick_book_subtitle">Pick a service category and jump straight in.</string>
+    <string name="house_cleaning">House Cleaning</string>
+    <string name="office_cleaning">Office Cleaning</string>
+    <string name="deep_cleaning">Deep Cleaning</string>
+    <string name="window_cleaning">Window Cleaning</string>
+    <string name="post_construction">Post-Construction</string>
+    <string name="carpet_cleaning">Carpet Cleaning</string>
+    <string name="popular_services">Popular Services</string>
+    <string name="house_clean_with_icon">🏠 House Clean</string>
+    <string name="office_clean_with_icon">🏢 Office Clean</string>
+    <string name="deep_clean_with_icon">🧹 Deep Clean</string>
+    <string name="window_clean_with_icon">🪟 Window Clean</string>
+    <string name="book_a_service">Book a Service</string>
+    <string name="hello_user">Hello, %1$s!</string>
+    <string name="employed_cleaner_with_icon">"🏢  Employed cleaner"</string>
+    <string name="day_at_a_glance">Here\'s your day at a glance.</string>
+    <string name="no_jobs_today">No jobs scheduled for today. Check back soon!</string>
+    <plurals name="jobs_scheduled_today">
+        <item quantity="one">%1$d job scheduled today</item>
+        <item quantity="other">%1$d jobs scheduled today</item>
+    </plurals>
+    <string name="new_requests">New Requests</string>
+    <string name="no_new_requests">No new booking requests right now.</string>
+    <plurals name="requests_awaiting_response">
+        <item quantity="one">%1$d request awaiting your response</item>
+        <item quantity="other">%1$d requests awaiting your response</item>
+    </plurals>
+    <string name="this_weeks_earnings">This Week\'s Earnings</string>
+
+    <!-- Navigation / top-bar titles -->
+    <string name="review_client_title">Review Client</string>
+    <string name="client_ratings">Client Ratings</string>
+    <string name="track_cleaner_title">Track Cleaner</string>
+    <string name="sign_out_question">Sign Out?</string>
+    <string name="sign_out_dialog_message">You\'ll need to sign in again to access your account.</string>
+
     <!-- Content descriptions (accessibility) -->
     <string name="cd_back">Back</string>
     <string name="cd_expand">Expand</string>
