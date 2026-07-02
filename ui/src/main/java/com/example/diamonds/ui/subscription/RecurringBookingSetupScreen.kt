@@ -90,7 +90,7 @@ fun RecurringBookingSetupScreen(
                 )
                 if (state.totalPrice > 0) {
                     Text(
-                        stringResource(R.string.price_per_visit, String.format("%.2f", state.totalPrice)),
+                        stringResource(R.string.price_per_visit, "$" + String.format("%.2f", state.totalPrice)),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )

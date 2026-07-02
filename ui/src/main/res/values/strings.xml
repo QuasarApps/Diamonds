@@ -338,7 +338,7 @@
     <string name="next_booking">Next Booking</string>
     <string name="provider_label">Provider: %1$s</string>
     <string name="service_label">Service: %1$s</string>
-    <string name="price_per_visit">Price per visit: $%1$s</string>
+    <string name="price_per_visit">Price per visit: %1$s</string>
     <string name="frequency">Frequency</string>
     <string name="day_of_week">Day of Week</string>
     <string name="day_of_month">Day of Month</string>
