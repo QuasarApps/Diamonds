@@ -112,7 +112,7 @@
 
     <string name="notifications">الإشعارات</string>
     <string name="notification_settings">إعدادات الإشعارات</string>
-    <string name="push_notifications">إشعارات الدفع</string>
+    <string name="push_notifications">الإشعارات الفورية</string>
     <string name="booking_updates">تحديثات الحجوزات</string>
     <string name="payment_alerts">تنبيهات الدفع</string>
     <string name="promotions">العروض</string>
