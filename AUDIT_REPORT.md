@@ -161,9 +161,9 @@ service cloud.firestore {
   `SubscriptionRepository`, `SupportRepository` and the mappers now have tests.)
 - **`:ui/test`**: 13 ViewModel test files. Missing: `MapViewModel`, `NotificationViewModel`,
   `SplashViewModel` (and several support/profile VMs). `ChatViewModel`/`SyncStatusViewModel` now have tests.
-- **`:app/androidTest`**: 17 Compose instrumented tests (good). `ExampleInstrumentedTest.kt`
-  boilerplate never removed.
-- `ExampleUnitTest` (under `:app`) is also unreplaced boilerplate
+- **`:app/androidTest`**: 17 Compose instrumented tests (good). The `ExampleInstrumentedTest.kt`
+  boilerplate has now been removed.
+- `ExampleUnitTest` (under `:app`) has likewise been removed.
 
 ### Priority Test Targets (for Phase 18)
 
@@ -252,7 +252,7 @@ Step" when it was already complete.
 
 20. Expand test coverage to 60%+ (
     priority: `SyncManager`, `ClientRepository`, `PreferencesDataStore`, support/claim repos)
-21. Remove boilerplate `ExampleUnitTest`/`ExampleInstrumentedTest` (the no-op `assert(true)` test is already resolved)
+21. ~~Remove boilerplate `ExampleUnitTest`/`ExampleInstrumentedTest`~~ — **done**; both template files have been deleted.
 
 ---
 
