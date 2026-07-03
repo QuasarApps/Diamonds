@@ -241,7 +241,7 @@ class SyncManager(
                     json.decodeFromString<com.example.diamonds.data.remote.backend.CreateBookingRequest>(
                         payload
                     )
-                backendService.createBooking(req)
+                backendService.createBooking(req).orThrow()
             }
 
             SyncOperationType.UPDATE -> {
@@ -249,11 +249,11 @@ class SyncManager(
                     json.decodeFromString<com.example.diamonds.data.remote.backend.BookingDto>(
                         payload
                     )
-                backendService.updateBookingStatus(entityId, dto.status)
+                backendService.updateBookingStatus(entityId, dto.status).orThrow()
             }
 
-            SyncOperationType.CANCEL -> backendService.cancelBooking(entityId)
-            SyncOperationType.DELETE -> backendService.cancelBooking(entityId)
+            SyncOperationType.CANCEL -> backendService.cancelBooking(entityId).orThrow()
+            SyncOperationType.DELETE -> backendService.cancelBooking(entityId).orThrow()
         }
     }
 
@@ -264,7 +264,7 @@ class SyncManager(
                     json.decodeFromString<com.example.diamonds.data.remote.backend.CreateReviewRequest>(
                         payload
                     )
-                backendService.createReview(req)
+                backendService.createReview(req).orThrow()
             }
 
             else -> { /* Reviews can't be deleted */
@@ -279,7 +279,7 @@ class SyncManager(
                     json.decodeFromString<com.example.diamonds.data.remote.backend.CreatePaymentRequest>(
                         payload
                     )
-                backendService.createPayment(req)
+                backendService.createPayment(req).orThrow()
             }
 
             else -> { /* Payments are immutable */
@@ -294,7 +294,7 @@ class SyncManager(
                     json.decodeFromString<com.example.diamonds.data.remote.backend.ServiceDto>(
                         payload
                     )
-                backendService.createService(dto)
+                backendService.createService(dto).orThrow()
             }
 
             else -> { /* Service deletion not supported */
@@ -308,12 +308,24 @@ class SyncManager(
                 val dto = json.decodeFromString<com.example.diamonds.data.remote.backend.ClientDto>(
                     payload
                 )
-                backendService.updateClient(dto)
+                backendService.updateClient(dto).orThrow()
             }
 
             else -> { /* Profile create/delete handled by auth flow */
             }
         }
+    }
+
+    /**
+     * Unwrap a backend [Result], surfacing a failure as a thrown exception so
+     * [processOperation]'s catch marks the operation FAILED (or CONFLICT). Backends
+     * report errors by returning [Result.Error] rather than throwing, so without this
+     * a rejected write would be silently treated as SYNCED and dropped.
+     */
+    private fun <T> Result<T>.orThrow(): T = when (this) {
+        is Result.Success -> data
+        is Result.Error -> throw exception
+        is Result.Loading -> throw IllegalStateException("Backend returned Loading during sync dispatch")
     }
 
     // ── Backoff ─────────────────────────────────────────────────────────────
