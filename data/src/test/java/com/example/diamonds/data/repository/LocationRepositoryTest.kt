@@ -86,6 +86,17 @@ class LocationRepositoryTest {
         )
     }
 
+    @Test
+    fun `distance matches a known city pair`() {
+        // London → Paris great-circle distance ≈ 343.56 km (independently computed).
+        // This is the only case with both latitude and longitude deltas non-zero, so it
+        // exercises all four Haversine terms at non-zero latitude and pins R against an
+        // external oracle.
+        val london = GeoLocation(51.5074, -0.1278)
+        val paris = GeoLocation(48.8566, 2.3522)
+        assertEquals(343.556, repository.calculateDistance(london, paris), 1.0)
+    }
+
     // ── calculateEta ──────────────────────────────────────────────────────────
 
     @Test

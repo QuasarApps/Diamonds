@@ -115,7 +115,7 @@ None of these block compilation — to its credit the project **does appear to c
 - `:common` declares Compose/Material3/DataStore deps it never uses; god-objects (`BackendServiceStub` 1,131 lines, aggregated `Mappers`/`Daos`/`Entities`/`Modules`).
 - Hand-rolled JSON for `imageUrls`/`locationTags` (`ReviewRepository.kt:179`) doesn't escape embedded quotes/backslashes.
 - `composeOptions kotlinCompilerExtensionVersion = "1.5.0"` lags Compose 1.6.0 (audit says use `1.5.8`); currency hardcoded `"$"` + `String.format` without explicit `Locale`; `org.gradle.parallel` commented out; stale deps (Kotlin 1.9 / Compose 1.6 / AGP 8.5).
-- Boilerplate `ExampleUnitTest`/`ExampleInstrumentedTest` remain; `Turbine` is a declared dependency but **never used** (VM tests assert only final `StateFlow.value`, not the loading→loaded transition); a few instrumentation tests are effectively un-failable due to OR-ed lenient `waitUntil` conditions.
+- The boilerplate `ExampleUnitTest`/`ExampleInstrumentedTest` have been removed; `Turbine` is a declared dependency but **never used** (VM tests assert only final `StateFlow.value`, not the loading→loaded transition); a few instrumentation tests are effectively un-failable due to OR-ed lenient `waitUntil` conditions.
 
 ---
 
