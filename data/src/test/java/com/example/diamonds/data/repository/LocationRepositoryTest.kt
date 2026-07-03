@@ -88,13 +88,16 @@ class LocationRepositoryTest {
 
     @Test
     fun `distance matches a known city pair`() {
-        // London → Paris great-circle distance ≈ 343.56 km (independently computed).
-        // This is the only case with both latitude and longitude deltas non-zero, so it
-        // exercises all four Haversine terms at non-zero latitude and pins R against an
-        // external oracle.
+        // London → Paris ≈ 343.56 km. The only case with both latitude and longitude
+        // deltas non-zero at non-zero latitude, so it exercises all four Haversine terms
+        // and rejects the structural bugs the pure-axis cases can't: a lat/lon swap
+        // (→ 403.6 km) or a dropped cos(lat) factor (→ 403.7 km). The tight ±0.1 km
+        // tolerance also pins the Earth-radius constant near 6371 km — enough to reject
+        // an equatorial (6378 → 343.94) or polar (6357 → 342.79) substitution, while
+        // the deterministic path clears 343.556 by ~6e-5 km so it's never flaky.
         val london = GeoLocation(51.5074, -0.1278)
         val paris = GeoLocation(48.8566, 2.3522)
-        assertEquals(343.556, repository.calculateDistance(london, paris), 1.0)
+        assertEquals(343.556, repository.calculateDistance(london, paris), 0.1)
     }
 
     // ── calculateEta ──────────────────────────────────────────────────────────
