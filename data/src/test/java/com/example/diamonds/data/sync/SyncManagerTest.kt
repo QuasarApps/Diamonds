@@ -1,5 +1,6 @@
 package com.example.diamonds.data.sync
 
+import com.example.diamonds.common.util.Constants
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.local.dao.SyncQueueDao
@@ -260,9 +261,14 @@ class SyncManagerTest {
 
     @Test
     fun `processSyncQueue fails operations past the retry limit without dispatching`() = runTest {
-        // retryCount == MAX_RETRY_ATTEMPTS (5); lastAttemptAt null so the backoff wait is skipped.
+        // retryCount == Constants.MAX_RETRY_ATTEMPTS; lastAttemptAt null so the backoff wait is skipped.
         coEvery { syncQueueDao.getQueuedOperations() } returns
-                listOf(makeEntity(id = "op1", operationType = "CANCEL", status = "PENDING", retryCount = 5))
+                listOf(
+                    makeEntity(
+                        id = "op1", operationType = "CANCEL", status = "PENDING",
+                        retryCount = Constants.MAX_RETRY_ATTEMPTS
+                    )
+                )
 
         manager.processSyncQueue()
 
