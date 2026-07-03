@@ -1,5 +1,6 @@
 package com.example.diamonds.ui.sync
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -307,7 +308,7 @@ private fun SyncOperationCard(
                     )
                 }
                 Text(
-                    text = statusBadge(operation.status),
+                    text = stringResource(statusBadgeRes(operation.status)),
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -463,11 +464,12 @@ private fun iconForEntityType(type: EntityType): String = when (type) {
     EntityType.CLAIM -> "📝"
 }
 
-private fun statusBadge(status: SyncStatus): String = when (status) {
-    SyncStatus.PENDING -> "⏳ Pending"
-    SyncStatus.FAILED -> "❌ Failed"
-    SyncStatus.CONFLICT -> "⚠️ Conflict"
-    SyncStatus.SYNCED -> "✅ Synced"
-    SyncStatus.CANCELLED -> "🚫 Cancelled"
-    SyncStatus.READ_ONLY -> "📖 Read-only"
+@StringRes
+private fun statusBadgeRes(status: SyncStatus): Int = when (status) {
+    SyncStatus.PENDING -> R.string.sync_status_pending
+    SyncStatus.FAILED -> R.string.sync_status_failed
+    SyncStatus.CONFLICT -> R.string.sync_status_conflict
+    SyncStatus.SYNCED -> R.string.sync_status_synced
+    SyncStatus.CANCELLED -> R.string.sync_status_cancelled
+    SyncStatus.READ_ONLY -> R.string.sync_status_read_only
 }

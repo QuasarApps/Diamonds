@@ -635,4 +635,55 @@
     <string name="cd_add_location">إضافة موقع</string>
     <string name="cd_delete">حذف</string>
     <string name="cd_cancel">إلغاء</string>
+
+    <!-- Star-rating labels (review picker) -->
+    <string name="rating_great">جيد جدًا</string>
+    <string name="rating_excellent">ممتاز!</string>
+    <string name="tap_to_rate">اضغط للتقييم</string>
+
+    <!-- Relative notification timestamps -->
+    <string name="time_just_now">الآن</string>
+    <plurals name="time_minutes_ago">
+        <item quantity="zero">منذ %1$d دقيقة</item>
+        <item quantity="one">منذ دقيقة</item>
+        <item quantity="two">منذ دقيقتين</item>
+        <item quantity="few">منذ %1$d دقائق</item>
+        <item quantity="many">منذ %1$d دقيقة</item>
+        <item quantity="other">منذ %1$d دقيقة</item>
+    </plurals>
+    <plurals name="time_hours_ago">
+        <item quantity="zero">منذ %1$d ساعة</item>
+        <item quantity="one">منذ ساعة</item>
+        <item quantity="two">منذ ساعتين</item>
+        <item quantity="few">منذ %1$d ساعات</item>
+        <item quantity="many">منذ %1$d ساعة</item>
+        <item quantity="other">منذ %1$d ساعة</item>
+    </plurals>
+    <plurals name="time_days_ago">
+        <item quantity="zero">منذ %1$d يوم</item>
+        <item quantity="one">منذ يوم</item>
+        <item quantity="two">منذ يومين</item>
+        <item quantity="few">منذ %1$d أيام</item>
+        <item quantity="many">منذ %1$d يوم</item>
+        <item quantity="other">منذ %1$d يوم</item>
+    </plurals>
+
+    <!-- Sync operation status badges -->
+    <string name="sync_status_pending">⏳ قيد الانتظار</string>
+    <string name="sync_status_failed">❌ فشل</string>
+    <string name="sync_status_conflict">⚠️ تعارض</string>
+    <string name="sync_status_synced">✅ متزامن</string>
+    <string name="sync_status_cancelled">🚫 ملغى</string>
+    <string name="sync_status_read_only">📖 للقراءة فقط</string>
+
+    <!-- Cleaning-type chip labels -->
+    <string name="cleaning_type_standard">قياسي</string>
+    <string name="cleaning_type_deep_clean">تنظيف عميق</string>
+    <string name="cleaning_type_end_of_tenancy">نهاية الإيجار</string>
+    <string name="cleaning_type_post_construction">ما بعد البناء</string>
+    <string name="cleaning_type_carpet">السجاد والمفروشات</string>
+    <string name="cleaning_type_window">تنظيف النوافذ</string>
+    <string name="cleaning_type_oven">الفرن والأجهزة</string>
+    <string name="cleaning_type_move">تنظيف الانتقال</string>
+    <string name="cleaning_type_office">مكتب/تجاري</string>
 </resources>

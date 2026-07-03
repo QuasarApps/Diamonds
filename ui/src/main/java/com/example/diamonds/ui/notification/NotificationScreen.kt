@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -271,21 +272,17 @@ private fun NotificationCard(
     }
 }
 
+@Composable
 private fun formatNotificationTime(timestamp: String): String {
-    return try {
-        val millis = timestamp.toLongOrNull() ?: return timestamp
-        val diff = System.currentTimeMillis() - millis
-        val minutes = diff / 60_000
-        val hours = minutes / 60
-        val days = hours / 24
-        when {
-            minutes < 1 -> "Just now"
-            minutes < 60 -> "${minutes}m ago"
-            hours < 24 -> "${hours}h ago"
-            days < 7 -> "${days}d ago"
-            else -> DateTimeFormatUtil.formatTimestampAsDate(millis)
-        }
-    } catch (_: Exception) {
-        timestamp
+    val millis = timestamp.toLongOrNull() ?: return timestamp
+    val minutes = (System.currentTimeMillis() - millis) / 60_000
+    val hours = minutes / 60
+    val days = hours / 24
+    return when {
+        minutes < 1 -> stringResource(R.string.time_just_now)
+        minutes < 60 -> pluralStringResource(R.plurals.time_minutes_ago, minutes.toInt(), minutes.toInt())
+        hours < 24 -> pluralStringResource(R.plurals.time_hours_ago, hours.toInt(), hours.toInt())
+        days < 7 -> pluralStringResource(R.plurals.time_days_ago, days.toInt(), days.toInt())
+        else -> DateTimeFormatUtil.formatTimestampAsDate(millis)
     }
 }

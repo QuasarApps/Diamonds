@@ -1,5 +1,6 @@
 package com.example.diamonds.ui.booking
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -118,7 +119,7 @@ fun ReviewScreen(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                starLabel(state.rating),
+                stringResource(starLabelRes(state.rating)),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = if (state.rating > 0) MaterialTheme.colorScheme.primary
@@ -244,11 +245,12 @@ fun StarPicker(
     }
 }
 
-private fun starLabel(rating: Int) = when (rating) {
-    1 -> "Poor"
-    2 -> "Fair"
-    3 -> "Good"
-    4 -> "Great"
-    5 -> "Excellent!"
-    else -> "Tap to rate"
+@StringRes
+private fun starLabelRes(rating: Int): Int = when (rating) {
+    1 -> R.string.poor
+    2 -> R.string.fair
+    3 -> R.string.good
+    4 -> R.string.rating_great
+    5 -> R.string.rating_excellent
+    else -> R.string.tap_to_rate
 }
