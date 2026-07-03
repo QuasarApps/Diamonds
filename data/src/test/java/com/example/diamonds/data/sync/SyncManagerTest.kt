@@ -248,6 +248,20 @@ class SyncManagerTest {
     }
 
     @Test
+    fun `processSyncQueue records a failure when the backend returns Result Error`() = runTest {
+        coEvery { syncQueueDao.getQueuedOperations() } returns
+                listOf(makeEntity(id = "op1", operationType = "CANCEL", status = "PENDING"))
+        // Backends report errors by returning Result.Error rather than throwing.
+        coEvery { backendService.cancelBooking("b1") } returns Result.Error(RuntimeException("server rejected"))
+
+        manager.processSyncQueue()
+
+        // Must be treated as a failure — not silently marked SYNCED and dropped.
+        coVerify { syncQueueDao.updateAfterRetry("op1", "FAILED", any(), any()) }
+        coVerify(exactly = 0) { syncQueueDao.updateStatus("op1", "SYNCED") }
+    }
+
+    @Test
     fun `processSyncQueue marks a conflict when the backend reports one`() = runTest {
         coEvery { syncQueueDao.getQueuedOperations() } returns
                 listOf(makeEntity(id = "op1", operationType = "CANCEL", status = "PENDING"))
