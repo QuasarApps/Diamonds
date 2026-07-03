@@ -38,6 +38,13 @@ class LocationRepositoryTest {
         repository = LocationRepository(db, backendService, connectivityObserver, fusedLocationClient)
     }
 
+    /**
+     * One degree along a great circle. A pure latitude delta (or an equatorial longitude
+     * delta) reduces the Haversine formula exactly to `R · Δ`, so this is the expected
+     * distance for both — derived from the same constants the implementation uses (≈ 111.19 km).
+     */
+    private val oneDegreeKm = 6371.0 * Math.toRadians(1.0)
+
     // ── calculateDistance ─────────────────────────────────────────────────────
 
     @Test
@@ -47,17 +54,17 @@ class LocationRepositoryTest {
     }
 
     @Test
-    fun `one degree of latitude is about 111 km`() {
-        // R * toRadians(1) = 6371 * 0.0174533 ≈ 111.19 km
+    fun `one degree of latitude equals R times one radian-degree`() {
+        // A pure latitude delta reduces the Haversine formula exactly to R · Δφ.
         val distance = repository.calculateDistance(GeoLocation(0.0, 0.0), GeoLocation(1.0, 0.0))
-        assertEquals(111.19, distance, 0.5)
+        assertEquals(oneDegreeKm, distance, 1e-6)
     }
 
     @Test
-    fun `one degree of longitude at the equator is about 111 km`() {
-        // At the equator cos(lat) = 1, so a longitude degree spans the same as a latitude degree.
+    fun `one degree of longitude at the equator equals R times one radian-degree`() {
+        // At the equator cos(lat) = 1, so a longitude degree reduces to R · Δλ, same as latitude.
         val distance = repository.calculateDistance(GeoLocation(0.0, 0.0), GeoLocation(0.0, 1.0))
-        assertEquals(111.19, distance, 0.5)
+        assertEquals(oneDegreeKm, distance, 1e-6)
     }
 
     @Test
@@ -85,15 +92,15 @@ class LocationRepositoryTest {
     fun `eta assumes 30 km per hour`() = runTest {
         val from = GeoLocation(0.0, 0.0)
         val to = GeoLocation(1.0, 0.0)
-        val distanceKm = repository.calculateDistance(from, to)
 
         val result = repository.calculateEta(from, to)
 
         assertTrue(result is Result.Success)
         val etaMinutes = (result as Result.Success).data
-        // eta = distance / 30 km/h * 60 min  (i.e. 2 minutes per km)
-        assertEquals(distanceKm / 30.0 * 60.0, etaMinutes, 1e-6)
-        assertEquals(222.39, etaMinutes, 1.0)
+        // 30 km/h ⇒ 2 min/km. Derived from R · Δφ so the assertion is independent of
+        // calculateDistance while staying deterministic.
+        val expectedEtaMinutes = oneDegreeKm / 30.0 * 60.0
+        assertEquals(expectedEtaMinutes, etaMinutes, 1e-6)
     }
 
     @Test
