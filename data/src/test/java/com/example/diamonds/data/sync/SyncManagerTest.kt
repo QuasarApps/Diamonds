@@ -8,6 +8,7 @@ import com.example.diamonds.data.local.entity.SyncQueueEntity
 import com.example.diamonds.data.remote.backend.BookingDto
 import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.domain.model.Result
+import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.EntityType
 import com.example.diamonds.domain.repository.SyncOperation
 import com.example.diamonds.domain.repository.SyncOperationType
@@ -64,22 +65,24 @@ class SyncManagerTest {
         createdAt = "2026-04-01T10:00:00"
     )
 
+    // The entity stores enum names as strings; take typed enums and convert via `.name`
+    // so the tests don't hardcode raw enum names that could silently drift.
     private fun makeEntity(
         id: String = "op1",
-        operationType: String = "CREATE",
-        entityType: String = "BOOKING",
+        operationType: SyncOperationType = SyncOperationType.CREATE,
+        entityType: EntityType = EntityType.BOOKING,
         entityId: String = "b1",
         payload: String = "{}",
-        status: String = "PENDING",
+        status: SyncStatus = SyncStatus.PENDING,
         retryCount: Int = 0,
         lastAttemptAt: String? = null
     ) = SyncQueueEntity(
         id = id,
-        operationType = operationType,
-        entityType = entityType,
+        operationType = operationType.name,
+        entityType = entityType.name,
         entityId = entityId,
         payload = payload,
-        status = status,
+        status = status.name,
         retryCount = retryCount,
         createdAt = "2026-04-01T10:00:00",
         lastAttemptAt = lastAttemptAt,
@@ -95,7 +98,9 @@ class SyncManagerTest {
 
         assertTrue(result is Result.Success)
         coVerify {
-            syncQueueDao.insert(match { it.id == "op1" && it.status == "PENDING" && it.retryCount == 0 })
+            syncQueueDao.insert(
+                match { it.id == "op1" && it.status == SyncStatus.PENDING.name && it.retryCount == 0 }
+            )
         }
     }
 
@@ -137,7 +142,7 @@ class SyncManagerTest {
 
         assertTrue(result is Result.Success)
         coVerifyOrder {
-            syncQueueDao.updateStatus("op1", "CANCELLED")
+            syncQueueDao.updateStatus("op1", SyncStatus.CANCELLED.name)
             syncQueueDao.delete("op1")
         }
     }
@@ -147,7 +152,7 @@ class SyncManagerTest {
     @Test
     fun `retryFailedOperation requeues as pending`() = runTest {
         manager.retryFailedOperation("op1")
-        coVerify { syncQueueDao.updateStatus("op1", "PENDING") }
+        coVerify { syncQueueDao.updateStatus("op1", SyncStatus.PENDING.name) }
     }
 
     @Test
@@ -160,7 +165,7 @@ class SyncManagerTest {
     fun `resolveConflict keeping local requeues without deleting`() = runTest {
         manager.resolveConflict("op1", useLocal = true)
 
-        coVerify { syncQueueDao.updateStatus("op1", "PENDING") }
+        coVerify { syncQueueDao.updateStatus("op1", SyncStatus.PENDING.name) }
         coVerify(exactly = 0) { syncQueueDao.delete("op1") }
     }
 
@@ -215,7 +220,7 @@ class SyncManagerTest {
     @Test
     fun `processSyncQueue deletes cancelled operations without dispatching`() = runTest {
         coEvery { syncQueueDao.getQueuedOperations() } returns
-                listOf(makeEntity(id = "op1", status = "CANCELLED"))
+                listOf(makeEntity(id = "op1", status = SyncStatus.CANCELLED))
 
         manager.processSyncQueue()
 
@@ -226,45 +231,45 @@ class SyncManagerTest {
     @Test
     fun `processSyncQueue dispatches a pending booking cancel then marks it synced`() = runTest {
         coEvery { syncQueueDao.getQueuedOperations() } returns
-                listOf(makeEntity(id = "op1", operationType = "CANCEL", status = "PENDING"))
+                listOf(makeEntity(id = "op1", operationType = SyncOperationType.CANCEL))
         coEvery { backendService.cancelBooking("b1") } returns Result.Success(mockk<BookingDto>(relaxed = true))
 
         manager.processSyncQueue()
 
         coVerify { backendService.cancelBooking("b1") }
-        coVerify { syncQueueDao.updateStatus("op1", "SYNCED") }
+        coVerify { syncQueueDao.updateStatus("op1", SyncStatus.SYNCED.name) }
         coVerify { syncQueueDao.delete("op1") }
     }
 
     @Test
     fun `processSyncQueue records a failure when dispatch throws`() = runTest {
         coEvery { syncQueueDao.getQueuedOperations() } returns
-                listOf(makeEntity(id = "op1", operationType = "CANCEL", status = "PENDING"))
+                listOf(makeEntity(id = "op1", operationType = SyncOperationType.CANCEL))
         coEvery { backendService.cancelBooking("b1") } throws RuntimeException("boom")
 
         manager.processSyncQueue()
 
-        coVerify { syncQueueDao.updateAfterRetry("op1", "FAILED", any(), any()) }
+        coVerify { syncQueueDao.updateAfterRetry("op1", SyncStatus.FAILED.name, any(), any()) }
     }
 
     @Test
     fun `processSyncQueue records a failure when the backend returns Result Error`() = runTest {
         coEvery { syncQueueDao.getQueuedOperations() } returns
-                listOf(makeEntity(id = "op1", operationType = "CANCEL", status = "PENDING"))
+                listOf(makeEntity(id = "op1", operationType = SyncOperationType.CANCEL))
         // Backends report errors by returning Result.Error rather than throwing.
         coEvery { backendService.cancelBooking("b1") } returns Result.Error(RuntimeException("server rejected"))
 
         manager.processSyncQueue()
 
         // Must be treated as a failure — not silently marked SYNCED and dropped.
-        coVerify { syncQueueDao.updateAfterRetry("op1", "FAILED", any(), any()) }
-        coVerify(exactly = 0) { syncQueueDao.updateStatus("op1", "SYNCED") }
+        coVerify { syncQueueDao.updateAfterRetry("op1", SyncStatus.FAILED.name, any(), any()) }
+        coVerify(exactly = 0) { syncQueueDao.updateStatus("op1", SyncStatus.SYNCED.name) }
     }
 
     @Test
     fun `processSyncQueue marks a conflict when the backend reports one`() = runTest {
         coEvery { syncQueueDao.getQueuedOperations() } returns
-                listOf(makeEntity(id = "op1", operationType = "CANCEL", status = "PENDING"))
+                listOf(makeEntity(id = "op1", operationType = SyncOperationType.CANCEL))
         coEvery { backendService.cancelBooking("b1") } throws
                 ConflictException("version mismatch", "{\"server\":true}")
 
@@ -279,7 +284,7 @@ class SyncManagerTest {
         coEvery { syncQueueDao.getQueuedOperations() } returns
                 listOf(
                     makeEntity(
-                        id = "op1", operationType = "CANCEL", status = "PENDING",
+                        id = "op1", operationType = SyncOperationType.CANCEL,
                         retryCount = Constants.MAX_RETRY_ATTEMPTS
                     )
                 )
@@ -287,6 +292,6 @@ class SyncManagerTest {
         manager.processSyncQueue()
 
         coVerify(exactly = 0) { backendService.cancelBooking(any()) }
-        coVerify { syncQueueDao.updateAfterRetry("op1", "FAILED", any(), any()) }
+        coVerify { syncQueueDao.updateAfterRetry("op1", SyncStatus.FAILED.name, any(), any()) }
     }
 }
