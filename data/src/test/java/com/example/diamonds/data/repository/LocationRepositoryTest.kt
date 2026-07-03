@@ -97,8 +97,10 @@ class LocationRepositoryTest {
 
         assertTrue(result is Result.Success)
         val etaMinutes = (result as Result.Success).data
-        // 30 km/h ⇒ 2 min/km. Derived from R · Δφ so the assertion is independent of
-        // calculateDistance while staying deterministic.
+        // 30 km/h ⇒ 2 min/km. The expected value is derived from R · Δφ rather than by
+        // calling calculateDistance, so the assertion checks the ETA formula instead of
+        // just restating the implementation. (calculateEta still uses calculateDistance
+        // internally — that path is covered by the calculateDistance tests above.)
         val expectedEtaMinutes = oneDegreeKm / 30.0 * 60.0
         assertEquals(expectedEtaMinutes, etaMinutes, 1e-6)
     }
