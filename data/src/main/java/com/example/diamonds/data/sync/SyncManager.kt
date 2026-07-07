@@ -271,8 +271,9 @@ class SyncManager(
                 backendService.createReview(req).orThrow()
             }
 
-            else -> { /* Reviews can't be deleted */
-            }
+            // Reviews can't be deleted — no representable write.
+            SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+                unsupportedOp(EntityType.REVIEW, opType)
         }
     }
 
@@ -286,8 +287,10 @@ class SyncManager(
                 backendService.createPayment(req).orThrow()
             }
 
-            else -> { /* Payments are immutable */
-            }
+            // A payment status change (e.g. refund via updatePaymentStatus) is a real write,
+            // but it isn't wired for queued sync yet — fail loudly rather than dropping it.
+            SyncOperationType.UPDATE, SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+                unsupportedOp(EntityType.PAYMENT, opType)
         }
     }
 
@@ -301,8 +304,9 @@ class SyncManager(
                 backendService.createService(dto).orThrow()
             }
 
-            else -> { /* Service deletion not supported */
-            }
+            // Service deletion is not supported — no representable write.
+            SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+                unsupportedOp(EntityType.SERVICE, opType)
         }
     }
 
@@ -315,8 +319,9 @@ class SyncManager(
                 backendService.updateClient(dto).orThrow()
             }
 
-            else -> { /* Profile create/delete handled by auth flow */
-            }
+            // Profile create/delete are handled by the auth flow, not this queue.
+            SyncOperationType.CREATE, SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+                unsupportedOp(EntityType.PROFILE, opType)
         }
     }
 
@@ -331,6 +336,17 @@ class SyncManager(
         is Result.Error -> throw exception
         is Result.Loading -> throw IllegalStateException("Backend returned Loading during sync dispatch")
     }
+
+    /**
+     * A queue entry whose (entity, operation) pair maps to no representable backend write.
+     * These are never enqueued today; failing loudly (surfaced as FAILED via [processOperation]'s
+     * catch) keeps a future routing/serialization mistake from being silently marked SYNCED and
+     * dropped — the same guarantee the entity-type guard in [dispatchToBackend] provides.
+     */
+    private fun unsupportedOp(entType: EntityType, opType: SyncOperationType): Nothing =
+        throw IllegalStateException(
+            "$opType is not a representable sync operation for $entType and must not be queued"
+        )
 
     // ── Backoff ─────────────────────────────────────────────────────────────
 
