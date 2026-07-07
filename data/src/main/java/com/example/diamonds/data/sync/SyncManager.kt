@@ -220,13 +220,17 @@ class SyncManager(
             EntityType.PAYMENT -> dispatchPayment(opType, payload)
             EntityType.SERVICE -> dispatchService(opType, payload)
             EntityType.PROFILE -> dispatchProfile(opType, payload)
-            EntityType.RECURRING_BOOKING -> { /* handled by SubscriptionRepository directly */
-            }
-            EntityType.SUPPORT_TICKET -> { /* handled by SupportRepository directly */
-            }
 
-            EntityType.CLAIM -> { /* handled by SupportRepository directly */
-            }
+            // These entity types are synced by their own repositories and must never
+            // reach this queue. Fail loudly rather than returning normally — a silent
+            // no-op here would be marked SYNCED and dropped, the exact data-loss shape
+            // the Result.Error handling above guards against.
+            EntityType.RECURRING_BOOKING,
+            EntityType.SUPPORT_TICKET,
+            EntityType.CLAIM ->
+                throw IllegalStateException(
+                    "$entType operations are handled by their own repository and must not be queued in SyncManager"
+                )
         }
     }
 

@@ -294,4 +294,18 @@ class SyncManagerTest {
         coVerify(exactly = 0) { backendService.cancelBooking(any()) }
         coVerify { syncQueueDao.updateAfterRetry("op1", SyncStatus.FAILED.name, any(), any()) }
     }
+
+    @Test
+    fun `processSyncQueue fails an unroutable entity type instead of marking it synced`() = runTest {
+        // CLAIM (like RECURRING_BOOKING / SUPPORT_TICKET) is synced by its own repository and
+        // must never reach this queue — if one does, it must surface as FAILED, not be silently
+        // marked SYNCED and dropped.
+        coEvery { syncQueueDao.getQueuedOperations() } returns
+                listOf(makeEntity(id = "op1", operationType = SyncOperationType.CREATE, entityType = EntityType.CLAIM))
+
+        manager.processSyncQueue()
+
+        coVerify { syncQueueDao.updateAfterRetry("op1", SyncStatus.FAILED.name, any(), any()) }
+        coVerify(exactly = 0) { syncQueueDao.updateStatus("op1", SyncStatus.SYNCED.name) }
+    }
 }
