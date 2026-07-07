@@ -213,124 +213,128 @@ class SyncManager(
         entType: EntityType,
         entityId: String,
         payload: String
-    ) {
-        when (entType) {
-            EntityType.BOOKING -> dispatchBooking(opType, entityId, payload)
-            EntityType.REVIEW -> dispatchReview(opType, payload)
-            EntityType.PAYMENT -> dispatchPayment(opType, payload)
-            EntityType.SERVICE -> dispatchService(opType, payload)
-            EntityType.PROFILE -> dispatchProfile(opType, payload)
+    ): Unit = when (entType) {
+        EntityType.BOOKING -> dispatchBooking(opType, entityId, payload)
+        EntityType.REVIEW -> dispatchReview(opType, payload)
+        EntityType.PAYMENT -> dispatchPayment(opType, payload)
+        EntityType.SERVICE -> dispatchService(opType, payload)
+        EntityType.PROFILE -> dispatchProfile(opType, payload)
 
-            // These entity types are synced by their own repositories and must never
-            // reach this queue. Fail loudly rather than returning normally — a silent
-            // no-op here would be marked SYNCED and dropped, the exact data-loss shape
-            // the Result.Error handling above guards against.
-            EntityType.RECURRING_BOOKING,
-            EntityType.SUPPORT_TICKET,
-            EntityType.CLAIM ->
-                throw IllegalStateException(
-                    "$entType operations are handled by their own repository and must not be queued in SyncManager"
-                )
-        }
+        // These entity types are synced by their own repositories and must never
+        // reach this queue. Fail loudly rather than returning normally — a silent
+        // no-op here would be marked SYNCED and dropped, the exact data-loss shape
+        // the Result.Error handling above guards against.
+        EntityType.RECURRING_BOOKING,
+        EntityType.SUPPORT_TICKET,
+        EntityType.CLAIM ->
+            throw IllegalStateException(
+                "$entType operations are handled by their own repository and must not be queued in SyncManager"
+            )
     }
 
     private suspend fun dispatchBooking(
         opType: SyncOperationType,
         entityId: String,
         payload: String
-    ) {
-        when (opType) {
-            SyncOperationType.CREATE -> {
-                val req =
-                    json.decodeFromString<com.example.diamonds.data.remote.backend.CreateBookingRequest>(
-                        payload
-                    )
-                backendService.createBooking(req).orThrow()
-            }
-
-            SyncOperationType.UPDATE -> {
-                val dto =
-                    json.decodeFromString<com.example.diamonds.data.remote.backend.BookingDto>(
-                        payload
-                    )
-                backendService.updateBookingStatus(entityId, dto.status).orThrow()
-            }
-
-            SyncOperationType.CANCEL -> backendService.cancelBooking(entityId).orThrow()
-            SyncOperationType.DELETE -> backendService.cancelBooking(entityId).orThrow()
-        }
-    }
-
-    private suspend fun dispatchReview(opType: SyncOperationType, payload: String) {
-        when (opType) {
-            SyncOperationType.CREATE, SyncOperationType.UPDATE -> {
-                val req =
-                    json.decodeFromString<com.example.diamonds.data.remote.backend.CreateReviewRequest>(
-                        payload
-                    )
-                backendService.createReview(req).orThrow()
-            }
-
-            else -> { /* Reviews can't be deleted */
-            }
-        }
-    }
-
-    private suspend fun dispatchPayment(opType: SyncOperationType, payload: String) {
-        when (opType) {
-            SyncOperationType.CREATE -> {
-                val req =
-                    json.decodeFromString<com.example.diamonds.data.remote.backend.CreatePaymentRequest>(
-                        payload
-                    )
-                backendService.createPayment(req).orThrow()
-            }
-
-            else -> { /* Payments are immutable */
-            }
-        }
-    }
-
-    private suspend fun dispatchService(opType: SyncOperationType, payload: String) {
-        when (opType) {
-            SyncOperationType.CREATE, SyncOperationType.UPDATE -> {
-                val dto =
-                    json.decodeFromString<com.example.diamonds.data.remote.backend.ServiceDto>(
-                        payload
-                    )
-                backendService.createService(dto).orThrow()
-            }
-
-            else -> { /* Service deletion not supported */
-            }
-        }
-    }
-
-    private suspend fun dispatchProfile(opType: SyncOperationType, payload: String) {
-        when (opType) {
-            SyncOperationType.UPDATE -> {
-                val dto = json.decodeFromString<com.example.diamonds.data.remote.backend.ClientDto>(
+    ): Unit = when (opType) {
+        SyncOperationType.CREATE -> {
+            val req =
+                json.decodeFromString<com.example.diamonds.data.remote.backend.CreateBookingRequest>(
                     payload
                 )
-                backendService.updateClient(dto).orThrow()
-            }
-
-            else -> { /* Profile create/delete handled by auth flow */
-            }
+            backendService.createBooking(req).orThrow()
         }
+
+        SyncOperationType.UPDATE -> {
+            val dto =
+                json.decodeFromString<com.example.diamonds.data.remote.backend.BookingDto>(
+                    payload
+                )
+            backendService.updateBookingStatus(entityId, dto.status).orThrow()
+        }
+
+        SyncOperationType.CANCEL -> backendService.cancelBooking(entityId).orThrow()
+        SyncOperationType.DELETE -> backendService.cancelBooking(entityId).orThrow()
+    }
+
+    private suspend fun dispatchReview(opType: SyncOperationType, payload: String): Unit = when (opType) {
+        SyncOperationType.CREATE, SyncOperationType.UPDATE -> {
+            val req =
+                json.decodeFromString<com.example.diamonds.data.remote.backend.CreateReviewRequest>(
+                    payload
+                )
+            backendService.createReview(req).orThrow()
+        }
+
+        // Reviews can't be deleted — no representable write.
+        SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+            unsupportedOp(EntityType.REVIEW, opType)
+    }
+
+    private suspend fun dispatchPayment(opType: SyncOperationType, payload: String): Unit = when (opType) {
+        SyncOperationType.CREATE -> {
+            val req =
+                json.decodeFromString<com.example.diamonds.data.remote.backend.CreatePaymentRequest>(
+                    payload
+                )
+            backendService.createPayment(req).orThrow()
+        }
+
+        // A payment status change (e.g. refund via updatePaymentStatus) is a real write,
+        // but it isn't wired for queued sync yet — fail loudly rather than dropping it.
+        SyncOperationType.UPDATE, SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+            unsupportedOp(EntityType.PAYMENT, opType)
+    }
+
+    private suspend fun dispatchService(opType: SyncOperationType, payload: String): Unit = when (opType) {
+        SyncOperationType.CREATE, SyncOperationType.UPDATE -> {
+            val dto =
+                json.decodeFromString<com.example.diamonds.data.remote.backend.ServiceDto>(
+                    payload
+                )
+            backendService.createService(dto).orThrow()
+        }
+
+        // Service deletion is not supported — no representable write.
+        SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+            unsupportedOp(EntityType.SERVICE, opType)
+    }
+
+    private suspend fun dispatchProfile(opType: SyncOperationType, payload: String): Unit = when (opType) {
+        SyncOperationType.UPDATE -> {
+            val dto = json.decodeFromString<com.example.diamonds.data.remote.backend.ClientDto>(
+                payload
+            )
+            backendService.updateClient(dto).orThrow()
+        }
+
+        // Profile create/delete are handled by the auth flow, not this queue.
+        SyncOperationType.CREATE, SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+            unsupportedOp(EntityType.PROFILE, opType)
     }
 
     /**
-     * Unwrap a backend [Result], surfacing a failure as a thrown exception so
-     * [processOperation]'s catch marks the operation FAILED (or CONFLICT). Backends
-     * report errors by returning [Result.Error] rather than throwing, so without this
-     * a rejected write would be silently treated as SYNCED and dropped.
+     * Throw when a backend [Result] is a failure so [processOperation]'s catch marks the
+     * operation FAILED (or CONFLICT). Backends report errors by returning [Result.Error]
+     * rather than throwing, so without this a rejected write would be silently treated as
+     * SYNCED and dropped. Returns [Unit] — dispatch discards the success payload.
      */
-    private fun <T> Result<T>.orThrow(): T = when (this) {
-        is Result.Success -> data
+    private fun Result<*>.orThrow(): Unit = when (this) {
+        is Result.Success -> Unit
         is Result.Error -> throw exception
         is Result.Loading -> throw IllegalStateException("Backend returned Loading during sync dispatch")
     }
+
+    /**
+     * A queue entry whose (entity, operation) pair maps to no representable backend write.
+     * These are never enqueued today; failing loudly (surfaced as FAILED via [processOperation]'s
+     * catch) keeps a future routing/serialization mistake from being silently marked SYNCED and
+     * dropped — the same guarantee the entity-type guard in [dispatchToBackend] provides.
+     */
+    private fun unsupportedOp(entType: EntityType, opType: SyncOperationType): Nothing =
+        throw IllegalStateException(
+            "$opType is not a representable sync operation for $entType and must not be queued"
+        )
 
     // ── Backoff ─────────────────────────────────────────────────────────────
 

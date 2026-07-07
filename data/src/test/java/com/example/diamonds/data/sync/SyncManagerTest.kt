@@ -308,4 +308,28 @@ class SyncManagerTest {
         coVerify { syncQueueDao.updateAfterRetry("op1", SyncStatus.FAILED.name, any(), any()) }
         coVerify(exactly = 0) { syncQueueDao.updateStatus("op1", SyncStatus.SYNCED.name) }
     }
+
+    @Test
+    fun `processSyncQueue fails non-representable operations instead of marking them synced`() = runTest {
+        // (entity, op) pairs that map to no backend write. None are enqueued today, but each must
+        // fail loudly rather than being silently marked SYNCED and dropped — notably PAYMENT/UPDATE,
+        // which becomes a real write (refund via updatePaymentStatus) once payment sync is wired.
+        val nonRepresentable = listOf(
+            EntityType.PAYMENT to SyncOperationType.UPDATE,
+            EntityType.REVIEW to SyncOperationType.DELETE,
+            EntityType.SERVICE to SyncOperationType.DELETE,
+            EntityType.PROFILE to SyncOperationType.CREATE
+        )
+
+        nonRepresentable.forEachIndexed { index, (entity, op) ->
+            val id = "op$index"
+            coEvery { syncQueueDao.getQueuedOperations() } returns
+                    listOf(makeEntity(id = id, operationType = op, entityType = entity))
+
+            manager.processSyncQueue()
+
+            coVerify(exactly = 1) { syncQueueDao.updateAfterRetry(id, SyncStatus.FAILED.name, any(), any()) }
+            coVerify(exactly = 0) { syncQueueDao.updateStatus(id, SyncStatus.SYNCED.name) }
+        }
+    }
 }
