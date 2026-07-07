@@ -328,7 +328,7 @@ class SyncManagerTest {
 
             manager.processSyncQueue()
 
-            coVerify { syncQueueDao.updateAfterRetry(id, SyncStatus.FAILED.name, any(), any()) }
+            coVerify(exactly = 1) { syncQueueDao.updateAfterRetry(id, SyncStatus.FAILED.name, any(), any()) }
             coVerify(exactly = 0) { syncQueueDao.updateStatus(id, SyncStatus.SYNCED.name) }
         }
     }
