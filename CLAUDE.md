@@ -38,11 +38,11 @@ Dependency direction is strict and acyclic — lower layers never depend on high
 - **MVVM + StateFlow.** ViewModels usually extend `BaseViewModel<UiState>`; expose read-only `StateFlow` via `asStateFlow()`/`stateIn(...)`; keep `UiState` an immutable data class updated with `copy()`. Launch work in `viewModelScope`.
 - **`Result<T>`** (sealed `Success`/`Error`/`Loading`, in `:core`) is the error-handling type. When mapping a backend `Result`, propagate all three arms (`is Result.Loading -> Result.Loading`), matching e.g. `ClientRepository`.
 - **Offline-first reads / online writes.** Reads fall back to the local Room cache when offline (or when a network call fails); when online they refresh from the backend — the exact order varies by repo (e.g. `BookingRepository.getClientBookings` is *network-first-when-online* with a cache fallback, whereas `getOrCreateConversation` checks the cache first). Writes require connectivity and report an offline error — most repos return `OfflineException` (see `BookingRepository`), though a few still return a generic `Exception("No internet connection")` (e.g. `SubscriptionRepository`, `MessageRepository.getOrCreateConversation`). *Note:* the `SyncManager` offline-write queue exists but is not currently wired into write repos — see `TECH_LEAD_REVIEW.md` §4 before relying on it.
-- **Reading the session:** use `authRepository.getCurrentUserSession().first()` — it's a never-completing DataStore flow (DataStore's `.data` is a *cold* flow that keeps emitting and never completes), so `collect { … }` will suspend forever. Always handle a `null` first emission (logged out / not yet loaded).
+- **Reading the session:** use `authRepository.getCurrentUserSession().first()` — DataStore's `.data` keeps emitting and **never completes**, so `collect { … }` will suspend forever. Always handle a `null` first emission (logged out / not yet loaded).
 - **DI:** Hilt. Repository interfaces (`:core`) are bound to implementations via `@Provides` in `app/src/main/java/com/example/diamonds/di/Modules.kt`. ViewModels are `@HiltViewModel`.
 - **Swappable backend** via `BuildConfig` flags in `app/build.gradle.kts`:
-  - `USE_MOCK_AUTH` / `USE_MOCK_BACKEND` = `true` in **debug** (use `MockAuthService` / `BackendServiceStub`), `false` in **release** (real Firebase). Several `FirebaseBackendService` methods are still unimplemented — see the review before flipping these.
-- **Strings:** user-facing text should use `stringResource(R.string.*)`. Much of the UI currently hardcodes literals (Track B in the roadmap) — don't add new hardcoded strings.
+  - `USE_MOCK_AUTH` / `USE_MOCK_BACKEND` = `true` in **debug** (use `MockAuthService` / `BackendServiceStub`), `false` in **release** (real Firebase). **Do not flip these yet:** 14 `FirebaseBackendService` methods return `Result.Error("…not yet implemented")` (`:484–524`), and every Firestore *read* currently fails because no DTO has the no-arg constructor the object mapper requires — see `TECH_LEAD_REVIEW.md` §9 and `ROADMAP.md` Track C.
+- **Strings:** user-facing text must use `stringResource(R.string.*)`. Track B is done — `stringResource` is used in 46 of the 83 `:ui` files (608 references) against 531 strings + 16 plurals, key-complete across `values`/`-fr`/`-es`/`-pt`/`-ar`. The ~67 remaining `Text("…")` literals are almost all non-translatable glyphs (emoji, `$`, `›`). **There is no lint rule or baseline**, so nothing stops a regression — don't add new hardcoded strings.
 
 ## Working in this repo
 
@@ -53,6 +53,6 @@ Dependency direction is strict and acyclic — lower layers never depend on high
 ## Key docs
 
 - `TECH_LEAD_REVIEW.md` — independent architectural review with file:line-cited findings (the current source of truth for known gaps).
-- `ROADMAP.md` — the 🧭 Remediation Roadmap (Tracks A–D) supersedes the old "Next Steps".
+- `ROADMAP.md` — the 🧭 Remediation Roadmap (Tracks A–E) supersedes the old "Next Steps".
 - `ARCHITECTURE.md` — module/data-flow/repository/ViewModel patterns.
 - `README.md` / `AUDIT_REPORT.md` — "Known Issues" list (kept reconciled with reality).
