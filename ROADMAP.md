@@ -347,7 +347,7 @@ Comprehensive navigation, deep linking, transitions, and UX polish.
 Backend and real-time features via Firebase.
 > ⚠️ **Review 2026-06-25, re-verified 2026-07-27 — worse than first reported.** The Firebase path is
 > materially incomplete and `release` builds enable it (`USE_MOCK_BACKEND=false`): **14
-> `FirebaseBackendService` methods return `Result.Error("… not yet implemented")`**
+> `FirebaseBackendService` methods return `Result.Error(Exception("… not yet implemented"))`**
 > (`FirebaseBackendService.kt:484–524`), `google-services.json` is a placeholder, `signup` never
 > writes a Client/Provider profile doc (and discards the `role` argument), and the FCM token is saved
 > locally but never registered server-side (`observeFcmToken` has 0 callers, so targeted push can't
@@ -1050,7 +1050,7 @@ both customers and providers — integrated directly into booking and review flo
 
 > ⚠️ **Known gaps (audit April 26, 2026 — re-verified 2026-07-27)**:
 > - **14 `FirebaseBackendService` methods** (`FirebaseBackendService.kt:484–524`) still return
->   `Result.Error("… not yet implemented")` for support tickets, claims, cancel-with-reason, edit
+>   `Result.Error(Exception("… not yet implemented"))` for support tickets, claims, cancel-with-reason, edit
 >   booking, refunds, help articles and saved locations. All Phase 15 UI is functional against the
 >   stub backend but **silently fails with Firebase**. Tracked in **Track C**.
 > - ~~`SupportRepository` is untested~~ — **resolved**: `SupportRepositoryTest.kt` now covers it with
@@ -1118,8 +1118,8 @@ Richer service configuration for both clients and cleaners.
 - [x] Update IBackendService DTOs and BackendServiceStub for new fields (`cleaningType`,
   `locationType`, `specializations`, `SavedLocationDto`)
 - [ ] Update FirebaseBackendService for the new fields — `getSavedLocations`, `upsertSavedLocation`
-  and `deleteSavedLocation` all still return `Result.Error("Firebase saved locations not yet
-  implemented")` (`FirebaseBackendService.kt:517–523`)
+  and `deleteSavedLocation` all still return `Result.Error(Exception("Firebase saved locations not yet
+  implemented"))` (`FirebaseBackendService.kt:517–523`)
 - [x] Add Room migration v9 to v10 for new columns on bookings and provider profiles
   (`MIGRATION_9_10`: `providers.specializations`, `bookings.cleaningType`, `bookings.locationType`,
   new `saved_locations` table; DB version bumped to 10)

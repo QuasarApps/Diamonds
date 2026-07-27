@@ -314,7 +314,7 @@ Backend service abstraction via `IBackendService`:
   `app/di/Modules.kt` pick the implementation
 
 > ⚠️ **Do not flip `USE_MOCK_BACKEND=false` yet.** Two blockers, both open:
-> 1. 14 `FirebaseBackendService` methods still return `Result.Error("…not yet implemented")`
+> 1. 14 `FirebaseBackendService` methods still return `Result.Error(Exception("…not yet implemented"))`
 >    (`FirebaseBackendService.kt:484-524`).
 > 2. Every DTO in `IBackendService.kt` is a data class whose constructor params have **no defaults**
 >    (e.g. `ClientDto:113`, `BookingDto:162`), so Kotlin generates no no-arg constructor. Firestore's

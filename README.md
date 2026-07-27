@@ -40,7 +40,7 @@ Diamonds implements a **modular, offline-first architecture** with the following
 - **BackendServiceStub**: Development stub provided
 - **Easy Swapping**: Change Firebase/REST implementation via Hilt binding
 - ⚠️ **`FirebaseBackendService` is not release-ready**: 14 methods still return
-  `Result.Error("…not yet implemented")`, and every Firestore *read* currently fails because the
+  `Result.Error(Exception("…not yet implemented"))`, and every Firestore *read* currently fails because the
   DTOs have no no-arg constructor — see Known Issues #6 and #26 before flipping
   `USE_MOCK_BACKEND=false`
 
@@ -181,9 +181,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 | 3 | **`isMinifyEnabled = false` in release** — no obfuscation or code shrinking                                                                                                                                           | `app/build.gradle.kts:38`           |
 | 4 | **Auth token stored as plaintext** in DataStore; `EncryptedDataStore` not used                                                                                                                                        | `PreferencesDataStore.kt`           |
 | 5 | **No Firestore Security Rules file** — any authenticated user can read/write all documents                                                                                                                            | repo root (none committed)          |
-| 6 | **14 `FirebaseBackendService` methods return `Result.Error("not yet implemented")`** — support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations silently fail in production | `FirebaseBackendService.kt:484–524` |
-| 7 | **`getCurrentClient()` returns `Result.Error("Not implemented")`**                                                                                                                                                    | `ClientRepository.kt:87`         |
-| 8 | **`updateProvider()` returns `Result.Error("Not implemented")`** — provider profile editing is broken                                                                                                                 | `ProviderRepository.kt:128`     |
+| 6 | **14 `FirebaseBackendService` methods return `Result.Error(Exception("not yet implemented"))`** — support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations silently fail in production | `FirebaseBackendService.kt:484–524` |
+| 7 | **`getCurrentClient()` returns `Result.Error(Exception("Not implemented"))`**                                                                                                                                                    | `ClientRepository.kt:87`         |
+| 8 | **`updateProvider()` returns `Result.Error(Exception("Not implemented"))`** — provider profile editing is broken                                                                                                                 | `ProviderRepository.kt:128`     |
 | 26 | **Every Firestore *read* fails — DTOs have no no-arg constructor.** Every DTO in `IBackendService.kt` is a `data class` whose constructor params are all required (e.g. `ClientDto:113`, `BookingDto:162`), so Kotlin emits no zero-arg constructor. Firestore's object mapper needs one, so all **26** `toObject()`/`toObjects()` calls throw and are swallowed into `Result.Error` by the `firestoreCall` wrapper. Writes succeed. Flipping `USE_MOCK_BACKEND=false` today yields a **write-only app**. Fix: default every DTO field (or add explicit `@PropertyName` mappers). | `IBackendService.kt`, `FirebaseBackendService.kt` |
 | 27 | **`SavedLocationRepository` reports failed remote writes as success** — `:32` maps `Result.Error → Result.Success(emptyList())` and `:45` maps `Result.Error → Result.Success(location)`, so the UI shows "saved" for data that never reached the backend. Same silent-data-loss class as the `MessageRepository` bug fixed in PR #2, and it has no tests. | `SavedLocationRepository.kt:32,45`  |
 
