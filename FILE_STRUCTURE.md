@@ -81,7 +81,7 @@ Diamonds/
 │   │   │   │   ├── MockAuthService.kt       # debug default (USE_MOCK_AUTH=true)
 │   │   │   │   └── FirebaseAuthService.kt   # release path — signup writes no profile doc
 │   │   │   └── backend/
-│   │   │       ├── IBackendService.kt       # Backend contract + 25 DTO data classes
+│   │   │       ├── IBackendService.kt       # Backend contract + 25 data classes (15 *Dto + 10 request)
 │   │   │       ├── BackendServiceStub.kt    # 1,131 LOC of seeded demo data
 │   │   │       ├── FirebaseBackendService.kt# 538 LOC — 14 methods still stubbed
 │   │   │       └── FirestoreBookingListener.kt
@@ -263,7 +263,9 @@ kotlinx-serialization-json and kotlinx-coroutines-core; contains zero Android im
 **Key Files**:
 - `local/AppDatabase.kt` — Room **version 10**; 15 entities, 15 DAOs, 9 migrations
 - `local/entity/Entities.kt` / `local/dao/Daos.kt`
-- `remote/backend/IBackendService.kt` — backend contract plus 25 DTO data classes
+- `remote/backend/IBackendService.kt` — backend contract plus 25 data classes: **15 `*Dto`** types
+  and **10 request** payloads (`Create*Request`, `EditBookingRequest`, …). The Firestore no-arg-constructor
+  blocker concerns the 15 `*Dto` types, since those are what `toObject()` reads back.
 - `remote/backend/BackendServiceStub.kt` — the debug backend; all seeded demo data lives here
 - `repository/*.kt` — 13 implementations (see tree)
 - `sync/SyncManager.kt` — implements `ISyncRepository`
