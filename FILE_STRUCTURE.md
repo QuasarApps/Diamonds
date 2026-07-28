@@ -1,376 +1,436 @@
 # Project File Structure
 
+**Regenerated from the actual tree on 2026-07-27, against `develop` @ `4892952`.**
+
+Scale at that commit: **124 production `.kt` files / 25,598 production LOC** across five Gradle
+modules, plus **26 JVM unit-test files (300 `@Test` methods)** and **23 instrumentation-test files**.
+(The old "24 files / 3,250 LOC / 7 entities / 7 repositories" figures were frozen at Phase 1 and are
+no longer accurate — they have been replaced throughout.)
+
 ## Complete Directory Tree
 
 ```
 Diamonds/
 │
-├── README.md                           # Project overview and quick start
-├── ARCHITECTURE.md                     # High-level architecture (285 lines)
-├── DEVELOPMENT.md                      # Development setup guide (400+ lines)
-├── ROADMAP.md                          # 20-phase implementation roadmap
-├── IMPLEMENTATION_SUMMARY.md           # What's implemented and what's next
+├── README.md                           # Project overview, key features, Known Issues
+├── ARCHITECTURE.md                     # Module/data-flow/repository/ViewModel patterns
+├── DEVELOPMENT.md                      # Development setup guide
+├── ROADMAP.md                          # Remediation Roadmap (Tracks A–E) + 21-phase plan
+├── TECH_LEAD_REVIEW.md                 # Independent review, file:line-cited findings
+├── AUDIT_REPORT.md                     # Audit + Known Issues
+├── QUICK_REFERENCE.md                  # Copy-paste patterns
+├── IMPLEMENTATION_SUMMARY.md           # What's built vs. what only looks built
 ├── FILE_STRUCTURE.md                   # This file
+├── CLAUDE.md                           # Guidance for AI agents working in the repo
 │
-├── build.gradle.kts                    # Root build config with Hilt plugin
-├── settings.gradle.kts                 # Module includes
+├── build.gradle.kts                    # Root build config + the `allUnitTests` aggregate task
+├── settings.gradle.kts                 # Module includes (:app :core :data :ui :common)
+├── gradle.properties                   # JVM args, AndroidX flags, MAPS_API_KEY (optional)
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml                      # assembleDebug + allUnitTests on PRs/pushes to develop
 │
 ├── gradle/
-│   └── libs.versions.toml              # Centralized dependency versions
+│   ├── libs.versions.toml              # Centralized version catalog
+│   └── wrapper/
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
 │
-├── gradlew                             # Unix gradle wrapper
-├── gradlew.bat                         # Windows gradle wrapper
-│
-├── local.properties                    # Local SDK/NDK paths
+├── gradlew / gradlew.bat               # Gradle wrappers
 │
 │
-├── core/                               # ✅ DOMAIN LAYER (Pure Kotlin)
-│   ├── build.gradle.kts
+├── core/                               # DOMAIN LAYER — pure Kotlin, zero Android imports
+│   ├── build.gradle.kts                # `java-library` + kotlin("jvm")
 │   └── src/main/java/com/example/diamonds/domain/
 │       ├── model/
-│       │   ├── DomainModels.kt         # Client, Provider, Booking, Review, Payment
-│       │   ├── Result.kt               # Result<T> type-safe wrapper
-│       │   └── Enums.kt                # Status enums (Booking, Payment, Sync, etc.)
+│       │   ├── DomainModels.kt         # 514 LOC — 20 domain data classes + 18 enums
+│       │   └── Result.kt               # 53 LOC — sealed Success / Error / Loading
 │       └── repository/
-│           └── Repositories.kt         # 7 repository interfaces (contracts)
+│           └── Repositories.kt         # 373 LOC — 14 repository interfaces
+│                                       #   (no src/test — :core has no tests yet)
 │
 │
-├── common/                             # ✅ SHARED UTILITIES
+├── common/                             # SHARED UTILITIES
 │   ├── build.gradle.kts
 │   └── src/main/java/com/example/diamonds/common/
 │       ├── util/
-│       │   └── Constants.kt            # App constants, ConnectivityState enum
+│       │   ├── Constants.kt            # App constants, ConnectivityState enum
+│       │   └── DateTimeFormatUtil.kt   # Locale-aware date/time formatting
 │       └── ext/
-│           └── FlowExt.kt              # Flow extensions and helpers
+│           └── FlowExt.kt              # Flow extensions
+│                                       #   (no src/test, despite :common being in allUnitTests)
 │
 │
-├── data/                               # ✅ DATA LAYER
+├── data/                               # DATA LAYER — 30 files / 6,801 LOC
 │   ├── build.gradle.kts
-│   └── src/main/java/com/example/diamonds/data/
-│       │
-│       ├── local/
-│       │   ├── AppDatabase.kt          # Room database singleton
-│       │   ├── entity/
-│       │   │   └── Entities.kt         # 7 Room entities with @Entity
-│       │   ├── dao/
-│       │   │   └── Daos.kt             # 7 DAOs with queries
-│       │   └── preferences/
-│       │       └── PreferencesDataStore.kt  # Encrypted session storage
-│       │
-│       ├── remote/backend/
-│       │   ├── IBackendService.kt      # Backend service interface (abstract)
-│       │   ├── BackendServiceStub.kt   # Development stub implementation
-│       │   └── DTOs                    # API contracts (separate from domain)
-│       │
-│       ├── connectivity/
-│       │   └── ConnectivityObserver.kt # Network state observation
-│       │
-│       ├── repository/
-│       │   ├── AuthRepository.kt       # ✅ Auth with token management
-│       │   ├── ClientRepository.kt     # ✅ Client data (offline-read)
-│       │   ├── ProviderRepository.kt   # ✅ Provider search (offline-read)
-│       │   ├── ServiceRepository.kt    # ✅ Service listings (offline-read)
-│       │   ├── BookingRepository.kt    # ✅ Booking CRUD (offline-read, online-write)
-│       │   ├── ReviewRepository.kt     # ✅ Reviews (offline-read, online-write)
-│       │   ├── PaymentRepository.kt    # ✅ Payments (offline-read, online-write)
-│       │   ├── NotificationRepository.kt # ✅ Phase 8: Notifications
-│       │   ├── LocationRepository.kt   # ✅ Phase 9: Location & tracking
-│       │   └── SubscriptionRepository.kt # Phase 12: Recurring bookings (planned)
-│       │
-│       ├── mapper/
-│       │   └── Mappers.kt              # Entity ↔ Domain ↔ DTO conversions
-│       │
-│       ├── sync/
-│       │   └── SyncManager.kt          # Sync queue, exponential backoff, retry
-│       │
-│       └── worker/
-│           └── SyncWorker.kt           # WorkManager background sync task
-│
-│   ├── src/test/java/com/example/diamonds/data/
+│   ├── src/main/java/com/example/diamonds/data/
+│   │   │
+│   │   ├── local/
+│   │   │   ├── AppDatabase.kt          # Room DB **version 10**, 15 entities, 15 DAOs,
+│   │   │   │                           #   9 migrations MIGRATION_1_2 … MIGRATION_9_10
+│   │   │   ├── entity/Entities.kt      # 15 @Entity classes
+│   │   │   ├── dao/Daos.kt             # 15 DAO interfaces
+│   │   │   └── preferences/
+│   │   │       └── PreferencesDataStore.kt  # Session/FCM/language/notif prefs —
+│   │   │                                    #   ⚠️ PLAINTEXT DataStore (token + PII)
+│   │   │
+│   │   ├── remote/
+│   │   │   ├── auth/
+│   │   │   │   ├── IAuthService.kt          # Auth contract
+│   │   │   │   ├── MockAuthService.kt       # debug default (USE_MOCK_AUTH=true)
+│   │   │   │   └── FirebaseAuthService.kt   # release path — signup writes no profile doc
+│   │   │   └── backend/
+│   │   │       ├── IBackendService.kt       # Backend contract + 25 data classes (15 *Dto + 10 request)
+│   │   │       ├── BackendServiceStub.kt    # 1,131 LOC of seeded demo data
+│   │   │       ├── FirebaseBackendService.kt# 538 LOC — 14 methods still stubbed
+│   │   │       └── FirestoreBookingListener.kt
+│   │   │
+│   │   ├── connectivity/
+│   │   │   └── ConnectivityObserver.kt
+│   │   │
+│   │   ├── repository/                 # 13 repository implementations
+│   │   │   ├── AuthRepository.kt
+│   │   │   ├── ClientRepository.kt
+│   │   │   ├── ProviderRepository.kt
+│   │   │   ├── ServiceRepository.kt
+│   │   │   ├── BookingRepository.kt
+│   │   │   ├── ReviewRepository.kt
+│   │   │   ├── PaymentRepository.kt
+│   │   │   ├── NotificationRepository.kt
+│   │   │   ├── LocationRepository.kt
+│   │   │   ├── MessageRepository.kt
+│   │   │   ├── SubscriptionRepository.kt
+│   │   │   ├── SupportRepository.kt
+│   │   │   └── SavedLocationRepository.kt
+│   │   │       (ISyncRepository is implemented by sync/SyncManager.kt, not by a
+│   │   │        file in this package — 14 interfaces, 13 files here + SyncManager)
+│   │   │
+│   │   ├── mapper/
+│   │   │   └── Mappers.kt              # 681 LOC — Entity ↔ Domain ↔ DTO
+│   │   │
+│   │   ├── sync/
+│   │   │   ├── SyncManager.kt          # Queue, backoff, conflict resolution (ISyncRepository)
+│   │   │   └── ConnectivitySyncTrigger.kt
+│   │   │
+│   │   └── worker/
+│   │       ├── SyncWorker.kt
+│   │       └── RecurringBookingWorker.kt
+│   │
+│   └── src/test/java/com/example/diamonds/data/   # 12 files / 2,642 LOC / 172 @Test
+│       ├── mapper/MappersTest.kt
+│       ├── remote/backend/BackendServiceStubTest.kt
+│       ├── sync/SyncManagerTest.kt
 │       └── repository/
-│           └── BookingRepositoryTest.kt  # Repository test template
+│           ├── AuthRepositoryTest.kt
+│           ├── BookingRepositoryTest.kt
+│           ├── BookingRepositoryFullTest.kt
+│           ├── LocationRepositoryTest.kt
+│           ├── MessageRepositoryTest.kt
+│           ├── PaymentRepositoryTest.kt
+│           ├── ReviewRepositoryTest.kt
+│           ├── SubscriptionRepositoryTest.kt
+│           └── SupportRepositoryTest.kt
 │
 │
-├── ui/                                 # ✅ UI LAYER
+├── ui/                                 # UI LAYER — 83 files / 17,090 LOC
 │   ├── build.gradle.kts
-│   └── src/main/java/com/example/diamonds/ui/
-│       │
-│       ├── base/
-│       │   └── BaseViewModel.kt        # Base VM with state management
-│       │
-│       ├── theme/
-│       │   └── Theme.kt                # Material 3 theme
-│       │
-│       ├── navigation/
-│       │   ├── Screen.kt               # Sealed class of all routes
-│       │   ├── DiamondsNavHost.kt      # Root NavHost (splash → auth → shell)
-│       │   └── BottomTab.kt            # Tab definitions per role
-│       │
-│       ├── shell/
-│       │   ├── AppShell.kt             # Inner NavHost with bottom tabs, deep links, transitions
-│       │   ├── AppShellViewModel.kt    # Session state for the shell
-│       │   └── TabScreens.kt           # CustomerHomeTab, CleanerDashboardTab
-│       │
-│       ├── splash/
-│       │   ├── SplashScreen.kt         # Animated splash screen
-│       │   └── SplashViewModel.kt      # Auth check → route
-│       │
-│       ├── auth/
-│       │   ├── AuthViewModel.kt        # Login/Signup state
-│       │   ├── LoginScreen.kt          # Login with demo accounts
-│       │   └── SignupScreen.kt         # Signup with role selection
-│       │
-│       ├── booking/
-│       │   ├── BookingViewModel.kt     # Search, form, list, detail state
-│       │   ├── BookingsListScreen.kt   # Booking list + detail screen
-│       │   ├── BookingFormScreen.kt    # Create booking form
-│       │   ├── BookingConfirmationScreen.kt # Post-booking confirmation
-│       │   ├── ProviderSearchScreen.kt # Provider search with filter sheet
-│       │   ├── ProviderRatingsScreen.kt # Provider ratings display
-│       │   ├── ReviewScreen.kt         # Leave a review
-│       │   ├── ReviewViewModel.kt      # Review state management
-│       │   └── ServiceListScreen.kt    # Services for a provider
-│       │
-│       ├── cleaner/
-│       │   ├── CleanerViewModel.kt     # Dashboard state
-│       │   ├── CleanerProfileViewModel.kt # Profile + service management
-│       │   ├── CleanerBookingRequestsScreen.kt
-│       │   ├── CleanerEarningsScreen.kt
-│       │   ├── CleanerEarningsViewModel.kt
-│       │   ├── CleanerProfileScreen.kt
-│       │   ├── CleanerScheduleScreen.kt
-│       │   └── ServiceManagementScreen.kt
-│       │
-│       ├── company/
-│       │   ├── CompanyViewModel.kt     # Company aggregate state
-│       │   ├── CompanyEarningsViewModel.kt
-│       │   ├── CompanyBookingsScreen.kt
-│       │   ├── CompanyDashboardScreen.kt
-│       │   ├── CompanyEarningsScreen.kt
-│       │   └── CompanyTeamScreen.kt
-│       │
-│       ├── customer/
-│       │   └── CustomerProfileScreen.kt
-│       │
-│       ├── payment/
-│       │   ├── PaymentViewModel.kt     # Card validation, payment state
-│       │   ├── PaymentScreen.kt        # Payment form with card visual
-│       │   ├── PaymentSuccessScreen.kt # Receipt-style success
-│       │   └── PaymentHistoryScreen.kt # Transaction history
-│       │
-│       ├── components/                 # ✅ Phase 7: Reusable UI components
-│       │   ├── ConfirmationDialog.kt   # Reusable Material 3 confirmation dialog
-│       │   ├── ErrorScreens.kt         # GenericError, NoInternet, NotFound, OfflineBanner
-│       │   ├── QuickBookingSheet.kt    # Quick-book bottom sheet
-│       │   └── FilterSheet.kt          # Advanced filter bottom sheet
-│       │
-│       └── placeholder/
-│           └── PlaceholderScreen.kt
-│
-│   ├── src/test/java/com/example/diamonds/ui/
-│       └── base/
-│           └── BaseViewModelTest.kt    # ViewModel test template
-│
-│   └── src/androidTest/java/com/example/diamonds/ui/
-│       └── [TODO: Compose UI tests]
-│
-│
-├── app/                                # ✅ APPLICATION ENTRY POINT
-│   ├── build.gradle.kts
-│   │
-│   ├── src/main/java/com/example/diamonds/
-│   │   ├── DiamondsApplication.kt      # @HiltAndroidApp entry point
-│   │   ├── MainActivity.kt              # Main activity with Compose
-│   │   └── di/
-│   │       └── Modules.kt               # Hilt DI: DataModule, RepositoryModule
-│   │
-│   ├── src/main/AndroidManifest.xml    # Permissions, app config
+│   ├── src/main/java/com/example/diamonds/ui/     # organized by FEATURE package
+│   │   │                                          #   (there is no `screens/` directory)
+│   │   ├── base/BaseViewModel.kt
+│   │   ├── theme/Theme.kt
+│   │   │
+│   │   ├── navigation/                 # Screen.kt (49 routes), DiamondsNavHost.kt, BottomTab.kt
+│   │   ├── shell/                      # AppShell.kt, AppShellViewModel.kt, TabScreens.kt
+│   │   ├── splash/                     # SplashScreen.kt, SplashViewModel.kt
+│   │   ├── auth/                       # LoginScreen, SignupScreen, AuthViewModel
+│   │   │
+│   │   ├── booking/                    # ProviderSearch, ServiceList, BookingForm,
+│   │   │                               #   BookingConfirmation, BookingsList,
+│   │   │                               #   ProviderRatings, Review + BookingViewModel,
+│   │   │                               #   ReviewViewModel
+│   │   ├── customer/                   # CustomerProfileScreen
+│   │   ├── cleaner/                    # Dashboard/requests/bookings/schedule/earnings,
+│   │   │                               #   profile, service management + edit
+│   │   ├── company/                    # Dashboard, bookings, team, earnings
+│   │   ├── payment/                    # PaymentScreen, PaymentSuccess, PaymentHistory
+│   │   ├── review/                     # Reverse reviews: LeaveClientReview, ClientRatings
+│   │   ├── chat/                       # ConversationListScreen, ChatScreen, ChatViewModel
+│   │   ├── map/                        # BookingMapScreen, ProviderTrackingScreen,
+│   │   │                               #   BookingLocationMapCard, MapViewModel
+│   │   ├── notification/               # NotificationScreen, NotificationPreferencesScreen
+│   │   ├── subscription/               # RecurringBookingSetup, SubscriptionManagement
+│   │   ├── support/                    # HelpCenter, ContextualHelp, FileClaim,
+│   │   │                               #   CancelBooking, EditBooking (+ ViewModels)
+│   │   ├── profile/                    # SavedLocationsScreen, SavedLocationsViewModel
+│   │   ├── settings/                   # LanguageSelectorScreen, LanguageViewModel
+│   │   ├── sync/                       # SyncStatusScreen, SyncStatusViewModel
+│   │   ├── components/                 # ConfirmationDialog, ErrorScreens, FilterSheet,
+│   │   │                               #   PullToRefresh, LocationPermission,
+│   │   │                               #   CleaningTypeSelector, LocationTypeSelector
+│   │   └── placeholder/                # PlaceholderScreen
 │   │
 │   ├── src/main/res/
-│   │   ├── drawable/
-│   │   ├── mipmap-*/
-│   │   ├── values/
-│   │   │   └── strings.xml
-│   │   ├── values-night/
-│   │   └── xml/
-│   │       ├── data_extraction_rules.xml
-│   │       └── backup_rules.xml
+│   │   ├── values/strings.xml          # 531 <string> + 16 <plurals>
+│   │   ├── values-fr/strings.xml       # key-complete
+│   │   ├── values-es/strings.xml       # key-complete
+│   │   ├── values-pt/strings.xml       # key-complete
+│   │   └── values-ar/strings.xml       # key-complete
 │   │
-│   ├── src/test/java/com/example/diamonds/
-│   │   └── [TODO: App-level tests]
+│   └── src/test/java/com/example/diamonds/ui/     # 14 files / 2,749 LOC / 128 @Test
+│       ├── MainDispatcherRule.kt
+│       ├── base/BaseViewModelTest.kt
+│       ├── auth/AuthViewModelTest.kt
+│       ├── booking/{BookingViewModelTest, ReviewViewModelTest}.kt
+│       ├── chat/ChatViewModelTest.kt
+│       ├── cleaner/{CleanerViewModelTest, CleanerEarningsViewModelTest}.kt
+│       ├── company/{CompanyViewModelTest, CompanyEarningsViewModelTest}.kt
+│       ├── payment/PaymentViewModelTest.kt
+│       ├── subscription/RecurringBookingViewModelTest.kt
+│       ├── support/CancelBookingViewModelTest.kt
+│       └── sync/SyncStatusViewModelTest.kt
+│                                       #   (:ui has no androidTest — all instrumentation
+│                                       #    tests live in :app)
+│
+│
+├── app/                                # APPLICATION ENTRY POINT — 5 files / 555 LOC
+│   ├── build.gradle.kts                # applicationId, USE_MOCK_AUTH / USE_MOCK_BACKEND flags
+│   ├── google-services.json            # ⚠️ placeholder (project_number "000000000000")
+│   ├── proguard-rules.pro              # ⚠️ untouched empty template (isMinifyEnabled = false)
 │   │
-│   └── src/androidTest/java/com/example/diamonds/
-│       └── [TODO: E2E tests]
-│
-├── proguard-rules.pro                  # ProGuard config for release builds
-│
-└── gradle/wrapper/
-    ├── gradle-wrapper.jar
-    └── gradle-wrapper.properties
-
+│   ├── src/main/java/com/example/diamonds/
+│   │   ├── DiamondsApplication.kt      # @HiltAndroidApp, channels, WorkManager scheduling
+│   │   ├── MainActivity.kt             # Hosts the :ui nav graph
+│   │   ├── di/
+│   │   │   ├── Modules.kt              # DataModule + RepositoryModule (Hilt bindings)
+│   │   │   └── AuthServiceModule.kt    # Mock vs. Firebase auth by BuildConfig
+│   │   └── fcm/DiamondsFcmService.kt
+│   │
+│   ├── src/main/AndroidManifest.xml
+│   ├── src/main/res/
+│   │   ├── drawable/ · mipmap-*/
+│   │   ├── values/{strings,colors,themes}.xml   # 169 strings
+│   │   ├── values-{fr,es,pt,ar}/strings.xml     # 169 each, key-complete
+│   │   ├── values-night/themes.xml
+│   │   └── xml/{backup_rules,data_extraction_rules,locale_config}.xml
+│   │
+│   └── src/androidTest/java/com/example/diamonds/   # 23 files / 2,834 LOC
+│       ├── HiltTestRunner.kt
+│       ├── di/{FakeAuthServiceModule, FakeDataModule,
+│       │       FakeRepositories, FakeRepositoryModule}.kt
+│       └── ui/                          # 17 Compose test files + TestHelpers.kt
+│                                        #   ⚠️ never compiled or run by CI
+│                                        #   (:app has no src/test, despite being in allUnitTests)
 ```
 
 ## Module Breakdown
 
 ### `:core` Module
-**Size**: ~200 lines of production code
-**Dependencies**: None (pure Kotlin stdlib)
+**Size**: 3 files / 940 LOC
+**Dependencies**: No project dependencies — a `java-library` with only kotlin-stdlib,
+kotlinx-serialization-json and kotlinx-coroutines-core; contains zero Android imports
 **Purpose**: Define business domain contracts
 
 **Key Files**:
-- `domain/model/DomainModels.kt` - All domain entities
-- `domain/model/Result.kt` - Type-safe error handling
-- `domain/repository/Repositories.kt` - 7 repository contracts
+- `domain/model/DomainModels.kt` — 20 domain data classes + 18 enums (Client, Provider, Service,
+  Booking, Review, Payment, Notification, Message, Conversation, RecurringBooking, SupportTicket,
+  Claim, SavedLocation, UserSession, …)
+- `domain/model/Result.kt` — sealed `Success` / `Error` / `Loading`
+- `domain/repository/Repositories.kt` — 14 interfaces: `IAuthRepository`, `IClientRepository`,
+  `IProviderRepository`, `IServiceRepository`, `IBookingRepository`, `IReviewRepository`,
+  `IPaymentRepository`, `ISyncRepository`, `INotificationRepository`, `ILocationRepository`,
+  `IMessageRepository`, `ISubscriptionRepository`, `ISupportRepository`, `ISavedLocationRepository`
 
-**Files to Add**:
-- None immediately - domain is stable
+**Gaps**: no `src/test` directory, and `:core` is *not* included in the root `allUnitTests` task.
 
-### `:common` Module  
-**Size**: ~50 lines
-**Dependencies**: Only Kotlin stdlib + Compose/DataStore for UI utilities
+### `:common` Module
+**Size**: 3 files / 212 LOC
+**Dependencies**: `:core` (plus AndroidX core/appcompat, Compose and DataStore)
 **Purpose**: Shared utilities across modules
 
 **Key Files**:
-- `common/util/Constants.kt` - App constants
-- `common/ext/FlowExt.kt` - Flow helpers
+- `common/util/Constants.kt` — app constants, `ConnectivityState`
+- `common/util/DateTimeFormatUtil.kt` — locale-aware formatting
+- `common/ext/FlowExt.kt` — Flow helpers
 
-**Files to Add**:
-- More extensions as needed (DateExt, StringExt, etc.)
+**Gaps**: no `src/test` directory (but `:common:testDebugUnitTest` is wired into `allUnitTests`).
 
 ### `:data` Module
-**Size**: ~1500 lines
-**Dependencies**: `:core`, `:common`, Room, Coroutines, Serialization
-**Purpose**: All data access and business logic coordination
+**Size**: 30 files / 6,801 LOC
+**Dependencies**: `:core`, `:common`, Room, Coroutines, Serialization, Firebase, WorkManager
+**Purpose**: Persistence, remote access, sync, connectivity
 
 **Key Files**:
-- `local/AppDatabase.kt` - Room setup
-- `local/entity/Entities.kt` - 7 entities
-- `local/dao/Daos.kt` - 7 DAOs
-- `remote/backend/IBackendService.kt` - Backend contract
-- `repository/*.kt` - 7 repository implementations
-- `sync/SyncManager.kt` - Sync orchestration
-- `mapper/Mappers.kt` - Model conversions
+- `local/AppDatabase.kt` — Room **version 10**; 15 entities, 15 DAOs, 9 migrations
+- `local/entity/Entities.kt` / `local/dao/Daos.kt`
+- `remote/backend/IBackendService.kt` — backend contract plus 25 data classes: **15 `*Dto`** types
+  and **10 request** payloads (`Create*Request`, `EditBookingRequest`, …). The Firestore no-arg-constructor
+  blocker concerns the 15 `*Dto` types, since those are what `toObject()` reads back.
+- `remote/backend/BackendServiceStub.kt` — the debug backend; all seeded demo data lives here
+- `repository/*.kt` — 13 implementations (see tree)
+- `sync/SyncManager.kt` — implements `ISyncRepository`
+- `mapper/Mappers.kt` — all model conversions
 
-**Files to Add**:
-- `remote/backend/FirebaseBackendService.kt` - Real Firebase impl
-- `remote/backend/RestBackendService.kt` - REST API impl
-- More repositories as models added
-- Test files for each repository
+**Largest files**: `BackendServiceStub.kt` (1,131), `Mappers.kt` (681), `FirebaseBackendService.kt`
+(538), `IBackendService.kt` (436), `Daos.kt` (418).
+
+**Gaps**: `exportSchema = true` with no `room.schemaLocation` and no `schemas/` directory, so no
+migration is schema-verified; `SyncWorker`, `RecurringBookingWorker`, `PreferencesDataStore` and
+`ConnectivityObserver` have no tests.
 
 ### `:ui` Module
-**Size**: ~100 lines (growing with screens)
-**Dependencies**: `:core`, `:data`, `:common`, Compose, Hilt
-**Purpose**: All UI and ViewModels
+**Size**: 83 files / 17,090 LOC across 22 feature packages
+**Dependencies**: `:core`, `:data`, `:common`, Compose, Hilt, Maps
+**Purpose**: All Compose screens, ViewModels and navigation
 
-**Key Files**:
-- `base/BaseViewModel.kt` - ViewModel base class
-- `theme/Theme.kt` - Compose theme
+**Layout**: organized **by feature package**, not by layer — there is no `screens/` directory.
+45 files are `*Screen.kt`, 25 are `*ViewModel.kt`, and `navigation/Screen.kt` declares 49 routes.
 
-**Files to Add**:
-- `screens/Auth/LoginScreen.kt`
-- `screens/Auth/SignupScreen.kt`
-- `screens/Booking/BookingListScreen.kt`
-- `screens/Booking/BookingDetailScreen.kt`
-- `screens/Profile/ProfileScreen.kt`
-- `screens/Search/SearchScreen.kt`
-- `components/OfflineBanner.kt`
-- `components/SyncStatusBadge.kt`
-- Test files for each ViewModel
+| Package        | Files | LOC   | Package         | Files | LOC   |
+|----------------|-------|-------|-----------------|-------|-------|
+| `cleaner`      | 10    | 2,831 | `map`           | 4     | 781   |
+| `support`      | 10    | 1,344 | `chat`          | 3     | 768   |
+| `booking`      | 9     | 2,479 | `subscription`  | 3     | 710   |
+| `components`   | 7     | 713   | `review`        | 3     | 692   |
+| `company`      | 6     | 1,226 | `auth`          | 3     | 665   |
+| `payment`      | 4     | 818   | `notification`  | 3     | 558   |
+| `shell`        | 3     | 1,633 | `navigation`    | 3     | 312   |
+| `sync`         | 2     | 568   | `splash`        | 2     | 174   |
+| `profile`      | 2     | 329   | `settings`      | 2     | 183   |
+| `customer`     | 1     | 204   | `base`          | 1     | 59    |
+| `placeholder`  | 1     | 22    | `theme`         | 1     | 21    |
+
+**Resources**: `ui/src/main/res/values/strings.xml` holds 531 `<string>` + 16 `<plurals>`, mirrored
+key-complete in `values-fr`, `values-es`, `values-pt` and `values-ar`. 46 of the 83 Kotlin files
+reference `stringResource` (608 occurrences); roughly 67 residual `Text("…")` literals remain,
+almost all non-translatable glyphs (emoji, `"$"`, `"›"`).
+
+**Gaps**: 0 uses of `collectAsStateWithLifecycle` against 87 `collectAsState()` call sites in 44
+files; 37 `as? Result.Success` sites across 10 ViewModel files silently discard `Result.Error`.
 
 ### `:app` Module
-**Size**: ~150 lines
-**Dependencies**: All other modules
-**Purpose**: Application entry point and DI configuration
+**Size**: 5 files / 555 LOC
+**Dependencies**: `:ui`, `:data`, `:core`, `:common`
+**Purpose**: Entry point, Hilt wiring, FCM, instrumentation tests
 
 **Key Files**:
-- `DiamondsApplication.kt` - Hilt setup
-- `MainActivity.kt` - Entry point
-- `di/Modules.kt` - All DI bindings
-- `AndroidManifest.xml` - Permissions
+- `DiamondsApplication.kt` — `@HiltAndroidApp`; creates notification channels, schedules
+  `SyncWorker` and `RecurringBookingWorker`, starts a `ConnectivitySyncTrigger`
+- `MainActivity.kt` — hosts `DiamondsNavHost`
+- `di/Modules.kt` (258 LOC) — binds every `:core` interface to its `:data` implementation
+- `di/AuthServiceModule.kt` — `MockAuthService` vs. `FirebaseAuthService` by `BuildConfig`
+- `fcm/DiamondsFcmService.kt`
 
-**Files to Add**:
-- `navigation/NavGraph.kt` - Navigation setup
-- Test files
+**Gaps**: no `src/test` directory (yet `:app:testDebugUnitTest` is part of `allUnitTests`); the
+23-file `androidTest` suite is never compiled or run by CI.
 
 ## Build Configuration Files
 
 ### Root `build.gradle.kts`
-- Hilt plugin version
-- Android build plugin version
-- Kotlin plugin version
+- Plugin declarations, all `apply false` (AGP, Kotlin Android, Hilt 2.50, Google Services)
+- `allUnitTests` aggregate task → `:app`, `:common`, `:data`, `:ui` `testDebugUnitTest`
+  (**`:core` is not included**, and `:app`/`:common` have no tests to run)
 
 ### Module `build.gradle.kts`
-Each module has its own with specific dependencies:
-- `:core` - None (pure Kotlin)
-- `:common` - Compose + DataStore
-- `:data` - Room, Coroutines, Serialization
-- `:ui` - Compose, Hilt, Lifecycle
-- `:app` - All above + WorkManager
+- `:core` — `java-library` + `org.jetbrains.kotlin.jvm`, JVM 11 target, no Android
+- `:common` — `:core` + AndroidX/Compose/DataStore
+- `:data` — `:core`, `:common`; Room (kapt), Coroutines, kotlinx-serialization, Firebase BoM
+  (auth/firestore/messaging), WorkManager, Hilt; `room-testing` on the test classpath
+- `:ui` — `:core`, `:data`, `:common`; Compose, Hilt, Lifecycle, Maps Compose
+- `:app` — all four modules + WorkManager + Firebase BoM + Hilt instrumentation-test deps
 
-### `libs.versions.toml`
-- Version catalog for all dependencies
-- Centralized version management
-- Used across all modules via `libs.xxx`
+### `app/build.gradle.kts`
+- `applicationId = "com.example.diamonds"`, `compileSdk`/`targetSdk` 34
+- `debug`: `USE_MOCK_AUTH = true`, `USE_MOCK_BACKEND = true`
+- `release`: both `false`, `isMinifyEnabled = false`, **no `signingConfig`**
+- `MAPS_API_KEY` read from a Gradle property, defaulting to empty
+
+### `gradle/libs.versions.toml`
+- Centralized version catalog used by every module (`libs.*`)
+- Current: AGP 8.5.0, Kotlin 1.9.0, Compose 1.6.0 / Material3 1.2.0, Hilt 2.50, Room 2.6.1
+
+### `.github/workflows/ci.yml`
+- Runs `./gradlew assembleDebug allUnitTests` on JDK 17, for pushes to `develop` and PRs targeting it
+- Uploads unit-test HTML reports as an artifact
+- Does **not** run `assembleDebugAndroidTest`, lint, or any coverage gate
 
 ## How to Find Things
 
 ### Domain Models
-→ `core/src/main/java/com/example/diamonds/domain/model/`
+→ `core/src/main/java/com/example/diamonds/domain/model/DomainModels.kt`
 
-### Database
+### Repository Interfaces
+→ `core/src/main/java/com/example/diamonds/domain/repository/Repositories.kt`
+
+### Database (entities, DAOs, migrations)
 → `data/src/main/java/com/example/diamonds/data/local/`
 
-### Repositories
-→ `data/src/main/java/com/example/diamonds/data/repository/`
+### Repository Implementations
+→ `data/src/main/java/com/example/diamonds/data/repository/` (plus `sync/SyncManager.kt`)
 
-### ViewModels
-→ `ui/src/main/java/com/example/diamonds/ui/screens/`
+### Seeded Demo Data
+→ `data/src/main/java/com/example/diamonds/data/remote/backend/BackendServiceStub.kt`
 
-### Compose Screens
-→ `ui/src/main/java/com/example/diamonds/ui/screens/`
+### ViewModels and Compose Screens
+→ `ui/src/main/java/com/example/diamonds/ui/<feature>/` — both live side by side in the feature
+package (e.g. `ui/booking/BookingViewModel.kt` and `ui/booking/BookingFormScreen.kt`)
+
+### Navigation
+→ `ui/src/main/java/com/example/diamonds/ui/navigation/` (routes) and `ui/shell/AppShell.kt`
+(inner NavHost with the bottom tabs)
+
+### Strings / Translations
+→ `ui/src/main/res/values*/strings.xml` (the bulk) and `app/src/main/res/values*/strings.xml`
 
 ### Dependency Injection
 → `app/src/main/java/com/example/diamonds/di/`
 
 ### Unit Tests
-→ `[module]/src/test/java/com/example/diamonds/`
+→ `data/src/test/` and `ui/src/test/`
 
-### UI Tests
-→ `[module]/src/androidTest/java/com/example/diamonds/`
+### Instrumentation Tests
+→ `app/src/androidTest/java/com/example/diamonds/`
 
 ## Adding New Files
 
 ### New Repository
-1. Update domain interface: `core/domain/repository/Repositories.kt`
-2. Create entity: `data/local/entity/Entities.kt`
-3. Create DAO: `data/local/dao/Daos.kt`
-4. Create implementation: `data/repository/XyzRepository.kt`
-5. Add mapping: `data/mapper/Mappers.kt`
-6. Add Hilt binding: `app/di/Modules.kt`
+1. Add the interface to `core/domain/repository/Repositories.kt`
+2. Add the entity to `data/local/entity/Entities.kt` and the DAO to `data/local/dao/Daos.kt`
+3. Register both on `AppDatabase` and add a `Migration` (bump the DB version)
+4. Add DTO(s) + methods to `data/remote/backend/IBackendService.kt`, then implement them in
+   **both** `BackendServiceStub` and `FirebaseBackendService`
+5. Create `data/repository/XyzRepository.kt`
+6. Add mappers to `data/mapper/Mappers.kt`
+7. Bind it in `app/di/Modules.kt` — **and** add a fake to
+   `app/src/androidTest/di/FakeRepositoryModule.kt`, which replaces `RepositoryModule` wholesale
 
 ### New Screen
-1. Create ViewModel: `ui/src/main/java/com/example/diamonds/ui/screens/XyzViewModel.kt`
-2. Create Compose screen: `ui/src/main/java/com/example/diamonds/ui/screens/XyzScreen.kt`
-3. Add to navigation: `app/navigation/NavGraph.kt` (when created)
+1. Create the `UiState` + ViewModel in `ui/<feature>/XyzViewModel.kt`
+2. Create the Composable in `ui/<feature>/XyzScreen.kt`
+3. Add a route to `ui/navigation/Screen.kt` and wire it into `ui/shell/AppShell.kt`
+4. Put every user-facing literal in `ui/src/main/res/values/strings.xml` and add the key to all
+   four translated locales
 
 ### New Utility
-1. Add to appropriate module
-2. If shared: `common/src/main/java/com/example/diamonds/common/`
-3. If data-specific: `data/src/main/java/com/example/diamonds/data/util/`
+1. Shared across modules → `common/src/main/java/com/example/diamonds/common/`
+2. Data-layer only → `data/src/main/java/com/example/diamonds/data/util/`
 
 ## File Statistics
 
-| Component | Lines | Files | Status |
-|-----------|-------|-------|--------|
-| Domain Models | 200 | 2 | ✅ Complete |
-| Database (Room) | 400 | 3 | ✅ Complete |
-| Repositories | 600 | 7 | ✅ Complete |
-| Sync/Backend | 300 | 4 | ✅ Complete |
-| Hilt DI | 150 | 1 | ✅ Complete |
-| UI Base | 100 | 2 | ✅ Complete |
-| Documentation | 1500+ | 5 | ✅ Complete |
-| **TOTAL** | **3250+** | **24** | **✅ Phase 1** |
+| Component                | Files   | Lines      | Notes                                          |
+|--------------------------|---------|------------|------------------------------------------------|
+| `:core` domain           | 3       | 940        | 20 data classes, 18 enums, 14 repo interfaces   |
+| `:common` utilities      | 3       | 212        |                                                |
+| `:data`                  | 30      | 6,801      | Room v10 · 15 entities · 15 DAOs · 9 migrations |
+| `:ui`                    | 83      | 17,090     | 45 screens · 25 ViewModels · 49 routes          |
+| `:app`                   | 5       | 555        | Hilt wiring, FCM, entry point                   |
+| **Production total**     | **124** | **25,598** |                                                |
+| JVM unit tests           | 26      | 5,391      | 300 `@Test` (`:data` 12/172, `:ui` 14/128)      |
+| Instrumentation tests    | 23      | 2,834      | `app/src/androidTest` — **not run by CI**       |
+| Root documentation       | 10      | —          | see the tree above                             |
 
 ---
 
-**Note**: This structure is designed for parallel development. Different team members can work on different modules simultaneously without conflicts.
+**Note**: the module graph is strictly acyclic — `:common` → `:core`; `:data` → `:core`, `:common`;
+`:ui` → `:core`, `:data`, `:common`; `:app` → all four. Lower layers never depend on higher ones,
+which is what keeps parallel work on separate modules conflict-free.

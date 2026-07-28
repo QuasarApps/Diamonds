@@ -7,45 +7,143 @@
 > **structurally complete but not functionally working** (re-tagged `✅ STRUCTURAL ⚠️` inline). The
 > architecture is strong; the gap is "compiles & demos on the mock backend" vs "works against real
 > Firebase." This section is the corrected, evidence-based work order. Each item cites the review
-> section that substantiates it. **Do these before resuming the linear Phase 16→21 march.**
+> section that substantiates it. **Do these before resuming the linear Phase 17→21 march**
+> (Phase 16 shipped in the meantime — see its corrected entry below).
 
-### Track A — Make the docs true (cheap, high trust; ~few days)
-- [ ] **Decide the offline-write story:** wire `SyncManager.queueOperation()` into write repos, or
-  delete the dead queue/backoff/conflict code. Then fix README/AUDIT, which advertise it. *(§4)*
-- [ ] Fix `RecurringBookingViewModel.getCurrentSession()` infinite-suspend → use `.first()`. *(§3.3)*
-- [ ] Fix `MessageRepository.sendMessage` offline message loss (queue or surface pending state). *(§3.4)*
-- [ ] Correct stale/inaccurate doc claims (§6): locale switching IS wired; `BookingRepositoryTest`
-  is no longer a no-op; coverage is well above "15–20%"; `getReviewsForProvider` is not a full scan;
-  README's "encrypted session storage" contradicts plaintext-token reality.
-- [ ] Add CI: build + `./gradlew allUnitTests` on every push (the committed `*_build.txt` logs are
-  stale; there is currently no green/red signal). *(§7)*
+**Last verified: 2026-07-27, against `develop` @ `4892952`.** Status at that commit:
+Track A ✅ **done** except one open decision · Track B ✅ **done** (string externalization landed in
+PRs #7–#17); the lint gate and icon/lifecycle items are still open · Track C ❌ **entirely
+untouched**, and it now has a newly-found blocker at the top · Track D 🟡 **partial** ·
+Track E ❌ **new, open**.
 
-### Track B — Make it actually multilingual & accessible
-- [ ] Externalize the ~350 hardcoded `Text("…")` literals to `stringResource(R.string.*)` (translations
-  already exist) and add a `HardcodedText` lint baseline. *(§3.2)*
-- [ ] Replace emoji-as-icons with `androidx.compose.material.icons.*` + `contentDescription`; localize
-  `contentDescription`s; adopt `collectAsStateWithLifecycle`. *(§4)*
+### Track A — Make the docs true (cheap, high trust) — ✅ done bar one decision
+- [ ] 🔴 **DECISION REQUIRED (tech lead):** the offline-write story. `SyncManager.queueOperation()`
+  still has **zero production call sites** — every write repo hard-fails when offline instead of
+  enqueuing, so the backoff/conflict machinery processes a table nothing populates. Two honest
+  options: (a) wire `queueOperation()` into the write repos and make offline writes real, or
+  (b) delete the queue/backoff/conflict code and stop advertising offline writes. This is a product
+  call, not a coding task that can be started blind — everything else in Track A is finished, so it
+  is the only thing keeping the track open. *(§4)*
+- [x] Fix `RecurringBookingViewModel.getCurrentSession()` infinite-suspend → now uses `.first()`
+  (`ui/subscription/RecurringBookingViewModel.kt:193`). *(§3.3)*
+- [x] Fix `MessageRepository.sendMessage` offline message loss — it now persists locally **and**
+  returns `Result.Error(OfflineException)` when offline, and propagates backend errors instead of
+  reporting success (`data/repository/MessageRepository.kt:131–150`). *(§3.4)*
+- [x] Correct stale/inaccurate doc claims (§6): locale switching IS wired; `BookingRepositoryTest`
+  is no longer a no-op; the "15–20% coverage" figure and the "`getReviewsForProvider` is a full
+  scan" claim are retracted; "encrypted session storage" corrected to **plaintext** everywhere.
+- [x] Add CI — `.github/workflows/ci.yml` runs `./gradlew assembleDebug allUnitTests` on every PR to
+  `develop` and on pushes to `develop`, on JDK 17, with test reports uploaded. *(§7)*
+  *(The CI job has real gaps of its own — it never compiles or runs `androidTest`, runs no lint and
+  no coverage gate. Those are tracked in **Track E**, not here.)*
 
-### Track C — Before flipping `USE_MOCK_BACKEND=false` (Firebase go-live gate)
-- [ ] Implement the 14 `FirebaseBackendService` stubs + repo stubs (`getCurrentClient`,
-  `updateProvider`, `getPaymentsForProvider`, `updatePaymentStatus`, `updateService`). *(§3.1, §4)*
-- [ ] Persist `direction`/`locationTags` in `createReview`; populate price/duration/type in Firebase
-  `createBooking`; create the profile doc on signup; register the FCM token server-side. *(§3.5, §4)*
-- [ ] **Security:** encrypt the session store; `allowBackup=false` / exclude DataStore; write & deploy
-  Firestore Security Rules; integrate a real PSP (status from server webhook only). *(§3.6)*
-- [ ] Real `google-services.json`, real `applicationId`, `signingConfig`, ProGuard keep rules +
-  `isMinifyEnabled=true`, supply `MAPS_API_KEY`, add Coil. *(§4, §5)*
+### Track B — Make it actually multilingual & accessible — ✅ externalization done, gate still open
+- [x] Externalize the hardcoded `Text("…")` literals to `stringResource(R.string.*)`. **Done:**
+  `stringResource` is now used in **46 of the 83** `:ui/src/main` Kotlin files across **608**
+  references. `ui/src/main/res/values/strings.xml` holds **531 `<string>` + 16 `<plurals>`** entries,
+  key-complete across **5 locales** (`values`, `values-fr`, `values-es`, `values-pt`, `values-ar`).
+  The old "1 of 83 files / ~350 hardcoded literals" figure is obsolete. *(§3.2)*
+- [x] Localize `contentDescription`s — every `Icon` `contentDescription` now resolves through a
+  `cd_*` string key.
+- [ ] Add a lint rule + baseline that fails the build on **new** hardcoded UI strings. **Not started
+  — no lint rule, no baseline, and no lint step in CI exists anywhere in the repo.** Without it the
+  ~67 residual `Text("…")` literals (almost all non-translatable glyphs: emoji, `"$"`, `"›"`) can
+  quietly grow back.
+- [ ] Replace emoji-as-icons with `androidx.compose.material.icons.*` + `contentDescription`. *(§4)*
+- [ ] Adopt `collectAsStateWithLifecycle` — **0 uses** today vs **87 `collectAsState()`** call sites
+  across 44 files. *(§4)*
 
-### Track D — Hardening (folds into Phase 17/18)
-- [ ] Unit-test `SyncManager` / Workers / `PreferencesDataStore` / `ConnectivityObserver` and the
-  newly-implemented repo methods; use Turbine to assert state transitions; export Room schemas +
-  migration tests; remove boilerplate `Example*Test`. *(§4, §5)*
-- [ ] Introduce a `:core` connectivity interface + `DispatcherProvider`; fix the captive-portal
-  `NET_CAPABILITY_VALIDATED` check; cancel app/service coroutine scopes; drop unjustified
-  `ACCESS_BACKGROUND_LOCATION`; apply the `kotlin-serialization` plugin to `:core`. *(§4, §5)*
+### Track C — Before flipping `USE_MOCK_BACKEND=false` (Firebase go-live gate) — ❌ entirely open
+- [ ] 🔴 **BLOCKER, found 2026-07-27 — every Firestore *read* fails today.** Every DTO in
+  `data/remote/backend/IBackendService.kt` is a `data class` whose constructor parameters are all
+  **required** (no defaults) — e.g. `ClientDto:113`, `BookingDto:162` — so Kotlin generates **no
+  no-arg constructor**. Firestore's object mapper requires one. `FirebaseBackendService` calls
+  `toObject()`/`toObjects()` **26 times**, so every read throws and is swallowed into a
+  `Result.Error` by the `firestoreCall` wrapper, while writes succeed. Flipping
+  `USE_MOCK_BACKEND=false` today therefore yields a **write-only app**: data goes in and nothing
+  comes back. Fix: give every DTO defaults for all constructor params (or hand-write the mapping).
+  **Nothing else in this track is worth doing until this is fixed** — the other items are invisible
+  behind it.
+- [ ] Implement the 14 `FirebaseBackendService` stubs at `FirebaseBackendService.kt:484–524` (support
+  tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations) + the
+  repo stubs (`getCurrentClient`, `updateProvider`, `getPaymentsForProvider`, `updatePaymentStatus`,
+  `updateService`). *(§3.1, §4)*
+- [ ] Fix the silent data drops on the Firebase path: `createReview` still discards `direction` and
+  `locationTags`; `createBooking` hardcodes `totalPrice = 0.0` and `estimatedDuration = 60`;
+  `FirebaseAuthService.signup` creates no Firestore profile doc and discards the `role` argument;
+  the FCM token is written to DataStore but never registered server-side (`observeFcmToken` has
+  **0 callers**, so targeted push cannot work); `searchProviders` ignores `latitude`/`longitude`/
+  `radius` entirely. *(§3.5, §4)*
+- [ ] **Security:** the session store is **plaintext** DataStore holding the auth token and PII
+  (`data/local/preferences/PreferencesDataStore.kt:16`) — encrypt it; set `allowBackup=false` (or
+  exclude DataStore — `android:allowBackup="true"` currently ships with *empty* backup rule files);
+  **write and deploy Firestore Security Rules — the repo contains none at all** (no
+  `firestore.rules`, `firebase.json` or `.firebaserc`); integrate a real PSP — payments today
+  fabricate `status = "SUCCEEDED"` client-side (`FirebaseBackendService.kt:267`) with no processor,
+  and `PaymentScreen.kt` collects card PAN/CVV in **unmasked** `OutlinedTextField`s with no PSP SDK
+  and no `FLAG_SECURE`. *(§3.6)*
+- [ ] Release configuration: `app/google-services.json` is still the placeholder
+  (`project_number "000000000000"`, `api_key "placeholder-key-for-testing"`); there is **no
+  `signingConfig` anywhere**; `applicationId` is still `com.example.diamonds` (Play rejects
+  `com.example.*`); `isMinifyEnabled = false` and `proguard-rules.pro` is the untouched empty
+  template; supply a real `MAPS_API_KEY`; add Coil. *(§4, §5)*
+
+### Track D — Hardening (folds into Phase 17/18) — 🟡 partial
+**Landed:**
+- [x] `SyncManagerTest.kt` — 21 tests covering queue/cancel/retry/conflict-resolution and the
+  `processSyncQueue` dispatch paths, plus the correctness fixes they surfaced (PRs #19–#21).
+- [x] `LocationRepositoryTest.kt` — 8 tests (Haversine distance identities, symmetry, a known city
+  pair, ETA).
+- [x] Boilerplate `Example*Test` files removed — **0** remain.
+
+**Still open:**
+- [ ] No tests at all for `SyncWorker`, `RecurringBookingWorker`, `PreferencesDataStore` or
+  `ConnectivityObserver`.
+- [ ] **Room schema export is broken:** `AppDatabase` declares `exportSchema = true` but no
+  `room.schemaLocation` is configured and no `schemas/` directory exists, so all **9** migrations
+  (`MIGRATION_1_2`…`MIGRATION_9_10`) are unverified and the declared `room-testing` dependency is
+  dead weight. Configure the schema location, commit the JSONs, then add migration tests.
+- [ ] **Turbine is declared but unused** — `testImplementation(libs.turbine)` in both
+  `data/build.gradle.kts` and `ui/build.gradle.kts`, **0** imports in any test. Either use it to
+  assert state transitions or drop the dependency.
+- [ ] No `DispatcherProvider` — **0** references repo-wide; tests still lean on `MainDispatcherRule`
+  plus direct `runTest`. Introduce one alongside a `:core` connectivity interface (`:ui` still
+  couples to the concrete `:data` `ConnectivityObserver`).
+- [ ] Fix the captive-portal `NET_CAPABILITY_VALIDATED` check; cancel app/service coroutine scopes;
+  apply the `kotlin-serialization` plugin to `:core`. *(§4, §5)*
+- [ ] Drop or actually use `ACCESS_BACKGROUND_LOCATION` **and** `POST_NOTIFICATIONS` — both are
+  declared in the manifest but never requested or used at runtime.
+
+### Track E — Test-infrastructure & error-handling defects *(new, found 2026-07-27)* — ❌ open
+These were invisible to every previous review because CI never exercises the instrumentation suite.
+- [ ] **CI does not build or run `androidTest`.** The workflow runs only `assembleDebug allUnitTests`
+  — no `assembleDebugAndroidTest`, no lint, no coverage gate — which is exactly why the two defects
+  below shipped unnoticed. `allUnitTests` also aggregates `:app` and `:common`, **neither of which
+  has a `src/test` directory**, and excludes `:core` entirely; only `:data` (12 files) and `:ui`
+  (14 files) actually contribute. At minimum add `assembleDebugAndroidTest` so the instrumentation
+  suite is compile-checked on every PR.
+- [ ] **`LoginScreenTest` is broken by the Track B externalization.**
+  `app/src/androidTest/.../ui/LoginScreenTest.kt:153` asserts the text
+  `"Demo accounts  (tap to fill)"` (**two** spaces), but the shipped
+  `R.string.demo_accounts_hint` is `"Demo accounts (tap to fill)"` (**one** space). The test fails
+  on a device today. Fix the assertion — better, assert against the string resource.
+- [ ] **The `androidTest` Hilt graph is incomplete.**
+  `app/src/androidTest/.../di/FakeRepositoryModule.kt` `@TestInstallIn`-replaces `RepositoryModule`
+  wholesale with 13 `@Provides`, but omits `ISavedLocationRepository`, which production
+  `app/di/Modules.kt` does provide. Any instrumentation test that reaches a saved-locations
+  dependency fails to construct its graph.
+- [ ] **`SavedLocationRepository` reports failed writes as success.**
+  `data/repository/SavedLocationRepository.kt:32` maps `Result.Error → Result.Success(emptyList())`
+  and `:45` maps `Result.Error → Result.Success(location)`, so a failed remote call surfaces to the
+  UI as a success. This is the same silent-data-loss class as the `MessageRepository` bug fixed in
+  Track A, and it has no tests.
+- [ ] **37 `as? Result.Success` sites across 10 ViewModel files** collapse `Result.Error` into `null`
+  with no user-visible error, contradicting the documented three-arm `Result` convention
+  (`Success`/`Error`/`Loading`). Convert them to exhaustive `when` blocks that surface errors.
 
 **Gate:** treat Tracks A–C as exit criteria for "production candidate." The linear roadmap's
-Phase 19 (Release Prep) cannot truthfully start until Track C is done.
+Phase 19 (Release Prep) cannot truthfully start until Track C is done. Track E is cheap and should
+be folded into the next PR touching CI.
 
 ---
 
@@ -247,11 +345,20 @@ Comprehensive navigation, deep linking, transitions, and UX polish.
 
 ## Phase 8: Firebase Integration ✅ STRUCTURAL ⚠️
 Backend and real-time features via Firebase.
-> ⚠️ **Review 2026-06-25:** The Firebase path is materially incomplete and `release` builds enable
-> it (`USE_MOCK_BACKEND=false`): **14 `FirebaseBackendService` methods return
-> `Result.Error("not yet implemented")`**, `google-services.json` is a placeholder, `signup` never
-> writes a Client/Provider profile doc, and the FCM token is saved locally but never registered
-> server-side (targeted push can't work). See [TECH_LEAD_REVIEW.md §3.1, §4](TECH_LEAD_REVIEW.md#31-the-release-build-routes-to-an-unimplemented-firebase-backend).
+> ⚠️ **Review 2026-06-25, re-verified 2026-07-27 — worse than first reported.** The Firebase path is
+> materially incomplete and `release` builds enable it (`USE_MOCK_BACKEND=false`): **14
+> `FirebaseBackendService` methods return `Result.Error(Exception("… not yet implemented"))`**
+> (`FirebaseBackendService.kt:484–524`), `google-services.json` is a placeholder, `signup` never
+> writes a Client/Provider profile doc (and discards the `role` argument), and the FCM token is saved
+> locally but never registered server-side (`observeFcmToken` has 0 callers, so targeted push can't
+> work). See [TECH_LEAD_REVIEW.md §3.1, §4](TECH_LEAD_REVIEW.md#31-the-release-build-routes-to-an-unimplemented-firebase-backend).
+>
+> 🔴 **New, 2026-07-27 — this is the real blocker.** Even the *implemented* Firebase methods cannot
+> read. Every DTO in `IBackendService.kt` has required (no-default) constructor params, so Kotlin
+> emits no no-arg constructor and Firestore's object mapper cannot deserialize; all 26
+> `toObject()`/`toObjects()` calls throw and are swallowed into `Result.Error` by `firestoreCall`.
+> With `USE_MOCK_BACKEND=false` the app writes fine and reads **nothing**. Fix this first —
+> **Track C, item 1**.
 
 ### Tasks
 
@@ -368,7 +475,8 @@ Maps integration and location services.
 ### Tests
 - [ ] Location permission tests
 - [ ] Map display tests
-- [ ] Distance calculation tests
+- [x] Distance calculation tests — `data/src/test/.../LocationRepositoryTest.kt` (8 tests: Haversine
+  identities, symmetry, a known city pair, ETA)
 
 **Status**: ✅ COMPLETE
 
@@ -378,11 +486,14 @@ Maps integration and location services.
 
 ## Phase 10: Sync & Offline Features ✅ STRUCTURAL ⚠️
 Complete offline-first implementation and sync.
-> ⚠️ **Review 2026-06-25:** The sync engine is **dead code** — `SyncManager.queueOperation()` has
-> zero production call sites. Every write path hard-fails when offline instead of enqueuing, so the
-> backoff/conflict-resolution machinery processes a table that is never populated. Read-side
-> offline-first is real; the offline-**write** story advertised here does not run. Decision needed:
-> wire the queue into write repos, or delete it and correct the docs. See [TECH_LEAD_REVIEW.md §4](TECH_LEAD_REVIEW.md#4-important-findings-p2).
+> ⚠️ **Review 2026-06-25, re-verified 2026-07-27 — still open.** The sync engine is **dead code**:
+> `SyncManager.queueOperation()` has zero production call sites. Every write path hard-fails when
+> offline instead of enqueuing, so the backoff/conflict-resolution machinery processes a table that
+> is never populated. Read-side offline-first is real; the offline-**write** story advertised here
+> does not run. The engine is now properly unit-tested (`SyncManagerTest.kt`, 21 tests — PRs
+> #19–#21) and several correctness bugs were fixed, but *tested dead code is still dead code*. The
+> decision — wire the queue into write repos, or delete it and correct the docs — is the one
+> remaining Track A item. See [TECH_LEAD_REVIEW.md §4](TECH_LEAD_REVIEW.md#4-important-findings-p2).
 
 ### Tasks
 
@@ -428,18 +539,29 @@ Complete offline-first implementation and sync.
 - `common/util/Constants.kt` — MAX_RETRY_ATTEMPTS increased to 5
 
 ### Tests
-- [ ] Sync queue tests
-- [ ] Connectivity change tests
+- [x] Sync queue tests — `data/src/test/.../sync/SyncManagerTest.kt` (21 tests: queue/cancel/retry,
+  conflict resolution, `processSyncQueue` dispatch, retry-limit and unroutable-entity failure paths)
+- [ ] Connectivity change tests — `SyncManagerTest` covers "does nothing when offline", but
+  `ConnectivityObserver` and `ConnectivitySyncTrigger` themselves remain untested
 - [ ] Offline data preservation tests
+- [ ] `SyncWorker` scheduling tests
 
 **Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 ---
 
 ## Phase 11: In-App Chat System ✅ STRUCTURAL ⚠️
-> ⚠️ **Review 2026-06-25:** `MessageRepository.sendMessage` reports `Result.Success` for messages
-> composed offline / on transient backend failure, but never sends or retries them — silent chat
-> **data loss**. See [TECH_LEAD_REVIEW.md §3.4](TECH_LEAD_REVIEW.md#34-messagerepositorysendmessage-silently-loses-messages-sent-offline).
+> ✅ **Fixed 2026-07 (Track A).** The 2026-06-25 review found that `MessageRepository.sendMessage`
+> reported `Result.Success` for messages composed offline or on a transient backend failure but
+> never sent or retried them — silent chat **data loss**. As of `develop` @ `4892952` the message is
+> persisted locally *and* the call returns `Result.Error(OfflineException)` when offline, and
+> backend errors are propagated rather than swallowed (`MessageRepository.kt:131–150`), with
+> regression tests in `MessageRepositoryTest.kt`. See
+> [TECH_LEAD_REVIEW.md §3.4](TECH_LEAD_REVIEW.md#34-messagerepositorysendmessage-silently-loses-messages-sent-offline).
+>
+> The phase stays `STRUCTURAL ⚠️` for a different reason: the caller now *knows* a message failed,
+> but there is still no retry/pending-outbox — that depends on the open Track A sync-queue decision.
+> The Firestore chat collections are also subject to the Track C read blocker.
 
 Real-time messaging between clients and cleaners.
 
@@ -481,45 +603,34 @@ Real-time messaging between clients and cleaners.
 - `ui/navigation/Screen.kt` - Chat and ConversationList routes
 - `ui/shell/AppShell.kt` - Chat composable destinations, 💬 badge in top bar
 - `ui/booking/BookingsListScreen.kt` - "Chat with Cleaner" button in BookingDetailScreen
+- `app/fcm/DiamondsFcmService.kt` - New message push notification handling
 - `app/di/Modules.kt` - IMessageRepository binding
 
 ### Tests
 
-- [ ] Message repository tests
-- [ ] Chat ViewModel tests
-- [ ] Real-time listener tests
+- [x] Message repository tests — `data/src/test/.../MessageRepositoryTest.kt` (16 tests, including
+  the offline/backend-error regressions from the Track A fix)
+- [x] Chat ViewModel tests — `ui/src/test/.../chat/ChatViewModelTest.kt` (13 tests)
+- [ ] Real-time listener tests (`FirestoreBookingListener` / chat snapshot listeners)
 
 **Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
-
-### Modified Files
-
-- `core/domain/model/DomainModels.kt` - Message, Conversation models
-- `core/domain/repository/Repositories.kt` - IMessageRepository interface
-- `data/local/entity/Entities.kt` - MessageEntity, ConversationEntity
-- `data/local/dao/Daos.kt` - MessageDao, ConversationDao
-- `data/local/AppDatabase.kt` - Version 6, MIGRATION_5_6
-- `data/remote/backend/IBackendService.kt` - Chat endpoints and DTOs
-- `data/remote/backend/BackendServiceStub.kt` - Seeded demo conversations
-- `data/remote/backend/FirebaseBackendService.kt` - Firestore chat collections
-- `app/fcm/DiamondsFcmService.kt` - New message push notification handling
-- `ui/navigation/Screen.kt` - Chat and ConversationList routes
-- `ui/shell/AppShell.kt` - Chat composable destinations, unread badge
-
-### Tests
-
-- [ ] Message repository tests
-- [ ] Chat ViewModel tests
-- [ ] Real-time listener tests
 
 **Estimated Duration**: 2-3 weeks
 
 ---
 
 ## Phase 12: Subscription and Recurring Bookings ✅ STRUCTURAL ⚠️
-> ⚠️ **Review 2026-06-25:** `RecurringBookingViewModel.getCurrentSession()` collects a
-> never-completing DataStore flow with `return@collect`, which only returns the lambda — `collect()`
-> never returns, so the suspend fn **hangs forever** and recurring-booking submit/load is broken.
-> Fix: use `.first()`. See [TECH_LEAD_REVIEW.md §3.3](TECH_LEAD_REVIEW.md#33-recurringbookingviewmodelgetcurrentsession-suspends-forever).
+> ✅ **Fixed 2026-07 (Track A).** The 2026-06-25 review found that
+> `RecurringBookingViewModel.getCurrentSession()` collected a never-completing DataStore flow with
+> `return@collect` — which only returns the lambda, so `collect()` never returned and the suspend
+> function **hung forever**, breaking recurring-booking submit and load. As of `develop` @ `4892952`
+> it uses `authRepository.getCurrentUserSession().first()`
+> (`ui/subscription/RecurringBookingViewModel.kt:193`), with a regression test
+> (`submitRecurringBooking proceeds when session flow never completes`) and null-session handling.
+> See [TECH_LEAD_REVIEW.md §3.3](TECH_LEAD_REVIEW.md#33-recurringbookingviewmodelgetcurrentsession-suspends-forever).
+>
+> The phase stays `STRUCTURAL ⚠️` because `RecurringBookingWorker` has no tests and the Firestore
+> `recurringBookings` collection is subject to the Track C read blocker.
 
 Allow clients to set up recurring cleaning schedules.
 
@@ -571,20 +682,33 @@ Allow clients to set up recurring cleaning schedules.
 
 ### Tests
 
-- [ ] Recurring booking generation tests
-- [ ] Subscription repository tests
+- [x] Subscription repository tests — `data/src/test/.../SubscriptionRepositoryTest.kt` (16 tests:
+  offline-write errors, cache-first reads, status updates, schedule updates, `advanceNextBookingDate`)
+- [x] Recurring booking ViewModel tests — `ui/src/test/.../subscription/RecurringBookingViewModelTest.kt`
+  (15 tests: setup state, submit success/failure, pause/resume/cancel, never-completing session flow)
+- [ ] Recurring booking *generation* tests (`RecurringBookingWorker` — untested)
 - [ ] WorkManager scheduling tests
+
+**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 **Estimated Duration**: 2-3 weeks
 
 ---
 
-## Phase 13: Multi-Language Support ✅ STRUCTURAL ⚠️
-> ⚠️ **Review 2026-06-25:** Non-functional in practice. 845 strings are professionally translated
-> (ES/FR/AR/PT, real Arabic) but `stringResource` is used in **1 of 83 UI files** — ~350 `Text("…")`
-> literals are hardcoded English, so switching locale changes almost nothing on screen.
-> *Correction to prior audit:* runtime locale switching **is** now wired via
-> `AppCompatDelegate.setApplicationLocales()` (README #9 is stale). See [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md#32-user-facing-strings-are-hardcoded--the-multi-language-feature-does-not-work).
+## Phase 13: Multi-Language Support ✅ COMPLETE
+> ✅ **Resolved 2026-07 (Track B, PRs #7–#17). Multi-language is no longer inert.** The 2026-06-25
+> review found `stringResource` used in **1 of 83** UI files, with ~350 hardcoded English `Text("…")`
+> literals, so switching locale changed almost nothing on screen. As of `develop` @ `4892952`:
+> `stringResource` is used in **46 of the 83** `:ui/src/main` Kotlin files across **608** references;
+> `ui/src/main/res/values/strings.xml` carries **531 `<string>` + 16 `<plurals>`** entries and every
+> one of the five locale folders (`values`, `values-fr`, `values-es`, `values-pt`, `values-ar`) is
+> key-complete at 531 + 16; `app/src/main/res` adds a further 169 strings per locale; and all `Icon`
+> `contentDescription`s resolve through `cd_*` keys. Switching language now visibly re-renders the
+> app. See [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md#32-user-facing-strings-are-hardcoded--the-multi-language-feature-does-not-work).
+>
+> **Remaining (tracked in Track B, not blocking this phase):** ~67 residual `Text("…")` literals —
+> almost all non-translatable glyphs (emoji, `"$"`, `"›"`) — and **no lint rule or baseline** to stop
+> new hardcoded strings creeping back in.
 
 Full internationalisation and localisation of the app.
 
@@ -602,14 +726,13 @@ Full internationalisation and localisation of the app.
 - [x] Translate strings for all initial supported languages
 - [x] Update SignupScreen and ProfileScreen to show and store preferred language
 - [x] Add locale to user profile synced with backend
-- [ ] Add photo upload for reviews (future)
-- [ ] Implement review moderation (future)
+- [ ] Add a lint rule/baseline so new hardcoded strings fail the build *(Track B)*
 
 ### New Files
 
 - `ui/settings/LanguageSelectorScreen.kt` — In-app language picker screen with flag + radio buttons
 - `ui/settings/LanguageViewModel.kt` — Language preference state management via PreferencesDataStore
-- `ui/src/main/res/values/strings.xml` — All UI strings extracted (190+ entries)
+- `ui/src/main/res/values/strings.xml` — All UI strings extracted (531 `<string>` + 16 `<plurals>`)
 - `ui/src/main/res/values-fr/strings.xml` — French translations
 - `ui/src/main/res/values-es/strings.xml` — Spanish translations
 - `ui/src/main/res/values-pt/strings.xml` — Portuguese translations
@@ -622,7 +745,7 @@ Full internationalisation and localisation of the app.
 
 ### Modified Files
 
-- `app/src/main/res/values/strings.xml` — All hardcoded UI strings extracted here (190+ entries)
+- `app/src/main/res/values/strings.xml` — App-module strings (169 entries, mirrored in all 4 locales)
 - `data/local/preferences/PreferencesDataStore.kt` — LANGUAGE_KEY, saveLanguage(), observeLanguage()
 - `ui/navigation/Screen.kt` — LanguageSelector route
 - `ui/shell/AppShell.kt` — Language selector destination, title mapping, wired onLanguage callbacks
@@ -633,19 +756,24 @@ Full internationalisation and localisation of the app.
 
 ### Tests
 
-- [ ] String resource completeness tests (no missing keys per locale)
+- [ ] String resource completeness tests (no missing keys per locale) — key-parity was verified by
+  hand on 2026-07-27 (531 + 16 in all five folders) but nothing enforces it automatically
 - [ ] RTL layout tests
 - [ ] Date and time formatting tests per locale
 
-**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
+**Status**: ✅ COMPLETE — see the phase callout above
 
-> ⚠️ **Updated 2026-06-25 (supersedes the April 2026 "known gap" below)**: runtime locale switching
-> **is** now wired — `LanguageSelectorScreen` calls `AppCompatDelegate.setApplicationLocales()` — so
-> the older note ("nothing reads the stored locale") is **stale**. The *real* remaining gap is that
-> the UI hardcodes strings, so switching locale has almost no visible effect. Single source of truth:
-> the Phase 13 callout above and [TECH_LEAD_REVIEW.md §3.2](TECH_LEAD_REVIEW.md#32-user-facing-strings-are-hardcoded--the-multi-language-feature-does-not-work).
+> 📎 **History (both older notes are now resolved — kept for the record).**
 >
-> <details><summary>Original April 26, 2026 audit note (now resolved/stale — kept for history)</summary>
+> <details><summary>2026-06-25 tech-lead note (superseded by the Track B work above)</summary>
+>
+> > Runtime locale switching **is** wired — `LanguageSelectorScreen` calls
+> > `AppCompatDelegate.setApplicationLocales()`. The real remaining gap is that the UI hardcodes
+> > strings, so switching locale has almost no visible effect.
+> > *Resolved 2026-07: 46/83 UI files now use `stringResource`; see the phase callout.*
+> </details>
+>
+> <details><summary>Original April 26, 2026 audit note (resolved 2026-06)</summary>
 >
 > > `LanguageViewModel` saves the locale code to DataStore but nothing reads it to reconfigure the
 > > app locale. `AppCompatDelegate.setApplicationLocales()` must be called for runtime switching to
@@ -656,26 +784,38 @@ Full internationalisation and localisation of the app.
 
 ---
 
-## Phase 14: Reverse Reviews
+## Phase 14: Reverse Reviews ✅ STRUCTURAL ⚠️
 
 Allow cleaners to review clients and their locations after a job.
 
+> 📋 **Reconciled 2026-07-27:** this phase used to declare `**Status**: ✅ COMPLETE` while every
+> checkbox below was unticked. The boxes have been ticked against source; the one item that was
+> never built (the client-rating badge on `BookingRequestCard`) is left unchecked, and the phase is
+> re-tagged `STRUCTURAL ⚠️` because the Firebase path still drops `direction` and `locationTags`
+> (see the known-gap note at the end of this phase and Track C).
+
 ### Tasks
 
-- [ ] Extend Review domain model to support direction: CLIENT_REVIEWS_PROVIDER and
-  PROVIDER_REVIEWS_CLIENT
-- [ ] Add reviewDirection field to ReviewEntity and update Room migration v7 to v8
-- [ ] Update IBackendService, BackendServiceStub, and FirebaseBackendService for bidirectional
-  reviews
-- [ ] Update ReviewRepository to handle both review directions
-- [ ] Build ClientReviewViewModel - load booking context, check if cleaner has already reviewed
-- [ ] Build LeaveClientReviewScreen - star picker, written feedback, optional location tags (e.g.
+- [x] Extend Review domain model to support direction: CLIENT_REVIEWS_PROVIDER and
+  PROVIDER_REVIEWS_CLIENT (`ReviewDirection` enum, `DomainModels.kt:201`)
+- [x] Add reviewDirection field to ReviewEntity and update Room migration v7 to v8 (`MIGRATION_7_8`
+  adds `reviewDirection` + `locationTags`)
+- [x] Update IBackendService, BackendServiceStub, and FirebaseBackendService for bidirectional
+  reviews — *stub complete; the Firebase write still drops `direction`/`locationTags`*
+- [x] Update ReviewRepository to handle both review directions
+  (`getReviewForBookingByDirection`, direction-filtered queries)
+- [x] Build ClientReviewViewModel - load booking context, check if cleaner has already reviewed
+- [x] Build LeaveClientReviewScreen - star picker, written feedback, optional location tags (e.g.
   Easy parking, Clear instructions, Pet-friendly)
-- [ ] Build ClientRatingsScreen - customer average rating and review history visible to cleaners
-- [ ] Show client rating badge on BookingRequestCard in CleanerBookingRequestsScreen
-- [ ] Add Review Client button in CleanerScheduleScreen for COMPLETED bookings
-- [ ] Prevent duplicate reverse reviews (same guard as forward reviews)
-- [ ] Seed demo reverse review data for demo accounts
+- [x] Build ClientRatingsScreen - customer average rating and review history visible to cleaners
+- [ ] Show client rating badge on BookingRequestCard in CleanerBookingRequestsScreen — **not built**;
+  `CleanerBookingRequestsScreen.kt` contains no rating UI. (`CleanerScheduleScreen` *does* expose an
+  `onViewClientRatings` tap target, so the entry point exists elsewhere.)
+- [x] Add Review Client button in CleanerScheduleScreen for COMPLETED bookings (`onReviewClient`)
+- [x] Prevent duplicate reverse reviews — `ClientReviewViewModel` loads any `existingReview` for the
+  booking + direction and renders read-only
+- [x] Seed demo reverse review data for demo accounts (4 seeded `PROVIDER_REVIEWS_CLIENT` reviews in
+  `BackendServiceStub`)
 
 ### New Files
 
@@ -705,12 +845,14 @@ Allow cleaners to review clients and their locations after a job.
 
 **Estimated Duration**: 1-2 weeks
 
-**Status**: ✅ COMPLETE
+**Status**: ✅ STRUCTURAL ⚠️ — works on the stub backend; see the gap below
 
-> ⚠️ **Known gap (audit April 26, 2026)**: `FirebaseBackendService.createReview` does not write
-> the `direction` field to Firestore. The `ReviewDirection` enum and Room column exist correctly,
-> but the value is silently dropped when using the Firebase backend. Fix: include `direction` in
-> the `ReviewDto` Firestore write in `FirebaseBackendService.createReview`.
+> ⚠️ **Known gap (audit April 26, 2026 — re-verified 2026-07-27, still open)**:
+> `FirebaseBackendService.createReview` does not write the `direction` field (nor `locationTags`) to
+> Firestore. The `ReviewDirection` enum and the Room columns exist correctly, but the values are
+> silently dropped on the Firebase backend, so every review would read back as
+> `CLIENT_REVIEWS_PROVIDER`. Fix: include `direction` and `locationTags` in the `ReviewDto` Firestore
+> write. Tracked in **Track C**.
 
 ---
 
@@ -889,63 +1031,104 @@ both customers and providers — integrated directly into booking and review flo
 
 ### Tests
 
-- [ ] Cancellation validation tests (only PENDING/ACCEPTED allowed)
-- [ ] Edit booking validation tests (only PENDING allowed)
-- [ ] Claim filing and status transition tests
-- [ ] Contextual help action resolution tests (correct actions per status + role)
-- [ ] Refund processing tests
-- [ ] Support ticket creation and chat integration tests
+- [x] Cancellation flow tests — `ui/src/test/.../support/CancelBookingViewModelTest.kt` (9 tests:
+  load, reason selection, missing-reason error, success, repository failure, notes handling) and
+  `SupportRepositoryTest` `cancelBookingWithReason` success/error cases
+- [x] Edit booking tests — `SupportRepositoryTest` `editBooking` success/error cases
+- [x] Claim filing tests — `SupportRepositoryTest` `fileClaim` / `getClaim` / `getClaimsForUser` /
+  `getClaimForBooking` / `observeClaimsForUser`
+- [x] Refund processing tests — `SupportRepositoryTest` `requestRefund` success/error cases
+- [x] Support ticket creation tests — `SupportRepositoryTest` `createSupportTicket`,
+  `getSupportTicket`, `getTicketsForUser` (incl. cache fallback), `observeTicketsForUser`
+  *(25 tests in total across `data/src/test/.../SupportRepositoryTest.kt`)*
+- [ ] Status-transition tests for claims/tickets (`UNDER_REVIEW → APPROVED/REJECTED → RESOLVED`)
+- [ ] Contextual help action resolution tests (correct actions per status + role) —
+  `ContextualHelpViewModel` is untested
+- [ ] Support-ticket ↔ chat integration tests
 
 **Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
-> ⚠️ **Known gaps (audit April 26, 2026)**:
-> - **14 `FirebaseBackendService` methods** (lines 485–524)
-    return `Result.Error("not yet implemented")`
-    > for support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, and
-    saved
-    > locations. All Phase 15 UI is functional with the stub backend but **silently fails with
-    Firebase**.
-> - `SupportRepository`, `ClaimRepository` are untested — no unit tests exist.
+> ⚠️ **Known gaps (audit April 26, 2026 — re-verified 2026-07-27)**:
+> - **14 `FirebaseBackendService` methods** (`FirebaseBackendService.kt:484–524`) still return
+>   `Result.Error(Exception("… not yet implemented"))` for support tickets, claims, cancel-with-reason, edit
+>   booking, refunds, help articles and saved locations. All Phase 15 UI is functional against the
+>   stub backend but **silently fails with Firebase**. Tracked in **Track C**.
+> - ~~`SupportRepository` is untested~~ — **resolved**: `SupportRepositoryTest.kt` now covers it with
+>   25 tests. `ContextualHelpViewModel`, `FileClaimViewModel`, `ClaimDetailViewModel`,
+>   `HelpCenterViewModel` and `EditBookingViewModel` remain untested.
 
 ---
 
-## Phase 16: Detailed Cleaning and Location Options
+## Phase 16: Detailed Cleaning and Location Options ✅ STRUCTURAL ⚠️
 
 Richer service configuration for both clients and cleaners.
+
+> ✅ **Shipped — corrected 2026-07-27.** This phase was previously listed as entirely unstarted with
+> every box unticked; that was wrong. Verified against `develop` @ `4892952`: the `CleaningType` and
+> `LocationType` enums, `LocationDetail`/`SavedLocation` models, `CleaningTypeSelector.kt`,
+> `LocationTypeSelector.kt`, `SavedLocationsScreen.kt`, the specialization badges + filter, and
+> `MIGRATION_9_10` (DB version **10**) all exist and are wired. Tagged `STRUCTURAL ⚠️` rather than
+> `COMPLETE` for three reasons: the three Firestore `savedLocations` methods are among the 14
+> `"not yet implemented"` stubs (`FirebaseBackendService.kt:517–523`); specialization *ranking* was
+> never built; and `SavedLocationRepository` reports failed remote writes as success (see **Track E**).
 
 ### Tasks
 
 #### Cleaning Types (Client side)
 
-- [ ] Define expanded CleaningType enum: Standard, Deep Clean, End of Tenancy, Post-Construction,
+- [x] Define expanded CleaningType enum: Standard, Deep Clean, End of Tenancy, Post-Construction,
   Carpet and Upholstery, Window Cleaning, Oven and Appliance, Move-In/Move-Out, Office/Commercial
-- [ ] Update BookingFormScreen with a visual grid chip selector for cleaning types
-- [ ] Store and sync selected cleaning type with bookings
+  (`DomainModels.kt:109` — all 9 values)
+- [x] Update BookingFormScreen with a visual grid chip selector for cleaning types
+  (`CleaningTypeSelector` at `BookingFormScreen.kt:125`)
+- [x] Store and sync selected cleaning type with bookings — `Booking.cleaningType`,
+  `BookingEntity.cleaningType`, `BookingDto.cleaningType`, persisted by `MIGRATION_9_10`
 
 #### Location Types (Client side)
 
-- [ ] Define LocationType model: Apartment, House, Studio, Office, Retail, Warehouse,
-  Airbnb/Short-Term Rental, Other
-- [ ] Add location type selector to BookingFormScreen and CustomerProfileScreen
-- [ ] Include room count, bathroom count, and approximate square footage inputs
-- [ ] Allow clients to save multiple named locations (e.g. Home, Office) in their profile
+- [x] Define LocationType model: Apartment, House, Studio, Office, Retail, Warehouse,
+  Airbnb/Short-Term Rental, Other (`DomainModels.kt:125` — all 8 values, plus `LocationDetail`)
+- [x] Add location type selector to BookingFormScreen (`LocationTypeSelector` at
+  `BookingFormScreen.kt:133`) and reach it from CustomerProfileScreen — the profile links out to
+  `SavedLocationsScreen`, which hosts the selector, rather than embedding it inline
+- [x] Include room count, bathroom count, and approximate square footage inputs
+  (`LocationDetail.roomCount` / `bathroomCount` / `sqFootage`, all editable in `LocationTypeSelector`)
+- [x] Allow clients to save multiple named locations (e.g. Home, Office) in their profile —
+  `SavedLocationsScreen`, `saved_locations` Room table, `ISavedLocationRepository`,
+  `Screen.SavedLocations` route wired in `AppShell.kt:826`
 
 #### Areas of Specialization (Cleaner side)
 
-- [ ] Define Specialization model mirroring the expanded cleaning types above
-- [ ] Update ServiceManagementScreen to allow cleaners to select and rank their specializations
-- [ ] Show specialization badges on ProviderSearchScreen provider cards
-- [ ] Update FilterSheet to filter providers by specialization
-- [ ] Update CleanerProfileScreen to display specializations prominently
-- [ ] Sync specializations with backend and Firestore
+- [x] Define Specialization model mirroring the expanded cleaning types above —
+  `Provider.specializations: List<CleaningType>` (`DomainModels.kt:67`)
+- [ ] Allow cleaners to select **and rank** their specializations — selection shipped, but on
+  **`CleanerProfileScreen`** (edit mode, `onToggleSpecialization`), **not** `ServiceManagementScreen`,
+  and there is **no ranking** — the list is an unordered toggle set
+- [x] Show specialization badges on ProviderSearchScreen provider cards (up to 3 per card,
+  `ProviderSearchScreen.kt:213`)
+- [x] Update FilterSheet to filter providers by specialization (`FilterSheet.kt:124`, applied in
+  `BookingViewModel.loadProviders`)
+- [x] Update CleanerProfileScreen to display specializations prominently
+  (`CleanerProfileScreen.kt:165`)
+- [x] Sync specializations with backend — `ProviderDto.specializations`, entity column + mappers,
+  seeded in the stub. *Firestore inherits the Track C read blocker like every other collection.*
 
 #### General
 
-- [ ] Update IBackendService DTOs, BackendServiceStub, and FirebaseBackendService for new fields
-- [ ] Add Room migration v9 to v10 for new columns on bookings, client profiles, and provider
-  profiles
-- [ ] Update search and matching logic to factor in cleaning type and location type compatibility
-- [ ] Seed rich demo data using the expanded types
+- [x] Update IBackendService DTOs and BackendServiceStub for new fields (`cleaningType`,
+  `locationType`, `specializations`, `SavedLocationDto`)
+- [ ] Update FirebaseBackendService for the new fields — `getSavedLocations`, `upsertSavedLocation`
+  and `deleteSavedLocation` all still return `Result.Error(Exception("Firebase saved locations not yet
+  implemented"))` (`FirebaseBackendService.kt:517–523`)
+- [x] Add Room migration v9 to v10 for new columns on bookings and provider profiles
+  (`MIGRATION_9_10`: `providers.specializations`, `bookings.cleaningType`, `bookings.locationType`,
+  new `saved_locations` table; DB version bumped to 10)
+- [ ] Update search and matching logic to factor in cleaning type and location type compatibility —
+  only *half* done: `BookingViewModel` filters providers by specialization client-side, but
+  `BackendServiceStub.searchProviders` returns every seeded provider unfiltered and **location-type
+  compatibility is not considered at all**
+- [x] Seed rich demo data using the expanded types (specializations on all 5 seed providers, 2 seeded
+  saved locations)
 
 ### New Files
 
@@ -960,20 +1143,28 @@ Richer service configuration for both clients and cleaners.
 - `data/local/AppDatabase.kt` - Version 10, MIGRATION_9_10
 - `data/remote/backend/IBackendService.kt` - Updated DTOs with new fields
 - `data/remote/backend/BackendServiceStub.kt` - Rich seeded demo data with expanded types
-- `data/remote/backend/FirebaseBackendService.kt` - Firestore support for new fields
+- `data/remote/backend/FirebaseBackendService.kt` - saved-location endpoints declared but **still
+  stubbed** (`:517–523`)
+- `data/repository/SavedLocationRepository.kt` - saved-location persistence *(new — has the
+  error-to-success defect noted in Track E)*
 - `ui/booking/BookingFormScreen.kt` - CleaningTypeSelector and LocationTypeSelector integration
 - `ui/booking/ProviderSearchScreen.kt` - Specialization badges on provider cards
-- `ui/booking/BookingViewModel.kt` - CleaningType and LocationType in form state
+- `ui/booking/BookingViewModel.kt` - CleaningType and LocationType in form state, specialization filter
 - `ui/components/FilterSheet.kt` - Specialization filter option
-- `ui/cleaner/ServiceManagementScreen.kt` - Specialization selection and ranking
-- `ui/cleaner/CleanerProfileScreen.kt` - Specializations section
-- `ui/customer/CustomerProfileScreen.kt` - Saved locations section
+- `ui/cleaner/CleanerProfileScreen.kt` - Specializations section + edit-mode toggle selection
+  *(this, not `ServiceManagementScreen`, is where cleaners pick specializations)*
+- `ui/customer/CustomerProfileScreen.kt` - Saved locations quick link
+- `ui/navigation/Screen.kt` / `ui/shell/AppShell.kt` - `SavedLocations` route
 
 ### Tests
 
 - [ ] Cleaning type selection and persistence tests
 - [ ] Location type and room detail tests
 - [ ] Specialization filter and search tests
+- [ ] `SavedLocationRepository` tests — **none exist**, and the repository currently maps
+  `Result.Error → Result.Success` on both read and write (Track E)
+
+**Status**: ✅ STRUCTURAL ⚠️ — see the phase callout above
 
 **Estimated Duration**: 2-3 weeks
 
@@ -1083,56 +1274,100 @@ App store submission and monitoring.
 
 **Total Estimated Timeline**: 5-7 months
 
-### Current Status: **Phases 1–15 built; ~5 are "structural, not working"** *(re-assessed 2026-06-25)*
+### Current Status: **Phases 1–16 built; 9 still "structural, not working"** *(verified 2026-07-27, `develop` @ `4892952`)*
 
 (Architecture, Authentication, Booking, Provider Mgmt, Reviews, Payments, Navigation & App Flow,
-Firebase
-Integration, Maps & Location, Sync & Offline Features, In-App Chat, Subscriptions, Multi-Language,
-Reverse Reviews, Help/Support & Claims)
+Firebase Integration, Maps & Location, Sync & Offline Features, In-App Chat, Subscriptions,
+Multi-Language, Reverse Reviews, Help/Support & Claims, Detailed Cleaning & Location Options)
 
-> ⚠️ **Tech-Lead Review (2026-06-25)** — see [`TECH_LEAD_REVIEW.md`](TECH_LEAD_REVIEW.md):
-> The codebase **compiles** (the committed `*_build.txt` failures are stale Windows runs; every
-> error they cite is already fixed) and demos well on the mock backend, but "structurally complete"
-> ≠ "working." Phases re-tagged `✅ STRUCTURAL ⚠️` above have material gaps:
-> - **Offline-write/sync queue is dead code** (`queueOperation()` never called) — Phase 10 overstated.
-> - **Multi-language is inert** — `stringResource` in 1/83 UI files; ~350 hardcoded `Text` literals — Phase 13.
-> - **`release` routes to a Firebase backend with 14 unimplemented methods** + placeholder config —
->   Phases 8 & 15 silent-fail in production.
-> - **Security pre-production:** plaintext auth token, no Firestore rules, payments `SUCCEEDED` with
->   no PSP — Phase 6.
-> - **Real bugs:** recurring-booking VM hangs forever; chat drops offline messages; `createReview`
->   loses `direction`.
+**Scale at that commit:** 124 production `.kt` files / **25,598 production LOC**; 25 ViewModels;
+Room DB version **10** with 9 migrations; **26 unit-test files with 300 `@Test` methods** plus 23
+`androidTest` files.
+
+Still tagged `✅ STRUCTURAL ⚠️` — **9 phases**: **5** and **14** (reverse-review `direction` /
+`locationTags` dropped on the Firebase write), **6** (no PSP), **8** (Firebase backend), **10**
+(dead sync queue), **11** (no retry/outbox — depends on the Track A decision), **12** (untested
+`RecurringBookingWorker`), **15** (14 stubbed methods), **16** (stubbed saved-locations). Every one
+of these is blocked on Track A or Track C, not on new feature work.
+
+**Promoted since the 2026-06-25 review:** Phase **13** → `✅ COMPLETE` (multi-language really works
+now), and the blocking *bugs* in Phases **11** and **12** are fixed (`sendMessage` no longer reports
+false success; `getCurrentSession()` no longer hangs). Phase **16**, previously listed as entirely
+unstarted, is in fact shipped.
+
+> ⚠️ **Where the risk sits now (2026-07-27).** The codebase compiles, CI gates every PR on
+> `assembleDebug allUnitTests`, and the app demos well on the mock backend. The remaining gap is
+> almost entirely **"works on the stub" vs "works against real Firebase"**:
+> - 🔴 **Every Firestore *read* fails.** All DTOs in `IBackendService.kt` have required (no-default)
+>   constructor params, so Kotlin emits no no-arg constructor and Firestore's mapper cannot
+>   deserialize. `FirebaseBackendService` calls `toObject()`/`toObjects()` 26 times, and each one
+>   throws into a swallowed `Result.Error`. `USE_MOCK_BACKEND=false` today = a **write-only app**.
+> - **`release` routes to a Firebase backend with 14 unimplemented methods** + a placeholder
+>   `google-services.json` — Phases 8, 15 and 16 silent-fail in production.
+> - **Security pre-production:** plaintext auth token + PII in DataStore, **zero** Firestore Security
+>   Rules committed, `allowBackup="true"` with empty rule files, payments fabricating `SUCCEEDED`
+>   client-side with no PSP, and unmasked PAN/CVV fields with no `FLAG_SECURE` — Phase 6.
+> - **No release config at all:** no `signingConfig`, `applicationId` still `com.example.diamonds`,
+>   `isMinifyEnabled = false`, empty ProGuard template.
+> - **Offline-write/sync queue is still dead code** (`queueOperation()` has no production callers) —
+>   Phase 10 remains overstated until the Track A decision is made.
+> - **CI never compiles or runs `androidTest`**, which is how a broken `LoginScreenTest` assertion
+>   and an incomplete test Hilt graph reached `develop` unnoticed — Track E.
 >
-> *Corrections to the prior (April 2026) audit:* locale switching IS now wired; `BookingRepositoryTest`
-> is no longer a no-op; real test coverage is well above the claimed 15–20%; `getReviewsForProvider`
-> is filtered (not a full scan).
+> *Superseded claims (do not reuse):* "multi-language is inert / `stringResource` in 1 of 83 files"
+> — fixed, it is now 46 of 83; "no `SyncManager` tests" — 21 now exist; "coverage ~15–20%" and
+> "`BookingRepositoryTest` is a no-op" — retracted; "`getReviewsForProvider` is a full scan" — it is
+> filtered.
 
 ### Next Immediate Steps:
 
-**Follow the 🧭 Remediation Roadmap at the top of this file (Tracks A→D), not the linear
-Phase 16→21 march.** In short:
+**Follow the 🧭 Remediation Roadmap at the top of this file, not the linear Phase 17→21 march.**
+In priority order:
 
-1. **Track A** — make the docs true + fix the two outright bugs + add CI.
-2. **Track B** — externalize strings, real icons, accessibility.
-3. **Track C** — implement the Firebase backend + security + signing **before** `USE_MOCK_BACKEND=false`.
-4. **Track D** — test the sync/worker/DataStore core; folds into Phases 17–18.
-5. Resume Phase 16 (Detailed Cleaning & Location Options) once Tracks A–B are clear.
+1. **Track C, item 1 — fix the Firestore DTO no-arg-constructor blocker.** Everything else on the
+   Firebase go-live path is invisible behind it, and it is a small, mechanical change.
+2. **Track A — make the offline-write decision.** Wire `SyncManager.queueOperation()` into the write
+   repos, or delete the queue and correct the docs. It is the only Track A item left and it is
+   blocking honest status on Phases 10 and 11.
+3. **Track E — make CI tell the truth.** Add `assembleDebugAndroidTest` (plus lint), then fix the
+   broken `LoginScreenTest` assertion, the missing `ISavedLocationRepository` test binding, and the
+   `SavedLocationRepository` error-to-success mapping.
+4. **Track C, rest — the Firebase implementation, security and release config**, all *before*
+   flipping `USE_MOCK_BACKEND=false`.
+5. **Track B leftovers** — a lint baseline so hardcoded strings cannot creep back, real icons,
+   `collectAsStateWithLifecycle`.
+6. **Track D — hardening**: Worker/DataStore/Connectivity tests, Room schema export + migration
+   tests, `DispatcherProvider`; folds into Phases 17–18.
+7. Finish the two genuinely-open Phase 16 items (specialization ranking, location-type-aware
+   matching) alongside the above.
 
-### Architecture Strengths *(confirmed by review)*
+### Architecture Strengths *(confirmed 2026-07-27)*
 
-- Clean, acyclic module graph with a framework-free `:core` and real dependency inversion
+- Clean, **acyclic** module graph — `:common`→`:core`; `:data`→`:core`,`:common`;
+  `:ui`→`:core`,`:data`,`:common`; `:app`→all — with `:core` a pure `java-library` containing
+  **zero** Android imports
 - Read-side offline-first genuinely implemented (cache-first reads, network-failure fallback)
 - Swappable backend (`IBackendService`/`IAuthService`) selected via `BuildConfig`
-- Sound coroutine hygiene (no `GlobalScope`/`runBlocking`; listeners scoped via `awaitClose`)
-- 9 proper additive Room migrations; broad, real test suite (49 test files)
+- Sound coroutine hygiene: **zero** `GlobalScope` and **zero** `runBlocking` in any main source set;
+  listeners scoped via `awaitClose`
+- **Zero** `Log.*`/`println` calls anywhere; no secrets ever committed; `PendingIntent` uses
+  `FLAG_IMMUTABLE`; cleartext traffic blocked by the `targetSdk 34` default
+- 9 proper additive Room migrations; 26 unit-test files / 300 `@Test` methods
+- Fully localized string layer: 531 strings + 16 plurals, key-complete across 5 locales
 
 ### Risk Areas to Monitor
-- **Offline-write correctness** — queue is currently bypassed; writes are dropped, not retried
-- **Real-backend parity** — Stub implements features the Firebase impl stubs out; debug ≠ release
-- Sync conflict resolution edge cases (untested — no `SyncManager` tests)
-- Payment integration security (no PSP today)
+- 🔴 **Firestore reads are non-functional** (DTO no-arg-constructor blocker) — the single highest
+  risk; it makes the whole real-backend path untestable until fixed
+- **Real-backend parity** — the Stub implements features the Firebase impl stubs out; debug ≠ release
+- **Offline-write correctness** — the queue is still bypassed; writes fail rather than retry
+- **Silent error swallowing** — `SavedLocationRepository` turns failed writes into successes, and 37
+  `as? Result.Success` sites across 10 ViewModels drop errors on the floor
+- **Room migrations are unverified** — `exportSchema = true` with no schema location and no
+  `schemas/` directory, so none of the 9 migrations has a test
+- Payment integration security (no PSP today; unmasked card fields)
 - `:ui`→`:data` concrete coupling (`ConnectivityObserver`) hurting testability
-- Firestore query scalability (`searchProviders`/`getConversationsForUser` full scans) at scale
+- Firestore query scalability (`searchProviders` ignores its geo arguments entirely;
+  `getConversationsForUser` full scans) at scale
 
 ### Future Enhancements
 - [ ] Machine learning for provider matching

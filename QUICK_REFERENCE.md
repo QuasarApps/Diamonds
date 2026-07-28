@@ -12,9 +12,22 @@
 🔄 Sync Manager           → data/sync/SyncManager.kt
 🧠 ViewModel Base         → ui/base/BaseViewModel.kt
 🎨 Theme                  → ui/theme/Theme.kt
-📱 Screens                → ui/screens/*.kt
+📱 Screens + ViewModels   → ui/<feature>/*.kt   (see below — there is NO ui/screens/)
+🧭 Navigation             → ui/navigation/DiamondsNavHost.kt, Screen.kt, BottomTab.kt
+🌍 Strings                → ui/src/main/res/values{,-fr,-es,-pt,-ar}/strings.xml
 💉 Hilt DI                → app/di/Modules.kt
 📄 AndroidManifest        → app/src/main/AndroidManifest.xml
+```
+
+`:ui` is organised **by feature**, not by layer — each package holds its screens next to the
+ViewModel that drives them:
+
+```
+ui/auth        ui/booking     ui/chat        ui/cleaner     ui/company
+ui/customer    ui/map         ui/notification ui/payment    ui/profile
+ui/review      ui/settings    ui/subscription ui/support    ui/sync
+ui/base        ui/components  ui/navigation  ui/placeholder ui/shell
+ui/splash      ui/theme
 ```
 
 ## Common Tasks
@@ -83,10 +96,9 @@
 
 1. **ViewModel**
    ```kotlin
-   // ui/screens/MyUiState.kt
+   // ui/<feature>/MyViewModel.kt   (existing feature package, or a new one)
    data class MyUiState(val items: List<Item> = emptyList())
    
-   // ui/screens/MyViewModel.kt
    @HiltViewModel
    class MyViewModel @Inject constructor(...) : 
        BaseViewModel<MyUiState>(connectivityObserver, MyUiState())
@@ -94,27 +106,37 @@
 
 2. **Screen Composable**
    ```kotlin
-   // ui/screens/MyScreen.kt
+   // ui/<feature>/MyScreen.kt
    @Composable
    fun MyScreen(viewModel: MyViewModel = hiltViewModel()) {
        val state by viewModel.uiState.collectAsStateWithLifecycle()
        val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
        
        if (!isOnline) OfflineBanner()
-       // Your UI
+       Text(stringResource(R.string.my_screen_title))   // no bare literals
    }
    ```
+
+3. **Strings** — add every user-facing string (and every icon `contentDescription`, as a `cd_*` key)
+   to `values/strings.xml` **and** to `values-fr`, `values-es`, `values-pt`, `values-ar`. All five
+   locales are key-complete today (531 strings + 16 plurals); keep them that way. Nothing enforces
+   this automatically — there is no lint rule or baseline for hardcoded strings.
 
 ## Offline-First Checklist
 
 When implementing a feature that involves data:
 
-- [ ] **Read Operations**: Use repository, check cache first
+- [ ] **Read Operations**: Use repository; fall back to the Room cache when the network is unavailable
 - [ ] **Write Operations**: Check `connectivityObserver.isOnline()` before allowing
 - [ ] **Disabled State**: Disable action buttons with tooltip when offline
 - [ ] **Error Messages**: Show "Requires internet" for offline attempts
-- [ ] **Sync Status**: Show pending operation count badge
-- [ ] **Cancellation**: Allow users to cancel pending operations
+- [ ] **Never report failure as success**: map `Result.Error` to a visible error, not to an empty
+      list or a fabricated `Result.Success`
+
+⚠️ **Offline writes are not queued.** `SyncManager.queueOperation` has zero production callers, so
+the sync queue is never populated. A write attempted offline fails fast with `OfflineException` and
+is gone. Don't build UI that promises "we'll send this when you're back online", and don't add a
+pending-operation badge until the wire-or-delete decision in `ROADMAP.md` Track A is made.
 
 ## Testing Checklist
 
@@ -138,39 +160,63 @@ fun testOfflineWrite() {
 
 ## Module Dependencies Quick Check
 
+`:core` is the **bottom** of the graph: it depends on nothing and imports no Android APIs.
+Everything else depends downward onto it.
+
+```
+:core    → nothing (pure java-library, zero Android imports)
+:common  → :core
+:data    → :core, :common
+:ui      → :core, :data, :common
+:app     → :ui, :data, :core, :common
+```
+
 ```
 Can :ui import from :data?        ✅ YES
 Can :data import from :ui?        ❌ NO
-Can :core import from :common?    ✅ YES
-Can :common import from :core?    ❌ NO
+Can :common import from :core?    ✅ YES
+Can :core import from :common?    ❌ NO — :core depends on nothing
 Can :data import from :core?      ✅ YES
 Can :core import from :data?      ❌ NO
+Can :core import anything Android? ❌ NO — it's a plain java-library module
 ```
 
 ## Build Commands
 
+Needs **JDK 17** (AGP 8.5.0); the modules compile to JVM 11 bytecode. On Windows use `gradlew.bat`
+in place of `./gradlew`.
+
 ```bash
-# Build everything
-./gradlew.bat build
+# Build the debug app (compiles every module)
+./gradlew assembleDebug
+
+# Run all JVM unit tests (root aggregate task)
+./gradlew allUnitTests
+
+# One module's unit tests
+./gradlew :data:testDebugUnitTest
+
+# Run a specific test class
+./gradlew :data:testDebugUnitTest --tests "*BookingRepositoryTest"
+
+# Instrumentation tests (needs an emulator/device; NOT run by CI)
+./gradlew :app:connectedDebugAndroidTest
 
 # Build specific module
-./gradlew.bat :data:build
-
-# Run tests
-./gradlew.bat test
-
-# Run specific test
-./gradlew.bat :data:test --tests "BookingRepositoryTest"
+./gradlew :data:build
 
 # Clean rebuild
-./gradlew.bat clean build
+./gradlew clean assembleDebug
 
 # Install on device
-./gradlew.bat installDebug
+./gradlew installDebug
 
 # Check dependencies
-./gradlew.bat :app:dependencies
+./gradlew :app:dependencies
 ```
+
+CI (`.github/workflows/ci.yml`) runs `assembleDebug allUnitTests` on JDK 17 for every PR to
+`develop`. It does not run lint, instrumentation tests, or a coverage gate.
 
 ## Key Patterns
 
@@ -221,11 +267,16 @@ fun createItem(item: Item) {
                 setError(result.exception.message)
                 updateState { it.copy(isLoading = false) }
             }
-            else -> {}
+            is Result.Loading -> updateState { it.copy(isLoading = true) }
         }
     }
 }
 ```
+
+⚠️ **Handle all three arms.** `Result` is `Success` / `Error` / `Loading`, and an exhaustive `when`
+is the convention. In particular, avoid `result as? Result.Success` — it silently collapses
+`Result.Error` to `null` and the user sees nothing at all. There are 37 such sites across 10
+ViewModel files today; don't add a 38th.
 
 ## StateFlow Usage in UI
 
@@ -256,6 +307,10 @@ fun MyScreen(viewModel: MyViewModel = hiltViewModel()) {
 }
 ```
 
+**Reality check**: the shipped screens don't do this yet — there are 87 `collectAsState()` call sites
+across 44 files and **zero** uses of `collectAsStateWithLifecycle`. The lifecycle-aware variant above
+is the target; migrating the existing call sites is an open Track D item.
+
 ## Hilt Scoping
 
 ```kotlin
@@ -280,15 +335,24 @@ Most repositories use `@Singleton` since they're app-level singletons.
 
 ## Documentation Files
 
-| File                        | Purpose                  | Length     |
-|-----------------------------|--------------------------|------------|
-| `README.md`                 | Project overview         | ~100 lines |
-| `ARCHITECTURE.md`           | Detailed architecture    | 285 lines  |
-| `DEVELOPMENT.md`            | Dev setup & workflow     | 400+ lines |
-| `ROADMAP.md`                | 20-phase plan            | ~650 lines |
-| `IMPLEMENTATION_SUMMARY.md` | What's done, what's left | ~200 lines |
-| `FILE_STRUCTURE.md`         | Directory structure      | ~200 lines |
-| `QUICK_REFERENCE.md`        | This file                | ~200 lines |
+*(No line counts here on purpose — they went stale faster than the content did.)*
+
+| File                        | Purpose                                        | Read it when…                          |
+|-----------------------------|------------------------------------------------|----------------------------------------|
+| `CLAUDE.md`                 | Conventions an agent must follow                | before writing any code                |
+| `README.md`                 | Project overview + known issues                 | onboarding                             |
+| `TECH_LEAD_REVIEW.md`       | **Defect facts, cited to file:line**            | you need to know if something is broken |
+| `ROADMAP.md`                | 21-phase plan + Track A–E remediation roadmap   | deciding what to work on next          |
+| `ARCHITECTURE.md`           | Detailed architecture                           | adding a layer/module                  |
+| `DEVELOPMENT.md`            | Dev setup & workflow                            | setting up, or writing a new screen    |
+| `AUDIT_REPORT.md`           | Audit findings                                  | reviewing quality/security posture     |
+| `IMPLEMENTATION_SUMMARY.md` | What's done, what's left                        | a status snapshot                      |
+| `FILE_STRUCTURE.md`         | Directory structure                             | finding where code lives               |
+| `QUICK_REFERENCE.md`        | This file                                       | you need an answer in 10 seconds       |
+
+**Precedence when docs disagree** (one hierarchy, stated once — other docs defer here):
+`TECH_LEAD_REVIEW.md` wins on **defect facts and file:line citations**; `ROADMAP.md` wins on
+**phase and track status**. Anything contradicting current source loses to the source.
 
 ## Resources
 
@@ -306,4 +370,5 @@ Most repositories use `@Singleton` since they're app-level singletons.
 3. **File locations** → Read `FILE_STRUCTURE.md`
 4. **What's implemented** → Read `IMPLEMENTATION_SUMMARY.md`
 5. **Patterns & examples** → Read this file
-6. **Next steps** → Read `ROADMAP.md`
+6. **Next steps** → Read `ROADMAP.md` (Tracks A–E supersede the old "Next Steps")
+7. **"Is this actually done?"** → Read `TECH_LEAD_REVIEW.md`
