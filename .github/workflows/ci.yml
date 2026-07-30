@@ -2,7 +2,7 @@ name: CI
 
 # Build the debug variant, run every module's JVM unit tests, and compile the
 # instrumentation sources on each PR to develop (and on pushes to develop). This is
-# the "real" green/red signal the tech-lead review's Track A calls for — before it
+# the "real" green/red signal the tech-lead review's Track A calls for — before this,
 # nothing actually compiled or ran the unit tests on a PR, and androidTest was not
 # built at all (Track E).
 
