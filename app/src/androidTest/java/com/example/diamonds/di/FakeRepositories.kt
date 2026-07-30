@@ -670,7 +670,11 @@ class FakeSupportRepository : ISupportRepository {
  * androidTest Hilt graph is missing the binding `SavedLocationsViewModel` requires.
  */
 class FakeSavedLocationRepository : ISavedLocationRepository {
-    val locations = mutableListOf<SavedLocation>()
+    // Private on purpose: the backing list and _flow must stay in step, so seeding goes
+    // through upsertSavedLocation() rather than mutating the list directly. (Several older
+    // fakes here expose their store publicly alongside a MutableStateFlow — e.g. `bookings`
+    // and `notifications` — which lets a direct mutation leave observers reading stale data.)
+    private val locations = mutableListOf<SavedLocation>()
     private val _flow = MutableStateFlow(locations.toList())
 
     override suspend fun getSavedLocations(clientId: String): Result<List<SavedLocation>> =

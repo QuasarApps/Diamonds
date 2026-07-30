@@ -1,10 +1,17 @@
 name: CI
 
-# Build the debug variant, run every module's JVM unit tests, and compile the
-# instrumentation sources on each PR to develop (and on pushes to develop). This is
-# the "real" green/red signal the tech-lead review's Track A calls for — before this,
-# nothing actually compiled or ran the unit tests on a PR, and androidTest was not
-# built at all (Track E).
+# On every PR to develop (and every push to develop) this workflow:
+#   1. compiles all five modules            — assembleDebug
+#   2. runs every module's JVM unit tests    — allUnitTests
+#   3. compiles the instrumentation sources  — assembleDebugAndroidTest
+#
+# Step 3 is compile-only; actually running the instrumentation tests needs an
+# emulator, so a failing *assertion* in androidTest is still not caught here.
+#
+# History: steps 1-2 came from the tech-lead review's Track A, which added CI at a
+# point when a PR had no green/red signal at all. Step 3 came from Track E, after
+# androidTest breakage went unnoticed precisely because those sources were never
+# built on a PR.
 
 on:
   push:
