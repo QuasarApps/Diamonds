@@ -9,6 +9,7 @@ import com.example.diamonds.domain.repository.INotificationRepository
 import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
+import com.example.diamonds.domain.repository.ISavedLocationRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.ISubscriptionRepository
 import com.example.diamonds.domain.repository.ISupportRepository
@@ -82,4 +83,9 @@ object FakeRepositoryModule {
     @Singleton
     @Provides
     fun provideFakeSupportRepository(): ISupportRepository = FakeSupportRepository()
+
+    @Singleton
+    @Provides
+    fun provideFakeSavedLocationRepository(): ISavedLocationRepository =
+        FakeSavedLocationRepository()
 }

@@ -1,9 +1,10 @@
 name: CI
 
-# Build the debug variant and run every module's JVM unit tests on each PR to
-# develop (and on pushes to develop). This is the "real" green/red signal the
-# tech-lead review's Track A calls for — until now nothing actually compiled or
-# ran the unit tests on a PR.
+# Build the debug variant, run every module's JVM unit tests, and compile the
+# instrumentation sources on each PR to develop (and on pushes to develop). This is
+# the "real" green/red signal the tech-lead review's Track A calls for — before it
+# nothing actually compiled or ran the unit tests on a PR, and androidTest was not
+# built at all (Track E).
 
 on:
   push:
@@ -21,7 +22,7 @@ permissions:
 
 jobs:
   build-and-test:
-    name: Build & unit tests
+    name: Build & tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -48,6 +49,19 @@ jobs:
       # manifest/resources; allUnitTests runs every module's testDebugUnitTest.
       - name: Build debug + run all unit tests
         run: ./gradlew assembleDebug allUnitTests --stacktrace
+
+      # Compile (do NOT run) the instrumentation sources. Until this step existed,
+      # app/src/androidTest was never built on a PR, so breakage there was invisible:
+      # FakeRepositoryModule was silently missing an ISavedLocationRepository binding
+      # — a Hilt graph error that only surfaces when androidTest is compiled.
+      #
+      # Limitation, deliberately accepted: this catches compile-time breakage only
+      # (missing bindings, signature drift, unresolved references). It cannot catch a
+      # failing *assertion* — e.g. a test asserting a string literal that a resource
+      # rename changed — because that needs a real device/emulator. Running the 17
+      # Compose test classes on an emulator is a separate, slower CI change.
+      - name: Compile instrumentation tests
+        run: ./gradlew assembleDebugAndroidTest --stacktrace
 
       - name: Upload unit-test reports
         if: ${{ always() }}
