@@ -679,7 +679,7 @@ class FakeSavedLocationRepository : ISavedLocationRepository {
     // Filter by clientId to match production, which observes only that client's rows
     // (SavedLocationRepository.kt:37-39 delegates to savedLocationDao().observeForClient).
     override fun observeSavedLocations(clientId: String): Flow<List<SavedLocation>> =
-        _flow.map { locations -> locations.filter { it.clientId == clientId } }
+        _flow.map { snapshot -> snapshot.filter { it.clientId == clientId } }
 
     override suspend fun upsertSavedLocation(location: SavedLocation): Result<SavedLocation> {
         val idx = locations.indexOfFirst { it.id == location.id }
