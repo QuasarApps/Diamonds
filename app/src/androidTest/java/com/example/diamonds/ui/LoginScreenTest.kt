@@ -150,7 +150,13 @@ class LoginScreenTest {
     @Test
     fun loginScreen_demoPanelIsVisible() {
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Demo accounts  (tap to fill)", substring = true)
+        // Resolve the expected text from the string resource rather than hardcoding it: the
+        // literal drifted once already when Track B externalized it (the old assertion expected
+        // two spaces, the resource ships one), and a hardcoded English literal would also fail
+        // under any non-default locale.
+        val demoHint =
+            composeRule.activity.getString(com.example.diamonds.ui.R.string.demo_accounts_hint)
+        composeRule.onNodeWithText(demoHint, substring = true)
             .assertIsDisplayed()
     }
 }

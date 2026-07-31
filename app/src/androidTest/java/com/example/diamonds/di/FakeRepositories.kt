@@ -22,6 +22,7 @@ import com.example.diamonds.domain.model.RecurringBooking
 import com.example.diamonds.domain.model.RecurringBookingStatus
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.Review
+import com.example.diamonds.domain.model.SavedLocation
 import com.example.diamonds.domain.model.Service
 import com.example.diamonds.domain.model.ServiceArea
 import com.example.diamonds.domain.model.ServiceCategory
@@ -37,6 +38,7 @@ import com.example.diamonds.domain.repository.INotificationRepository
 import com.example.diamonds.domain.repository.IPaymentRepository
 import com.example.diamonds.domain.repository.IProviderRepository
 import com.example.diamonds.domain.repository.IReviewRepository
+import com.example.diamonds.domain.repository.ISavedLocationRepository
 import com.example.diamonds.domain.repository.IServiceRepository
 import com.example.diamonds.domain.repository.ISubscriptionRepository
 import com.example.diamonds.domain.repository.ISupportRepository
@@ -47,6 +49,7 @@ import com.example.diamonds.domain.repository.UserSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 // ── Shared test data ──────────────────────────────────────────────────────────
 
@@ -657,4 +660,41 @@ class FakeSupportRepository : ISupportRepository {
 
     override suspend fun getHelpArticles(): Result<List<HelpArticle>> =
         Result.Success(emptyList())
+}
+
+/**
+ * In-memory [ISavedLocationRepository] for instrumentation tests.
+ *
+ * Production binds this interface in `RepositoryModule`, so [FakeRepositoryModule] — which
+ * `@TestInstallIn`-replaces that module wholesale — has to provide it too, otherwise the
+ * androidTest Hilt graph is missing the binding `SavedLocationsViewModel` requires.
+ */
+class FakeSavedLocationRepository : ISavedLocationRepository {
+    // Private on purpose: the backing list and _flow must stay in step, so seeding goes
+    // through upsertSavedLocation() rather than mutating the list directly. (Several older
+    // fakes here expose their store publicly alongside a MutableStateFlow — e.g. `bookings`
+    // and `notifications` — which lets a direct mutation leave observers reading stale data.)
+    private val locations = mutableListOf<SavedLocation>()
+    private val _flow = MutableStateFlow(locations.toList())
+
+    override suspend fun getSavedLocations(clientId: String): Result<List<SavedLocation>> =
+        Result.Success(locations.filter { it.clientId == clientId })
+
+    // Filter by clientId to match production, which observes only that client's rows
+    // (SavedLocationRepository.kt:37-39 delegates to savedLocationDao().observeForClient).
+    override fun observeSavedLocations(clientId: String): Flow<List<SavedLocation>> =
+        _flow.map { snapshot -> snapshot.filter { it.clientId == clientId } }
+
+    override suspend fun upsertSavedLocation(location: SavedLocation): Result<SavedLocation> {
+        val idx = locations.indexOfFirst { it.id == location.id }
+        if (idx >= 0) locations[idx] = location else locations.add(location)
+        _flow.value = locations.toList()
+        return Result.Success(location)
+    }
+
+    override suspend fun deleteSavedLocation(locationId: String): Result<Unit> {
+        locations.removeIf { it.id == locationId }
+        _flow.value = locations.toList()
+        return Result.Success(Unit)
+    }
 }
