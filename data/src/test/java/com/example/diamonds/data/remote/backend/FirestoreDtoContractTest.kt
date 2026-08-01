@@ -2,6 +2,7 @@ package com.example.diamonds.data.remote.backend
 
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 import java.lang.reflect.Modifier
 
 /**
@@ -49,7 +50,7 @@ class FirestoreDtoContractTest {
         val offenders = firestoreReadDtos.mapNotNull { type ->
             val ctor = runCatching { type.getDeclaredConstructor() }.getOrNull()
             when {
-                ctor == null -> "${type.simpleName}: no no-arg constructor " +
+                ctor == null -> "${type.simpleName}: is missing a no-arg constructor " +
                         "(at least one primary-constructor parameter lacks a default)"
 
                 !Modifier.isPublic(ctor.modifiers) -> "${type.simpleName}: no-arg constructor is not public"
@@ -82,15 +83,44 @@ class FirestoreDtoContractTest {
     }
 
     @Test
-    fun `the registered DTO list is complete`() {
-        // Keeps this test honest: a DTO added to IBackendService.kt must be registered above,
-        // otherwise it could ship without a no-arg constructor and reintroduce the read failure.
-        // If this fails, add the new DTO to firestoreReadDtos rather than just bumping the number.
+    fun `every Dto declared in IBackendService is registered here`() {
+        // Derived from the source rather than a hardcoded count: a size check would still pass if
+        // someone added a 16th DTO and forgot to register it, which is precisely the case this
+        // guard exists to catch.
+        val declared = DTO_DECLARATION
+            .findAll(backendServiceSource().readText())
+            .map { it.groupValues[1] }
+            .toSet()
+        val registered = firestoreReadDtos.map { it.simpleName }.toSet()
+
         assertTrue(
-            "IBackendService.kt declares a different number of *Dto types than the " +
-                    "${firestoreReadDtos.size} registered here — add the new one to " +
-                    "firestoreReadDtos so it is covered.",
-            firestoreReadDtos.size == 15
+            "These *Dto types are declared in IBackendService.kt but are not registered in " +
+                    "firestoreReadDtos, so nothing verifies Firestore can deserialize them: " +
+                    (declared - registered),
+            (declared - registered).isEmpty()
         )
+        assertTrue(
+            "These types are registered in firestoreReadDtos but are no longer declared in " +
+                    "IBackendService.kt: " + (registered - declared),
+            (registered - declared).isEmpty()
+        )
+    }
+
+    /**
+     * Locates `IBackendService.kt` on disk. Gradle runs a module's tests with the module directory
+     * as the working directory, but the candidates below also cover being run from the repo root.
+     */
+    private fun backendServiceSource(): File {
+        val relative = "src/main/java/com/example/diamonds/data/remote/backend/IBackendService.kt"
+        val candidates = listOf(File(relative), File("data/$relative"), File("../data/$relative"))
+        return candidates.firstOrNull { it.isFile }
+            ?: error(
+                "Could not locate IBackendService.kt (working dir: ${File(".").absolutePath}). " +
+                        "Tried: ${candidates.joinToString { it.path }}"
+            )
+    }
+
+    private companion object {
+        val DTO_DECLARATION = Regex("""^data class (\w+Dto)\(""", RegexOption.MULTILINE)
     }
 }
