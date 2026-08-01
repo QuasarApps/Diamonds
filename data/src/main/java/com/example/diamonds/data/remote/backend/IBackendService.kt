@@ -111,26 +111,26 @@ interface IBackendService {
 
 @Serializable
 data class ClientDto(
-    val id: String,
-    val name: String,
-    val email: String,
-    val phoneNumber: String,
+    val id: String = "",
+    val name: String = "",
+    val email: String = "",
+    val phoneNumber: String = "",
     val profileImageUrl: String? = null,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class ProviderDto(
-    val id: String,
-    val name: String,
-    val email: String,
-    val phoneNumber: String,
+    val id: String = "",
+    val name: String = "",
+    val email: String = "",
+    val phoneNumber: String = "",
     val profileImageUrl: String? = null,
     val bio: String? = null,
     val rating: Float = 0f,
     val reviewCount: Int = 0,
-    val verificationStatus: String,
+    val verificationStatus: String = "",
     val serviceRadius: Int = 10,
     /** "INDEPENDENT" or "EMPLOYED" */
     val cleanerType: String = "INDEPENDENT",
@@ -139,73 +139,73 @@ data class ProviderDto(
     val employerName: String? = null,
     /** List of CleaningType enum names */
     val specializations: List<String> = emptyList(),
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class ServiceDto(
-    val id: String,
-    val providerId: String,
-    val title: String,
-    val description: String,
-    val basePrice: Double,
-    val duration: Int,
-    val category: String,
+    val id: String = "",
+    val providerId: String = "",
+    val title: String = "",
+    val description: String = "",
+    val basePrice: Double = 0.0,
+    val duration: Int = 0,
+    val category: String = "",
     val imageUrl: String? = null,
     val isActive: Boolean = true,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class BookingDto(
-    val id: String,
-    val clientId: String,
-    val providerId: String,
-    val serviceId: String,
-    val status: String,
-    val scheduledDate: String,
-    val scheduledTime: String,
-    val estimatedDuration: Int,
-    val totalPrice: Double,
+    val id: String = "",
+    val clientId: String = "",
+    val providerId: String = "",
+    val serviceId: String = "",
+    val status: String = "",
+    val scheduledDate: String = "",
+    val scheduledTime: String = "",
+    val estimatedDuration: Int = 0,
+    val totalPrice: Double = 0.0,
     val notes: String? = null,
-    val address: String,
+    val address: String = "",
     val latitude: Double? = null,
     val longitude: Double? = null,
     val cleaningType: String? = null,
     val locationType: String? = null,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class ReviewDto(
-    val id: String,
-    val bookingId: String,
-    val clientId: String,
-    val providerId: String,
-    val rating: Int,
+    val id: String = "",
+    val bookingId: String = "",
+    val clientId: String = "",
+    val providerId: String = "",
+    val rating: Int = 0,
     val comment: String? = null,
     val imageUrls: List<String> = emptyList(),
     val direction: String = "CLIENT_REVIEWS_PROVIDER",
     val locationTags: List<String> = emptyList(),
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class PaymentDto(
-    val id: String,
-    val bookingId: String,
-    val clientId: String,
-    val providerId: String,
-    val amount: Double,
-    val status: String,
-    val method: String,
+    val id: String = "",
+    val bookingId: String = "",
+    val clientId: String = "",
+    val providerId: String = "",
+    val amount: Double = 0.0,
+    val status: String = "",
+    val method: String = "",
     val transactionId: String? = null,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 // Request payloads
@@ -246,44 +246,44 @@ data class CreatePaymentRequest(
 
 @Serializable
 data class ProviderLocationDto(
-    val providerId: String,
-    val latitude: Double,
-    val longitude: Double,
+    val providerId: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
     val heading: Float = 0f,
-    val updatedAt: String
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class ServiceAreaDto(
-    val providerId: String,
-    val centerLatitude: Double,
-    val centerLongitude: Double,
-    val radiusKm: Double
+    val providerId: String = "",
+    val centerLatitude: Double = 0.0,
+    val centerLongitude: Double = 0.0,
+    val radiusKm: Double = 0.0
 )
 
 @Serializable
 data class ConversationDto(
-    val id: String,
-    val bookingId: String,
-    val clientId: String,
-    val clientName: String,
-    val providerId: String,
-    val providerName: String,
+    val id: String = "",
+    val bookingId: String = "",
+    val clientId: String = "",
+    val clientName: String = "",
+    val providerId: String = "",
+    val providerName: String = "",
     val lastMessage: String = "",
     val lastMessageAt: String = "",
     val unreadCount: Int = 0,
-    val updatedAt: String
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class MessageDto(
-    val id: String,
-    val conversationId: String,
-    val senderId: String,
-    val senderName: String,
-    val body: String,
+    val id: String = "",
+    val conversationId: String = "",
+    val senderId: String = "",
+    val senderName: String = "",
+    val body: String = "",
     val isRead: Boolean = false,
-    val createdAt: String
+    val createdAt: String = ""
 )
 
 @Serializable
@@ -307,23 +307,23 @@ data class SendMessageRequest(
 
 @Serializable
 data class RecurringBookingDto(
-    val id: String,
-    val clientId: String,
-    val providerId: String,
-    val providerName: String,
-    val serviceId: String,
-    val serviceName: String,
-    val frequency: String,
-    val preferredDay: Int,
-    val preferredTime: String,
-    val address: String,
+    val id: String = "",
+    val clientId: String = "",
+    val providerId: String = "",
+    val providerName: String = "",
+    val serviceId: String = "",
+    val serviceName: String = "",
+    val frequency: String = "",
+    val preferredDay: Int = 0,
+    val preferredTime: String = "",
+    val address: String = "",
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val totalPrice: Double,
-    val status: String,
-    val nextBookingDate: String,
-    val createdAt: String,
-    val updatedAt: String
+    val totalPrice: Double = 0.0,
+    val status: String = "",
+    val nextBookingDate: String = "",
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
@@ -346,41 +346,41 @@ data class CreateRecurringBookingRequest(
 
 @Serializable
 data class SupportTicketDto(
-    val id: String,
-    val userId: String,
-    val userRole: String,
+    val id: String = "",
+    val userId: String = "",
+    val userRole: String = "",
     val bookingId: String? = null,
-    val type: String,
-    val status: String,
-    val subject: String,
-    val description: String,
+    val type: String = "",
+    val status: String = "",
+    val subject: String = "",
+    val description: String = "",
     val conversationId: String? = null,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class ClaimDto(
-    val id: String,
-    val bookingId: String,
-    val filedByUserId: String,
-    val filedByRole: String,
-    val claimType: String,
-    val status: String,
-    val description: String,
+    val id: String = "",
+    val bookingId: String = "",
+    val filedByUserId: String = "",
+    val filedByRole: String = "",
+    val claimType: String = "",
+    val status: String = "",
+    val description: String = "",
     val evidenceImageUrls: List<String> = emptyList(),
     val resolutionNotes: String? = null,
     val refundAmount: Double? = null,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 @Serializable
 data class HelpArticleDto(
-    val id: String,
-    val title: String,
-    val body: String,
-    val category: String,
+    val id: String = "",
+    val title: String = "",
+    val body: String = "",
+    val category: String = "",
     val tags: List<String> = emptyList()
 )
 
@@ -420,17 +420,17 @@ data class EditBookingRequest(
 
 @Serializable
 data class SavedLocationDto(
-    val id: String,
-    val clientId: String,
-    val label: String,
-    val address: String,
+    val id: String = "",
+    val clientId: String = "",
+    val label: String = "",
+    val address: String = "",
     val latitude: Double? = null,
     val longitude: Double? = null,
     val locationType: String = "HOUSE",
     val roomCount: Int = 1,
     val bathroomCount: Int = 1,
     val sqFootage: Int? = null,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
