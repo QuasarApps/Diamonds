@@ -126,6 +126,14 @@ class FirebaseBackendService : IBackendService {
         firestoreCall {
             val docRef = bookingsCol.document()
             val now = System.currentTimeMillis().toString()
+            // Resolve duration and price from the service document rather than hardcoding
+            // them, matching BackendServiceStub. Previously every Firebase-created booking
+            // was priced at $0.00 for 60 minutes regardless of the service chosen.
+            // (This read only works now that ServiceDto has a no-arg constructor — see
+            // FirestoreDtoContractTest.) Falls back to the old defaults if the document
+            // is missing, rather than failing the whole booking.
+            val service = servicesCol.document(booking.serviceId).get().await()
+                .toObject(ServiceDto::class.java)
             val dto = BookingDto(
                 id = docRef.id,
                 clientId = booking.clientId,
@@ -134,8 +142,8 @@ class FirebaseBackendService : IBackendService {
                 status = "PENDING",
                 scheduledDate = booking.scheduledDate,
                 scheduledTime = booking.scheduledTime,
-                estimatedDuration = 60, // default; could lookup service duration
-                totalPrice = 0.0,       // default; could lookup service price
+                estimatedDuration = service?.duration ?: 60,
+                totalPrice = service?.basePrice ?: 0.0,
                 notes = booking.notes,
                 address = booking.address,
                 latitude = booking.latitude,
@@ -203,6 +211,11 @@ class FirebaseBackendService : IBackendService {
                 rating = review.rating,
                 comment = review.comment,
                 imageUrls = review.imageUrls,
+                // Both were previously dropped, so every Firestore review defaulted to
+                // CLIENT_REVIEWS_PROVIDER with no tags — breaking the reverse-review split
+                // (Phase 14) and making getReviewsForClient a query that could never match.
+                direction = review.direction,
+                locationTags = review.locationTags,
                 createdAt = now,
                 updatedAt = now
             )
