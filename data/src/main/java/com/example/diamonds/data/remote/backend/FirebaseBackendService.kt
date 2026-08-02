@@ -115,6 +115,11 @@ class FirebaseBackendService : IBackendService {
             snap.toObjects(ServiceDto::class.java)
         }
 
+    override suspend fun updateService(service: ServiceDto): Result<ServiceDto> = firestoreCall {
+        servicesCol.document(service.id).set(service).await()
+        service
+    }
+
     override suspend fun createService(service: ServiceDto): Result<ServiceDto> = firestoreCall {
         val docRef = if (service.id.isNotBlank()) {
             servicesCol.document(service.id)

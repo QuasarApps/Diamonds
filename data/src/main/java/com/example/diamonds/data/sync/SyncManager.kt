@@ -219,6 +219,7 @@ class SyncManager(
         EntityType.PAYMENT -> dispatchPayment(opType, payload)
         EntityType.SERVICE -> dispatchService(opType, payload)
         EntityType.PROFILE -> dispatchProfile(opType, payload)
+        EntityType.PROVIDER_PROFILE -> dispatchProviderProfile(opType, payload)
 
         // These entity types are synced by their own repositories and must never
         // reach this queue. Fail loudly rather than returning normally — a silent
@@ -287,12 +288,24 @@ class SyncManager(
     }
 
     private suspend fun dispatchService(opType: SyncOperationType, payload: String): Unit = when (opType) {
-        SyncOperationType.CREATE, SyncOperationType.UPDATE -> {
+        SyncOperationType.CREATE -> {
             val dto =
                 json.decodeFromString<com.example.diamonds.data.remote.backend.ServiceDto>(
                     payload
                 )
             backendService.createService(dto).orThrow()
+        }
+
+        // UPDATE used to share the CREATE branch and replay through createService, which appends
+        // a second service instead of editing the existing one — a queued price change would have
+        // duplicated the listing. IBackendService.updateService now exists precisely so the two
+        // are distinguishable here.
+        SyncOperationType.UPDATE -> {
+            val dto =
+                json.decodeFromString<com.example.diamonds.data.remote.backend.ServiceDto>(
+                    payload
+                )
+            backendService.updateService(dto).orThrow()
         }
 
         // Service deletion is not supported — no representable write.
@@ -311,6 +324,26 @@ class SyncManager(
         // Profile create/delete are handled by the auth flow, not this queue.
         SyncOperationType.CREATE, SyncOperationType.DELETE, SyncOperationType.CANCEL ->
             unsupportedOp(EntityType.PROFILE, opType)
+    }
+
+    /**
+     * Provider profiles route here rather than through [dispatchProfile].
+     *
+     * `json` is configured with `ignoreUnknownKeys = true`, so a `ProviderDto` payload decodes
+     * *successfully* as a `ClientDto` — silently discarding `bio`, `rating`, `serviceRadius`,
+     * `specializations` and the employer fields, then writing that truncated record to the
+     * `clients` collection. Keeping the entity types distinct is what prevents that.
+     */
+    private suspend fun dispatchProviderProfile(opType: SyncOperationType, payload: String): Unit = when (opType) {
+        SyncOperationType.UPDATE -> {
+            val dto = json.decodeFromString<com.example.diamonds.data.remote.backend.ProviderDto>(
+                payload
+            )
+            backendService.updateProvider(dto).orThrow()
+        }
+
+        SyncOperationType.CREATE, SyncOperationType.DELETE, SyncOperationType.CANCEL ->
+            unsupportedOp(EntityType.PROVIDER_PROFILE, opType)
     }
 
     /**

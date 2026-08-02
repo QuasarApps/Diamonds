@@ -459,6 +459,7 @@ private fun iconForEntityType(type: EntityType): String = when (type) {
     EntityType.PAYMENT -> "💳"
     EntityType.SERVICE -> "🧹"
     EntityType.PROFILE -> "👤"
+    EntityType.PROVIDER_PROFILE -> "🧑‍🔧"
     EntityType.RECURRING_BOOKING -> "🔄"
     EntityType.SUPPORT_TICKET -> "🎫"
     EntityType.CLAIM -> "📝"

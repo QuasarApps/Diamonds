@@ -380,6 +380,24 @@ fun Provider.toDto(): ProviderDto = ProviderDto(
     updatedAt = updatedAt
 )
 
+/**
+ * Inverse of [ServiceDto.toDomain], for the write path. `category` goes over the wire as its
+ * `name`, matching what `toDomain` parses back.
+ */
+fun Service.toDto(): ServiceDto = ServiceDto(
+    id = id,
+    providerId = providerId,
+    title = title,
+    description = description,
+    basePrice = basePrice,
+    duration = duration,
+    category = category.name,
+    imageUrl = imageUrl,
+    isActive = isActive,
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
 fun ServiceDto.toDomain(): Service = Service(
     id = requiredId(id, "ServiceDto", "id"),
     providerId = providerId,

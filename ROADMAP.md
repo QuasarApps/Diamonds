@@ -17,13 +17,31 @@ untouched**, and it now has a newly-found blocker at the top · Track D 🟡 **p
 Track E ❌ **new, open**.
 
 ### Track A — Make the docs true (cheap, high trust) — ✅ done bar one decision
-- [ ] 🔴 **DECISION REQUIRED (tech lead):** the offline-write story. `SyncManager.queueOperation()`
-  still has **zero production call sites** — every write repo hard-fails when offline instead of
-  enqueuing, so the backoff/conflict machinery processes a table nothing populates. Two honest
-  options: (a) wire `queueOperation()` into the write repos and make offline writes real, or
-  (b) delete the queue/backoff/conflict code and stop advertising offline writes. This is a product
-  call, not a coding task that can be started blind — everything else in Track A is finished, so it
-  is the only thing keeping the track open. *(§4)*
+- [ ] 🔴 **The offline-write story — decision taken (a): wire the queue. In progress.**
+  `SyncManager.queueOperation()` still has **zero production call sites**, so the backoff/conflict
+  machinery processes a table nothing populates.
+
+  **Correction to the earlier framing:** this was written as "~34 `OfflineException` sites across 7
+  write repos". There are **25**, and only **11 are writes** — the other 14 are cache-miss *reads*
+  ("Bookings not available offline"), which cannot be queued because there is nothing to replay.
+  The 11 write sites, with replay status:
+
+  | Site | Queue-able | Why |
+  |---|---|---|
+  | `BookingRepository.updateBookingStatus` | ✅ | idempotent, `BOOKING/UPDATE` dispatches |
+  | `BookingRepository.cancelBooking` | ✅ | idempotent, `BOOKING/CANCEL` dispatches |
+  | `ClientRepository.updateClient` | ✅ | idempotent upsert, `PROFILE/UPDATE` dispatches |
+  | `ProviderRepository.updateProvider` | ✅ | needs `PROVIDER_PROFILE` (added) |
+  | `ServiceRepository.updateService` | ✅ | needs `updateService` on the backend (added) |
+  | `ReviewRepository.createReview` | ⚠️ | at-least-once replay can double-post a visible review |
+  | `ServiceRepository.createService` | ⚠️ | same duplicate risk |
+  | `BookingRepository.createBooking` | ❌ | server assigns the id and the queue has no way to reconcile it back into the optimistic local row, which would keep a fabricated id forever |
+  | `PaymentRepository.createPayment` | ❌ | would tell the user a payment succeeded while offline, with no processor contacted. Compounds the existing client-side `SUCCEEDED` fabrication rather than fixing it |
+  | `PaymentRepository.updatePaymentStatus` | ❌ | `PAYMENT/UPDATE` is `unsupportedOp`; also still a repo stub |
+  | `MessageRepository.sendMessage` | ❌ | no `MESSAGE` entity type exists |
+
+  The ✅ rows are next. The ⚠️ rows need an idempotency key before at-least-once replay is safe.
+  The ❌ rows are blocked on missing machinery, not on effort. *(§4)*
 - [x] Fix `RecurringBookingViewModel.getCurrentSession()` infinite-suspend → now uses `.first()`
   (`ui/subscription/RecurringBookingViewModel.kt:193`). *(§3.3)*
 - [x] Fix `MessageRepository.sendMessage` offline message loss — it now persists locally **and**

@@ -7,6 +7,8 @@ import com.example.diamonds.data.local.dao.SyncQueueDao
 import com.example.diamonds.data.local.entity.SyncQueueEntity
 import com.example.diamonds.data.remote.backend.BookingDto
 import com.example.diamonds.data.remote.backend.IBackendService
+import com.example.diamonds.data.remote.backend.ProviderDto
+import com.example.diamonds.data.remote.backend.ServiceDto
 import com.example.diamonds.domain.model.Result
 import com.example.diamonds.domain.model.SyncStatus
 import com.example.diamonds.domain.repository.EntityType
@@ -20,6 +22,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -318,7 +322,8 @@ class SyncManagerTest {
             EntityType.PAYMENT to SyncOperationType.UPDATE,
             EntityType.REVIEW to SyncOperationType.DELETE,
             EntityType.SERVICE to SyncOperationType.DELETE,
-            EntityType.PROFILE to SyncOperationType.CREATE
+            EntityType.PROFILE to SyncOperationType.CREATE,
+            EntityType.PROVIDER_PROFILE to SyncOperationType.CREATE
         )
 
         nonRepresentable.forEachIndexed { index, (entity, op) ->
@@ -331,5 +336,68 @@ class SyncManagerTest {
             coVerify(exactly = 1) { syncQueueDao.updateAfterRetry(id, SyncStatus.FAILED.name, any(), any()) }
             coVerify(exactly = 0) { syncQueueDao.updateStatus(id, SyncStatus.SYNCED.name) }
         }
+    }
+
+    // ── Dispatch routing ──────────────────────────────────────────────────────
+
+    @Test
+    fun `a queued service update replays as an update, not a second create`() = runTest {
+        // SERVICE/UPDATE used to share the CREATE branch and replay through createService, which
+        // appends rather than edits — a queued price change would have duplicated the listing.
+        val dto = ServiceDto(
+            id = "s1", providerId = "p1", title = "Deep Clean", basePrice = 149.0,
+            duration = 240, category = "DEEP_CLEANING",
+            createdAt = "2026-04-01", updatedAt = "2026-04-07"
+        )
+        coEvery { backendService.updateService(any()) } returns Result.Success(dto)
+        coEvery { syncQueueDao.getQueuedOperations() } returns listOf(
+            makeEntity(
+                operationType = SyncOperationType.UPDATE,
+                entityType = EntityType.SERVICE,
+                entityId = "s1",
+                payload = Json.encodeToString(dto)
+            )
+        )
+
+        manager.processSyncQueue()
+
+        coVerify(exactly = 1) { backendService.updateService(match { it.id == "s1" }) }
+        coVerify(exactly = 0) { backendService.createService(any()) }
+        coVerify { syncQueueDao.updateStatus("op1", SyncStatus.SYNCED.name) }
+    }
+
+    @Test
+    fun `a queued provider profile update keeps the provider-only fields`() = runTest {
+        // Routed through PROFILE it would decode as a ClientDto — `ignoreUnknownKeys = true` makes
+        // that succeed — and write a truncated record to the clients collection.
+        val dto = ProviderDto(
+            id = "p1", name = "Maria", email = "m@c.com", phoneNumber = "+1",
+            bio = "Ten years of deep cleans", rating = 4.9f, reviewCount = 143,
+            verificationStatus = "APPROVED", serviceRadius = 15, cleanerType = "EMPLOYED",
+            employerId = "co1", specializations = listOf("DEEP_CLEAN"),
+            createdAt = "2023-01-01", updatedAt = "2026-01-01"
+        )
+        coEvery { backendService.updateProvider(any()) } returns Result.Success(dto)
+        coEvery { syncQueueDao.getQueuedOperations() } returns listOf(
+            makeEntity(
+                operationType = SyncOperationType.UPDATE,
+                entityType = EntityType.PROVIDER_PROFILE,
+                entityId = "p1",
+                payload = Json.encodeToString(dto)
+            )
+        )
+
+        manager.processSyncQueue()
+
+        coVerify(exactly = 1) {
+            backendService.updateProvider(
+                match {
+                    it.id == "p1" && it.bio == "Ten years of deep cleans" &&
+                        it.serviceRadius == 15 && it.cleanerType == "EMPLOYED" &&
+                        it.employerId == "co1" && it.specializations == listOf("DEEP_CLEAN")
+                }
+            )
+        }
+        coVerify(exactly = 0) { backendService.updateClient(any()) }
     }
 }
