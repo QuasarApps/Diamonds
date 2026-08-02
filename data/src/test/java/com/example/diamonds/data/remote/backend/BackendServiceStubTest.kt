@@ -111,6 +111,42 @@ class BackendServiceStubTest {
         assertEquals("New Service", result.data.title)
     }
 
+    @Test
+    fun `createService generates an id when none is supplied`() = runTest {
+        // FirebaseBackendService.createService assigns servicesCol.document().id for a blank id.
+        // Handing back "" instead would produce a DTO that ServiceDto.toDomain() rejects outright
+        // (PR #28), so the debug backend would fail a create the Firebase one completes.
+        val created = (stub.createService(
+            ServiceDto(providerId = "p1", title = "Generated", category = "OTHER")
+        ) as Result.Success).data
+
+        assertTrue(created.id.isNotBlank())
+        assertEquals("Generated", (stub.getService(created.id) as Result.Success).data.title)
+    }
+
+    @Test
+    fun `createService with an existing id overwrites rather than duplicating`() = runTest {
+        val before = (stub.getServicesForProvider("p1") as Result.Success).data.size
+        val existing = (stub.getService("s1-1") as Result.Success).data
+
+        stub.createService(existing.copy(title = "Renamed"))
+
+        assertEquals(before, (stub.getServicesForProvider("p1") as Result.Success).data.size)
+        assertEquals("Renamed", (stub.getService("s1-1") as Result.Success).data.title)
+    }
+
+    @Test
+    fun `updateService edits in place and is visible to later reads`() = runTest {
+        val before = (stub.getServicesForProvider("p1") as Result.Success).data.size
+
+        stub.updateService(
+            (stub.getService("s1-1") as Result.Success).data.copy(basePrice = 99.0)
+        )
+
+        assertEquals(before, (stub.getServicesForProvider("p1") as Result.Success).data.size)
+        assertEquals(99.0, (stub.getService("s1-1") as Result.Success).data.basePrice, 0.001)
+    }
+
     // ── Bookings ──────────────────────────────────────────────────────────────
 
     @Test

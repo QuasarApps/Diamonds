@@ -333,10 +333,22 @@ class BackendServiceStub : IBackendService {
         return Result.Success(serviceStore.filter { it.category == category })
     }
 
+    /**
+     * Mirrors [FirebaseBackendService.createService]: a blank id gets one generated, and a
+     * supplied id upserts rather than appending a duplicate.
+     *
+     * Both halves matter. Returning the input unchanged would hand back a service whose id is
+     * still `""`, and since PR #28 `ServiceDto.toDomain()` rejects a blank id outright — so the
+     * debug backend would fail a create that the Firebase one completes. Appending unconditionally
+     * would show the same service twice in search after a re-create.
+     */
     override suspend fun createService(service: ServiceDto): Result<ServiceDto> {
         delay(300)
-        serviceStore.add(service)
-        return Result.Success(service)
+        val saved =
+            if (service.id.isBlank()) service.copy(id = "s${System.currentTimeMillis()}") else service
+        val idx = serviceStore.indexOfFirst { it.id == saved.id }
+        if (idx >= 0) serviceStore[idx] = saved else serviceStore.add(saved)
+        return Result.Success(saved)
     }
 
     override suspend fun updateService(service: ServiceDto): Result<ServiceDto> {
