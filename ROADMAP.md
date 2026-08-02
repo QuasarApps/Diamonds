@@ -53,17 +53,25 @@ Track E ❌ **new, open**.
 - [ ] Adopt `collectAsStateWithLifecycle` — **0 uses** today vs **87 `collectAsState()`** call sites
   across 44 files. *(§4)*
 
-### Track C — Before flipping `USE_MOCK_BACKEND=false` (Firebase go-live gate) — ❌ entirely open
-- [ ] 🔴 **BLOCKER, found 2026-07-27 — every Firestore *read* fails today.** Every DTO in
-  `data/remote/backend/IBackendService.kt` is a `data class` whose constructor parameters are all
-  **required** (no defaults) — e.g. `ClientDto:113`, `BookingDto:162` — so Kotlin generates **no
-  no-arg constructor**. Firestore's object mapper requires one. `FirebaseBackendService` calls
-  `toObject()`/`toObjects()` **26 times**, so every read throws and is swallowed into a
-  `Result.Error` by the `firestoreCall` wrapper, while writes succeed. Flipping
-  `USE_MOCK_BACKEND=false` today therefore yields a **write-only app**: data goes in and nothing
-  comes back. Fix: give every DTO defaults for all constructor params (or hand-write the mapping).
-  **Nothing else in this track is worth doing until this is fixed** — the other items are invisible
-  behind it.
+### Track C — Before flipping `USE_MOCK_BACKEND=false` (Firebase go-live gate) — 🟡 partially done
+- [x] 🔴 ~~**BLOCKER — every Firestore *read* fails.**~~ **Fixed (PR #24).** Every DTO in
+  `data/remote/backend/IBackendService.kt` was a `data class` whose constructor parameters were all
+  required, so Kotlin generated no no-arg constructor — which Firestore's object mapper needs. All
+  26 `toObject()`/`toObjects()` calls threw and were swallowed into `Result.Error`, while writes
+  succeeded: a write-only app. Every DTO parameter now has a default, and
+  `FirestoreDtoContractTest` fails the build if one is ever removed.
+- [x] **The strictness that fix gave up has been restored at the mapper boundary.** Defaulting every
+  DTO parameter means a partial or malformed document no longer fails at deserialization — it
+  silently yields `""`, `0` and `emptyList()`. The 13 `*Dto.toDomain()` mappers now reject blank
+  identity fields and unparseable enums with a `MalformedDtoException` naming the DTO, the field,
+  the value received and the valid set, instead of either throwing `No enum constant …` or quietly
+  substituting a default.
+- [ ] **Decide how repository list reads degrade on one bad record.** `map { it.toDomain() }` over a
+  `List<Dto>` fails the whole read if a single row is malformed, so one corrupt document empties a
+  screen. That was already true of the previously-unguarded `valueOf` fields; making validation
+  uniform makes it uniformly true. The options — fail the read, drop bad rows and surface a count,
+  or return partial results with a warning — are a per-repository judgement across 13 call sites,
+  not a mapper concern.
 - [ ] Implement the 14 `FirebaseBackendService` stubs at `FirebaseBackendService.kt:484–524` (support
   tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations) + the
   remaining repo stubs (`getCurrentClient`, `getPaymentsForProvider`, `updatePaymentStatus`,

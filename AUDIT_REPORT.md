@@ -13,11 +13,11 @@ Room DB v10 (9 migrations), Phases 1–16
 Diamonds is a well-structured home cleaning marketplace Android app with a solid modular
 architecture, clean offline-first design, and good separation of concerns. Phases 1–16 are
 structurally complete. However, **several production-blocking issues exist** that must be resolved
-before switching off `USE_MOCK_BACKEND` and releasing to users. The most critical are: **every
-Firestore read failing because the DTOs have no no-arg constructor** (§3 — this alone makes the
-Firebase path a write-only app), missing image loading library (Coil), 14 unimplemented Firebase
-backend methods, plaintext auth token storage, no Firestore Security Rules, and
-`isMinifyEnabled = false` in the release build.
+before switching off `USE_MOCK_BACKEND` and releasing to users. The most critical remaining are:
+missing image loading library (Coil), 14 unimplemented Firebase backend methods, plaintext auth
+token storage, no Firestore Security Rules, and `isMinifyEnabled = false` in the release build.
+(The former headline blocker — every Firestore read failing for want of a DTO no-arg constructor —
+is fixed; see §3.)
 
 **Current test footprint**: 26 JVM unit-test files / 300 `@Test` methods, plus 23 instrumentation
 files (target still 60% coverage; see §7)  
@@ -92,7 +92,7 @@ files (target still 60% coverage; see §7)
 | **Image loading library**       | ❌ Missing  | No Coil/Glide/Picasso. `profileImageUrl`, `imageUrls` stored throughout models but images cannot be displayed. Add `io.coil-kt:coil-compose`. |
 | **Runtime locale switching**    | ✅ Done     | **RESOLVED (Track B, PRs #7–#17).** Wiring was already there (`LanguageSelectorScreen` → `AppCompatDelegate.setApplicationLocales()`); the strings are now externalised. `stringResource` is used in **46 of 83** `:ui` files across **608** call sites; `values/strings.xml` holds **531 `<string>` + 16 `<plurals>`**; `values-fr`, `values-es`, `values-pt`, `values-ar` are all key-complete; every `Icon` `contentDescription` is localized (`cd_*`). The old "~350 hardcoded UI strings / `stringResource` in 1 of 83 files" finding is **retracted**. Residual: ~**67** `Text("…")` literals, almost all non-translatable glyphs (emoji, `"$"`, `"›"`). |
 | **Lint guard for hardcoded strings** | ❌ Missing | **NEW 2026-07-27** — no lint rule and no lint baseline exists anywhere in the repo, so nothing prevents new hardcoded literals from regressing Track B. |
-| **Firestore DTO deserialisation** | ❌ **Broken** | 🔴 **NEW 2026-07-27 — biggest single blocker.** Every DTO in `IBackendService.kt` is a `data class` whose constructor params are all required (e.g. `ClientDto:113`, `BookingDto:162`), so Kotlin generates **no** no-arg constructor. Firestore's object mapper requires one. `FirebaseBackendService` calls `toObject()`/`toObjects()` **26** times, so **every Firestore read throws** and is swallowed into `Result.Error` by the `firestoreCall` wrapper — while writes succeed. Flipping `USE_MOCK_BACKEND=false` today yields a **write-only app**. Fix: give every DTO field a default (or supply explicit mappers). |
+| **Firestore DTO deserialisation** | ✅ **Working** | Was the biggest single blocker: DTO constructor params were all required, so Kotlin generated no no-arg constructor and Firestore's object mapper could not build one. All **26** `toObject()`/`toObjects()` calls threw into a swallowed `Result.Error` while writes succeeded — a **write-only app**. Every DTO param now has a default, and `FirestoreDtoContractTest` fails the build if one is removed. Because defaults also mean a malformed document deserializes silently into blanks rather than failing, the 13 `*Dto.toDomain()` mappers validate identity fields and enums and raise `MalformedDtoException` naming the DTO, field, received value and valid set. |
 | **ReviewDirection in Firebase** | ⚠️ Partial | `ReviewDirection` enum and Room column correct; `FirebaseBackendService.createReview` still drops both `direction` **and** `locationTags`.    |
 | **Firestore Security Rules**    | ❌ Missing  | **Zero** rules in the repo — no `firestore.rules`, no `firebase.json`, no `.firebaserc`. Any authenticated user can read/write any document.  |
 | **Firebase project config**     | ❌ Placeholder | `app/google-services.json` is a placeholder (`project_number` `"000000000000"`, `api_key` `"placeholder-key-for-testing"`) — a real project must be provisioned before any Firebase testing. |

@@ -313,15 +313,17 @@ Backend service abstraction via `IBackendService`:
 - **Swap easily**: flip the `BuildConfig` flags in `app/build.gradle.kts`; the Hilt bindings in
   `app/di/Modules.kt` pick the implementation
 
-> ⚠️ **Do not flip `USE_MOCK_BACKEND=false` yet.** Two blockers, both open:
+> ⚠️ **Do not flip `USE_MOCK_BACKEND=false` yet.** One blocker remains:
 > 1. 14 `FirebaseBackendService` methods still return `Result.Error(Exception("…not yet implemented"))`
 >    (`FirebaseBackendService.kt:484-524`).
-> 2. Every DTO in `IBackendService.kt` is a data class whose constructor params have **no defaults**
->    (e.g. `ClientDto:113`, `BookingDto:162`), so Kotlin generates no no-arg constructor. Firestore's
->    object mapper requires one, and `FirebaseBackendService` calls `toObject()`/`toObjects()` 26
->    times. Every Firestore **read** therefore throws and is swallowed into `Result.Error` by the
->    `firestoreCall` wrapper while writes succeed — the result is a write-only app. Giving every DTO
->    field a default value is the fix.
+>
+> ✅ Resolved: every DTO in `IBackendService.kt` used to have required (no-default) constructor
+> params, so Kotlin generated no no-arg constructor — which Firestore's object mapper needs. All 26
+> `toObject()`/`toObjects()` calls threw into a swallowed `Result.Error` while writes succeeded, a
+> write-only app. Every DTO parameter now has a default, guarded by `FirestoreDtoContractTest`.
+> Because defaults also mean a malformed document deserializes silently into blanks, the
+> `*Dto.toDomain()` mappers validate identity fields and enums and raise `MalformedDtoException`
+> naming exactly what was wrong.
 >
 > See `TECH_LEAD_REVIEW.md` and the Track C section of `ROADMAP.md` for the rest of the go-live gate
 > (Firestore Security Rules, real `google-services.json`, signing config, applicationId).
@@ -343,9 +345,10 @@ but sit on stub/mock backends). The current source of truth for what to do next 
    5 locales, `stringResource` used in 46 of 83 `:ui` files at 608 call sites, all icon
    `contentDescription`s localised. The remaining gate is a lint rule/baseline to stop new hardcoded
    strings — none exists yet.
-3. **Track C** (Firebase go-live gate) — entirely open. Firestore DTO no-arg constructors, the 14
-   unimplemented backend methods, Security Rules, real `google-services.json`, signing config,
-   non-`com.example.*` applicationId, encrypted session storage, a real PSP for payments.
+3. **Track C** (Firebase go-live gate) — partial. Done: Firestore DTO no-arg constructors + mapper
+   validation, `updateProvider`, the signup profile document, server-side FCM token registration.
+   Still open: the 14 unimplemented backend methods, Security Rules, real `google-services.json`,
+   signing config, non-`com.example.*` applicationId, encrypted session storage, a real PSP.
 4. **Track D** (hardening) — partial. `SyncManager` and `LocationRepository` are covered; `SyncWorker`,
    `RecurringBookingWorker`, `PreferencesDataStore` and `ConnectivityObserver` are not. No
    `DispatcherProvider`; Turbine is declared in `:data`/`:ui` but unused;
