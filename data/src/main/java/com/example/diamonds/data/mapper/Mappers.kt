@@ -290,13 +290,20 @@ fun Booking.toEntity(): BookingEntity = BookingEntity(
  * this build does not understand, and quietly substituting a fallback misrepresents the record —
  * a `CANCELLED` booking shown as `PENDING`, a provider-to-client review attributed the other way
  * round. Failing is recoverable; silently wrong data is not.
+ *
+ * `enumValueOf` on the happy path, `enumValues` only to build the message: `enumValues<T>()`
+ * compiles to `getEnumConstants()`, which **clones** the constants array on every call. Mapping a
+ * list of bookings would otherwise allocate one array per enum field per row.
  */
 private inline fun <reified T : Enum<T>> enumField(value: String, dto: String, field: String): T =
-    enumValues<T>().firstOrNull { it.name == value }
-        ?: throw MalformedDtoException(
+    try {
+        enumValueOf<T>(value)
+    } catch (_: IllegalArgumentException) {
+        throw MalformedDtoException(
             "$dto.$field: expected one of [${enumValues<T>().joinToString { it.name }}] " +
                 "but got \"$value\""
         )
+    }
 
 /** Nullable variant: absent stays absent, but a *present* unrecognised value is still an error. */
 private inline fun <reified T : Enum<T>> enumFieldOrNull(value: String?, dto: String, field: String): T? =

@@ -275,7 +275,7 @@ class MappersTest {
         val e = assertThrows(MalformedDtoException::class.java) {
             ProviderDto(
                 id = "p1", name = "Maria", verificationStatus = "APPROVED",
-                specializations = listOf("DEEP_CLEAN", "NOT_A_REAL_TYPE")
+                specializations = listOf("DEEP_CLEAN", "NOT_A_REAL_TYPE", "WINDOW_CLEANING")
             ).toDomain()
         }
         assertTrue(e.message!!, e.message!!.contains("ProviderDto.specializations"))
