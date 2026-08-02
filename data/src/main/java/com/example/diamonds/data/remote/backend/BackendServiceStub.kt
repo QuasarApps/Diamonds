@@ -274,14 +274,18 @@ class BackendServiceStub : IBackendService {
         "client_grace"  to ClientDto(id="client_grace",  name="Grace Kim",       email="grace@example.com", phoneNumber="+1 555-1007", createdAt="2025-08-01", updatedAt="2026-01-01")
     )
 
+    /** Mutable working set, so profiles created/edited in-session are visible to later reads. */
+    private val clientStore = seedClients.toMutableMap()
+
     override suspend fun getClient(clientId: String): Result<ClientDto> {
         delay(300)
-        return Result.Success(seedClients[clientId]
+        return Result.Success(clientStore[clientId]
             ?: ClientDto(id=clientId, name="Client $clientId", email="$clientId@example.com", phoneNumber="", createdAt="2025-01-01", updatedAt="2026-01-01"))
     }
 
     override suspend fun updateClient(client: ClientDto): Result<ClientDto> {
         delay(300)
+        clientStore[client.id] = client
         return Result.Success(client)
     }
 

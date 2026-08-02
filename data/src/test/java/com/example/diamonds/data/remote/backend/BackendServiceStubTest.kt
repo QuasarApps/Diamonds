@@ -275,6 +275,38 @@ class BackendServiceStubTest {
         assertEquals("Updated Name", result.data.name)
     }
 
+    @Test
+    fun `updateClient persists the edit instead of only echoing it back`() = runTest {
+        stub.updateClient(
+            ClientDto(
+                id = "demo_customer", name = "Updated Name", email = "u@test.com",
+                phoneNumber = "+1000", createdAt = "2025-01-01", updatedAt = "2026-04-07"
+            )
+        )
+
+        val readBack = (stub.getClient("demo_customer") as Result.Success).data
+        assertEquals("Updated Name", readBack.name)
+        assertEquals("+1000", readBack.phoneNumber)
+    }
+
+    @Test
+    fun `a client profile created at signup is readable afterwards`() = runTest {
+        // Without a store, getClient would fall through to the synthetic placeholder and hand
+        // back a fabricated name/email with an empty phone number — discarding what the user
+        // typed at signup moments earlier.
+        stub.updateClient(
+            ClientDto(
+                id = "uid_new", name = "Fresh Signup", email = "fresh@test.com",
+                phoneNumber = "+1777", createdAt = "2026-04-07", updatedAt = "2026-04-07"
+            )
+        )
+
+        val readBack = (stub.getClient("uid_new") as Result.Success).data
+        assertEquals("Fresh Signup", readBack.name)
+        assertEquals("fresh@test.com", readBack.email)
+        assertEquals("+1777", readBack.phoneNumber)
+    }
+
     // ── Provider upserts ──────────────────────────────────────────────────────
 
     @Test
