@@ -67,6 +67,11 @@ class FirebaseBackendService : IBackendService {
 
     // ── Providers ────────────────────────────────────────────────────────────
 
+    override suspend fun updateProvider(provider: ProviderDto): Result<ProviderDto> = firestoreCall {
+        providersCol.document(provider.id).set(provider).await()
+        provider
+    }
+
     override suspend fun getProvider(providerId: String): Result<ProviderDto> = firestoreCall {
         val snap = providersCol.document(providerId).get().await()
         snap.toObject(ProviderDto::class.java)

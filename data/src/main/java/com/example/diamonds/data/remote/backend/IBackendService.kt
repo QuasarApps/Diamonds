@@ -24,6 +24,14 @@ interface IBackendService {
 
     // Providers
     suspend fun getProvider(providerId: String): Result<ProviderDto>
+
+    /**
+     * Create or update a provider profile document.
+     *
+     * Mirrors [updateClient]; both are upserts keyed on the DTO's `id`, so signup can use them
+     * to create the initial profile and profile-edit screens can use them to update it.
+     */
+    suspend fun updateProvider(provider: ProviderDto): Result<ProviderDto>
     suspend fun searchProviders(
         latitude: Double,
         longitude: Double,

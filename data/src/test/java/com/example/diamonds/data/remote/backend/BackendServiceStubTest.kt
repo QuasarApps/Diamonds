@@ -274,4 +274,77 @@ class BackendServiceStubTest {
         val result = stub.updateClient(updated) as Result.Success
         assertEquals("Updated Name", result.data.name)
     }
+
+    @Test
+    fun `updateClient persists the edit instead of only echoing it back`() = runTest {
+        stub.updateClient(
+            ClientDto(
+                id = "demo_customer", name = "Updated Name", email = "u@test.com",
+                phoneNumber = "+1000", createdAt = "2025-01-01", updatedAt = "2026-04-07"
+            )
+        )
+
+        val readBack = (stub.getClient("demo_customer") as Result.Success).data
+        assertEquals("Updated Name", readBack.name)
+        assertEquals("+1000", readBack.phoneNumber)
+    }
+
+    @Test
+    fun `a client profile created at signup is readable afterwards`() = runTest {
+        // Without a store, getClient would fall through to the synthetic placeholder and hand
+        // back a fabricated name/email with an empty phone number — discarding what the user
+        // typed at signup moments earlier.
+        stub.updateClient(
+            ClientDto(
+                id = "uid_new", name = "Fresh Signup", email = "fresh@test.com",
+                phoneNumber = "+1777", createdAt = "2026-04-07", updatedAt = "2026-04-07"
+            )
+        )
+
+        val readBack = (stub.getClient("uid_new") as Result.Success).data
+        assertEquals("Fresh Signup", readBack.name)
+        assertEquals("fresh@test.com", readBack.email)
+        assertEquals("+1777", readBack.phoneNumber)
+    }
+
+    // ── Provider upserts ──────────────────────────────────────────────────────
+
+    @Test
+    fun `updateProvider inserts a new provider that later reads can see`() = runTest {
+        val created = ProviderDto(
+            id = "new_cleaner", name = "Fresh Signup", email = "fresh@test.com",
+            phoneNumber = "+1777", verificationStatus = "PENDING",
+            createdAt = "2026-04-07", updatedAt = "2026-04-07"
+        )
+
+        assertEquals(created, (stub.updateProvider(created) as Result.Success).data)
+        // Without a mutable store this would fall through to the seed list's first entry.
+        assertEquals("Fresh Signup", (stub.getProvider("new_cleaner") as Result.Success).data.name)
+    }
+
+    @Test
+    fun `updateProvider overwrites an existing provider instead of duplicating it`() = runTest {
+        val before = (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data
+        val existing = before.first()
+
+        stub.updateProvider(existing.copy(name = "Renamed"))
+
+        val after = (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data
+        assertEquals(before.size, after.size)
+        assertEquals("Renamed", (stub.getProvider(existing.id) as Result.Success).data.name)
+    }
+
+    @Test
+    fun `searchProviders returns a snapshot rather than a live view of the store`() = runTest {
+        val before = (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data
+        val sizeBefore = before.size
+
+        stub.updateProvider(
+            ProviderDto(id = "brand_new", name = "Brand New", email = "bn@test.com", phoneNumber = "+1")
+        )
+
+        // The already-returned list must not grow under the caller's feet.
+        assertEquals(sizeBefore, before.size)
+        assertEquals(sizeBefore + 1, (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data.size)
+    }
 }

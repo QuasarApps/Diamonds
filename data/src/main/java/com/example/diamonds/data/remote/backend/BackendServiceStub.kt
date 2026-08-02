@@ -274,27 +274,41 @@ class BackendServiceStub : IBackendService {
         "client_grace"  to ClientDto(id="client_grace",  name="Grace Kim",       email="grace@example.com", phoneNumber="+1 555-1007", createdAt="2025-08-01", updatedAt="2026-01-01")
     )
 
+    /** Mutable working set, so profiles created/edited in-session are visible to later reads. */
+    private val clientStore = seedClients.toMutableMap()
+
     override suspend fun getClient(clientId: String): Result<ClientDto> {
         delay(300)
-        return Result.Success(seedClients[clientId]
+        return Result.Success(clientStore[clientId]
             ?: ClientDto(id=clientId, name="Client $clientId", email="$clientId@example.com", phoneNumber="", createdAt="2025-01-01", updatedAt="2026-01-01"))
     }
 
     override suspend fun updateClient(client: ClientDto): Result<ClientDto> {
         delay(300)
+        clientStore[client.id] = client
         return Result.Success(client)
     }
 
     // ── Providers ─────────────────────────────────────────────────────────────
 
+    /** Mutable working set, so profiles created/edited in-session are visible to later reads. */
+    private val providerStore = seedProviders.toMutableList()
+
     override suspend fun getProvider(providerId: String): Result<ProviderDto> {
         delay(300)
-        return Result.Success(seedProviders.find { it.id == providerId } ?: seedProviders.first())
+        return Result.Success(providerStore.find { it.id == providerId } ?: providerStore.first())
+    }
+
+    override suspend fun updateProvider(provider: ProviderDto): Result<ProviderDto> {
+        delay(300)
+        val idx = providerStore.indexOfFirst { it.id == provider.id }
+        if (idx >= 0) providerStore[idx] = provider else providerStore.add(provider)
+        return Result.Success(provider)
     }
 
     override suspend fun searchProviders(latitude: Double, longitude: Double, radius: Int): Result<List<ProviderDto>> {
         delay(500)
-        return Result.Success(seedProviders)
+        return Result.Success(providerStore.toList())
     }
 
     // ── Services ──────────────────────────────────────────────────────────────
