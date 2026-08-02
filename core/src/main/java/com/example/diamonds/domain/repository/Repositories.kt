@@ -358,7 +358,25 @@ enum class SyncOperationType {
  * Entity types that can be synced
  */
 enum class EntityType {
-    BOOKING, REVIEW, PAYMENT, SERVICE, PROFILE, RECURRING_BOOKING, SUPPORT_TICKET, CLAIM
+    BOOKING,
+    REVIEW,
+    PAYMENT,
+    SERVICE,
+
+    /** A client profile document. Replayed through `updateClient`. */
+    PROFILE,
+
+    /**
+     * A provider profile document. Separate from [PROFILE] rather than sharing it: the sync queue
+     * stores payloads as JSON and decodes with `ignoreUnknownKeys = true`, so a `ProviderDto`
+     * payload would decode *successfully* as a `ClientDto` and silently drop `bio`, `rating`,
+     * `specializations` and the employer fields. The entity type is what keeps them apart.
+     */
+    PROVIDER_PROFILE,
+
+    RECURRING_BOOKING,
+    SUPPORT_TICKET,
+    CLAIM
 }
 
 /**

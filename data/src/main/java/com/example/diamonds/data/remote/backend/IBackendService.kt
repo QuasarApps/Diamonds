@@ -44,6 +44,15 @@ interface IBackendService {
     suspend fun searchServicesByCategory(category: String): Result<List<ServiceDto>>
     suspend fun createService(service: ServiceDto): Result<ServiceDto>
 
+    /**
+     * Update an existing service.
+     *
+     * Distinct from [createService] rather than an upsert alias for it: replaying a service edit
+     * through `createService` is what `SyncManager.dispatchService` used to do, and it duplicates
+     * the service instead of changing it.
+     */
+    suspend fun updateService(service: ServiceDto): Result<ServiceDto>
+
     // Bookings
     suspend fun createBooking(booking: CreateBookingRequest): Result<BookingDto>
     suspend fun getBooking(bookingId: String): Result<BookingDto>

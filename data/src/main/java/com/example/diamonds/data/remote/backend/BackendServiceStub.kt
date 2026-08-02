@@ -313,25 +313,36 @@ class BackendServiceStub : IBackendService {
 
     // ── Services ──────────────────────────────────────────────────────────────
 
+    /** Mutable working set, so services created/edited in-session are visible to later reads. */
+    private val serviceStore = seedServices.values.flatten().toMutableList()
+
     override suspend fun getService(serviceId: String): Result<ServiceDto> {
         delay(300)
-        val service = seedServices.values.flatten().find { it.id == serviceId }
+        val service = serviceStore.find { it.id == serviceId }
             ?: ServiceDto(serviceId,"p1","Unknown Service","",0.0,60,"OTHER",isActive=true,createdAt="",updatedAt="")
         return Result.Success(service)
     }
 
     override suspend fun getServicesForProvider(providerId: String): Result<List<ServiceDto>> {
         delay(400)
-        return Result.Success(seedServices[providerId] ?: emptyList())
+        return Result.Success(serviceStore.filter { it.providerId == providerId })
     }
 
     override suspend fun searchServicesByCategory(category: String): Result<List<ServiceDto>> {
         delay(400)
-        return Result.Success(seedServices.values.flatten().filter { it.category == category })
+        return Result.Success(serviceStore.filter { it.category == category })
     }
 
     override suspend fun createService(service: ServiceDto): Result<ServiceDto> {
         delay(300)
+        serviceStore.add(service)
+        return Result.Success(service)
+    }
+
+    override suspend fun updateService(service: ServiceDto): Result<ServiceDto> {
+        delay(300)
+        val idx = serviceStore.indexOfFirst { it.id == service.id }
+        if (idx >= 0) serviceStore[idx] = service else serviceStore.add(service)
         return Result.Success(service)
     }
 
@@ -340,7 +351,7 @@ class BackendServiceStub : IBackendService {
     override suspend fun createBooking(booking: CreateBookingRequest): Result<BookingDto> {
         delay(600)
         // Resolve price from the service
-        val service = seedServices.values.flatten().find { it.id == booking.serviceId }
+        val service = serviceStore.find { it.id == booking.serviceId }
         val dto = BookingDto(
             id = "b${System.currentTimeMillis()}",
             clientId = booking.clientId,

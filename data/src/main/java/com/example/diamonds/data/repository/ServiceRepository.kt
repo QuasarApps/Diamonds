@@ -3,6 +3,7 @@ package com.example.diamonds.data.repository
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
+import com.example.diamonds.data.mapper.toDto
 import com.example.diamonds.data.mapper.toEntity
 import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.domain.model.OfflineException
@@ -147,7 +148,18 @@ class ServiceRepository(
             return Result.Error(OfflineException("Service update requires internet connection"))
         }
 
-        // TODO: Implement in backend service
-        return Result.Error(Exception("Not implemented in backend service"))
+        return try {
+            when (val result = backendService.updateService(service.toDto())) {
+                is Result.Success -> {
+                    val updated = result.data.toDomain()
+                    serviceDao.upsert(updated.toEntity())
+                    Result.Success(updated)
+                }
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 }
