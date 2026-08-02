@@ -37,6 +37,7 @@ class FirebaseBackendService : IBackendService {
     private val bookingsCol get() = db.collection("bookings")
     private val reviewsCol get() = db.collection("reviews")
     private val paymentsCol get() = db.collection("payments")
+    private val fcmTokensCol get() = db.collection("fcmTokens")
 
     // ── Auth (delegated to IAuthService; stubs here for interface compliance) ─
 
@@ -540,6 +541,25 @@ class FirebaseBackendService : IBackendService {
 
     override suspend fun deleteSavedLocation(locationId: String): Result<Unit> =
         Result.Error(Exception("Firebase saved locations not yet implemented"))
+
+    // ── Push notifications ───────────────────────────────────────────────────
+
+    override suspend fun registerFcmToken(userId: String, token: String): Result<Unit> =
+        firestoreCall {
+            // set() rather than update(): the same device re-registering after switching accounts
+            // must overwrite the row wholesale, not merge into the previous user's.
+            fcmTokensCol.document(token).set(
+                FcmTokenDto(
+                    token = token,
+                    userId = userId,
+                    updatedAt = System.currentTimeMillis().toString()
+                )
+            ).await()
+        }
+
+    override suspend fun unregisterFcmToken(token: String): Result<Unit> = firestoreCall {
+        fcmTokensCol.document(token).delete().await()
+    }
 
     // ── Helper ───────────────────────────────────────────────────────────────
 

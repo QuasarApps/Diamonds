@@ -47,6 +47,9 @@ class AuthRepositoryTest {
         backendService = mockk()
         coEvery { backendService.updateClient(any()) } answers { Result.Success(firstArg<ClientDto>()) }
         coEvery { backendService.updateProvider(any()) } answers { Result.Success(firstArg<ProviderDto>()) }
+        coEvery { backendService.registerFcmToken(any(), any()) } returns Result.Success(Unit)
+        coEvery { backendService.unregisterFcmToken(any()) } returns Result.Success(Unit)
+        every { preferencesDataStore.observeFcmToken() } returns flowOf(null)
         repository = AuthRepository(authService, preferencesDataStore, backendService)
     }
 
@@ -227,6 +230,104 @@ class AuthRepositoryTest {
 
     @Test
     fun `logout calls clearUserSession`() = runTest {
+        coEvery { authService.logout() } returns Result.Success(Unit)
+
+        val result = repository.logout()
+
+        assertTrue(result is Result.Success)
+        coVerify { preferencesDataStore.clearUserSession() }
+    }
+
+    // ── FCM token registration ────────────────────────────────────────────────
+
+    @Test
+    fun `login registers the stored FCM token against the signed-in user`() = runTest {
+        every { preferencesDataStore.observeFcmToken() } returns flowOf("fcm_tok_1")
+        coEvery { authService.login(any(), any()) } returns Result.Success(stubAuthResult)
+
+        repository.login("test@example.com", "password")
+
+        coVerify { backendService.registerFcmToken("uid_123", "fcm_tok_1") }
+    }
+
+    @Test
+    fun `signup registers the stored FCM token`() = runTest {
+        every { preferencesDataStore.observeFcmToken() } returns flowOf("fcm_tok_2")
+        coEvery { authService.signup(any(), any(), any(), any(), any()) } returns Result.Success(stubAuthResult)
+
+        repository.signup("N", "e@t.com", "p", "+1", UserRole.CUSTOMER, CleanerType.INDEPENDENT)
+
+        coVerify { backendService.registerFcmToken("uid_123", "fcm_tok_2") }
+    }
+
+    @Test
+    fun `login does not register when no token has been received yet`() = runTest {
+        // FCM issues tokens on its own schedule; there may not be one at first login.
+        every { preferencesDataStore.observeFcmToken() } returns flowOf(null)
+        coEvery { authService.login(any(), any()) } returns Result.Success(stubAuthResult)
+
+        repository.login("test@example.com", "password")
+
+        coVerify(exactly = 0) { backendService.registerFcmToken(any(), any()) }
+    }
+
+    @Test
+    fun `login still succeeds when FCM registration fails`() = runTest {
+        // Push registration is not a reason to fail a sign-in the user has otherwise completed.
+        every { preferencesDataStore.observeFcmToken() } returns flowOf("fcm_tok_3")
+        coEvery { authService.login(any(), any()) } returns Result.Success(stubAuthResult)
+        coEvery { backendService.registerFcmToken(any(), any()) } throws RuntimeException("offline")
+
+        val result = repository.login("test@example.com", "password")
+
+        assertTrue(result is Result.Success)
+        assertEquals("token_abc", (result as Result.Success).data)
+        coVerify { preferencesDataStore.saveUserSession(any()) }
+    }
+
+    @Test
+    fun `login registers the token only after the session is saved`() = runTest {
+        every { preferencesDataStore.observeFcmToken() } returns flowOf("fcm_tok_4")
+        coEvery { authService.login(any(), any()) } returns Result.Success(stubAuthResult)
+
+        repository.login("test@example.com", "password")
+
+        coVerify(ordering = Ordering.ORDERED) {
+            preferencesDataStore.saveUserSession(any())
+            backendService.registerFcmToken(any(), any())
+        }
+    }
+
+    @Test
+    fun `logout unregisters the token so push stops reaching this device`() = runTest {
+        every { preferencesDataStore.observeFcmToken() } returns flowOf("fcm_tok_5")
+        coEvery { authService.logout() } returns Result.Success(Unit)
+
+        val result = repository.logout()
+
+        assertTrue(result is Result.Success)
+        coVerify { backendService.unregisterFcmToken("fcm_tok_5") }
+    }
+
+    @Test
+    fun `logout unregisters before the credential is discarded`() = runTest {
+        every { preferencesDataStore.observeFcmToken() } returns flowOf("fcm_tok_6")
+        coEvery { authService.logout() } returns Result.Success(Unit)
+
+        repository.logout()
+
+        // Firestore rules will reject the delete once the user is signed out.
+        coVerify(ordering = Ordering.ORDERED) {
+            backendService.unregisterFcmToken("fcm_tok_6")
+            authService.logout()
+            preferencesDataStore.clearUserSession()
+        }
+    }
+
+    @Test
+    fun `logout still completes locally when unregistering fails`() = runTest {
+        every { preferencesDataStore.observeFcmToken() } returns flowOf("fcm_tok_7")
+        coEvery { backendService.unregisterFcmToken(any()) } throws RuntimeException("offline")
         coEvery { authService.logout() } returns Result.Success(Unit)
 
         val result = repository.logout()

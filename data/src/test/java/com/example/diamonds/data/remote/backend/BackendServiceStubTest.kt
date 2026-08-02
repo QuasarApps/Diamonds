@@ -334,6 +334,50 @@ class BackendServiceStubTest {
         assertEquals("Renamed", (stub.getProvider(existing.id) as Result.Success).data.name)
     }
 
+    // ── Push notifications ────────────────────────────────────────────────────
+
+    @Test
+    fun `registerFcmToken records the token against the user`() = runTest {
+        stub.registerFcmToken("uid_1", "tok_a")
+
+        val row = stub.registeredFcmTokens()["tok_a"]
+        assertNotNull(row)
+        assertEquals("uid_1", row!!.userId)
+        assertEquals("tok_a", row.token)
+    }
+
+    @Test
+    fun `re-registering a token for a different user replaces the old mapping`() = runTest {
+        // A device that switches accounts must not keep delivering the previous user's push.
+        stub.registerFcmToken("uid_1", "tok_a")
+        stub.registerFcmToken("uid_2", "tok_a")
+
+        assertEquals(1, stub.registeredFcmTokens().size)
+        assertEquals("uid_2", stub.registeredFcmTokens()["tok_a"]?.userId)
+    }
+
+    @Test
+    fun `one user can register several devices`() = runTest {
+        stub.registerFcmToken("uid_1", "tok_phone")
+        stub.registerFcmToken("uid_1", "tok_tablet")
+
+        assertEquals(2, stub.registeredFcmTokens().size)
+    }
+
+    @Test
+    fun `unregisterFcmToken removes the delivery target`() = runTest {
+        stub.registerFcmToken("uid_1", "tok_a")
+        stub.unregisterFcmToken("tok_a")
+
+        assertTrue(stub.registeredFcmTokens().isEmpty())
+    }
+
+    @Test
+    fun `unregistering an unknown token is a no-op rather than an error`() = runTest {
+        val result = stub.unregisterFcmToken("never_registered")
+        assertTrue(result is Result.Success)
+    }
+
     @Test
     fun `searchProviders returns a snapshot rather than a live view of the store`() = runTest {
         val before = (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data

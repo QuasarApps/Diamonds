@@ -12,8 +12,8 @@ import java.lang.reflect.Modifier
  * target reflectively and therefore require a **public no-argument constructor**. Kotlin only
  * emits one for a `data class` when *every* primary-constructor parameter has a default value.
  *
- * Before this was enforced, all 15 DTOs had at least one parameter without a default, so no DTO
- * had a no-arg constructor and **every** Firestore read threw — swallowed into `Result.Error` by
+ * Before this was enforced, all 15 DTOs that existed then had at least one parameter without a
+ * default, so no DTO had a no-arg constructor and **every** Firestore read threw — swallowed by
  * `FirebaseBackendService`'s `firestoreCall` wrapper. Writes succeeded, so flipping
  * `USE_MOCK_BACKEND=false` produced a write-only app. See `TECH_LEAD_REVIEW.md` §9.4.
  *
@@ -23,9 +23,14 @@ import java.lang.reflect.Modifier
 class FirestoreDtoContractTest {
 
     /**
-     * Every DTO that `FirebaseBackendService` reads back via `toObject`/`toObjects`.
-     * `*Request` types are deliberately excluded: they are only ever written, never deserialized,
-     * so required parameters there are a genuine safety benefit.
+     * Every `*Dto` declared in `IBackendService.kt`. `*Request` types are deliberately excluded:
+     * they are only ever written, never deserialized, so required parameters there are a genuine
+     * safety benefit.
+     *
+     * Most of these are read back via `toObject`/`toObjects` and would break at runtime without a
+     * no-arg constructor. `FcmTokenDto` is write-only today, but it is held to the same contract:
+     * defaults cost nothing, and the completeness check below is mechanical — it derives the
+     * expected set from the source, so exempting a type would mean weakening the guard itself.
      */
     private val firestoreReadDtos = listOf(
         ClientDto::class.java,
@@ -42,7 +47,8 @@ class FirestoreDtoContractTest {
         SupportTicketDto::class.java,
         ClaimDto::class.java,
         HelpArticleDto::class.java,
-        SavedLocationDto::class.java
+        SavedLocationDto::class.java,
+        FcmTokenDto::class.java
     )
 
     @Test

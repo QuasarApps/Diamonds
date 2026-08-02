@@ -113,6 +113,25 @@ interface IBackendService {
     suspend fun getSavedLocations(clientId: String): Result<List<SavedLocationDto>>
     suspend fun upsertSavedLocation(location: SavedLocationDto): Result<SavedLocationDto>
     suspend fun deleteSavedLocation(locationId: String): Result<Unit>
+
+    // Push notifications
+
+    /**
+     * Records [token] as a push delivery target for [userId].
+     *
+     * Keyed on the **token**, not the user: a device has exactly one FCM registration token, so a
+     * device that switches accounts overwrites its own mapping rather than leaving the previous
+     * user's entry behind. Without that, push for the old account would keep arriving on a device
+     * somebody else has since signed into. A user with several devices still gets several rows,
+     * which is what a sender querying by `userId` needs.
+     */
+    suspend fun registerFcmToken(userId: String, token: String): Result<Unit>
+
+    /**
+     * Drops [token] as a delivery target, so push stops reaching this device. Called on logout.
+     * Takes only the token because that is the key; no session is needed to identify the row.
+     */
+    suspend fun unregisterFcmToken(token: String): Result<Unit>
 }
 
 // DTO classes for API communication (separate from domain models)
@@ -439,6 +458,19 @@ data class SavedLocationDto(
     val bathroomCount: Int = 1,
     val sqFootage: Int? = null,
     val createdAt: String = "",
+    val updatedAt: String = ""
+)
+
+/**
+ * A device's push registration token and the user it currently belongs to.
+ *
+ * The document id is the token itself — see [IBackendService.registerFcmToken]. A sender finds a
+ * user's devices by querying this collection on `userId`.
+ */
+@Serializable
+data class FcmTokenDto(
+    val token: String = "",
+    val userId: String = "",
     val updatedAt: String = ""
 )
 

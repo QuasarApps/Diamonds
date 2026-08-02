@@ -81,7 +81,7 @@ files (target still 60% coverage; see §7)
 | 🔴       | `SavedLocationRepository.kt:32,45`  | **NEW 2026-07-27** — `:32` maps `Result.Error → Result.Success(emptyList())` and `:45` maps `Result.Error → Result.Success(location)`. A failed remote write is reported to the UI as success — the same silent-data-loss class as the `MessageRepository` bug fixed in PR #2. Currently untested. |
 | ✅       | `FirebaseAuthService.signup`        | RESOLVED — `AuthRepository.signup` now writes the `ClientDto`/`ProviderDto` profile document (keyed on the auth uid, carrying `phoneNumber` and the role-derived collection) before saving the session, on **both** backends. The two writes are still not atomic: a profile-write failure leaves an orphaned auth account and is reported as an error rather than swallowed. |
 | 🟡       | `FirebaseBackendService.createBooking` | **NEW 2026-07-27** — hardcodes `totalPrice = 0.0` and `estimatedDuration = 60` rather than using the booking's own values.                                                                    |
-| 🟡       | `observeFcmToken`                   | **NEW 2026-07-27** — the FCM token is saved to DataStore but never registered server-side; `observeFcmToken` has **0** callers, so push cannot be delivered to a device.                          |
+| ✅       | `observeFcmToken`                   | RESOLVED — `IBackendService.registerFcmToken`/`unregisterFcmToken` added and implemented on both backends. `DiamondsFcmService.onNewToken` registers when a session exists; `AuthRepository` registers on login/signup (tokens often arrive *before* login) and unregisters on logout. **Still open:** `POST_NOTIFICATIONS` is declared but never requested, so on API 33+ notifications are silently suppressed regardless — see §9.5.8. |
 
 ---
 
@@ -316,8 +316,10 @@ filter all exist).
     fixed client-side
 14. Fix `FirebaseBackendService.createBooking` — stop hardcoding `totalPrice = 0.0` /
     `estimatedDuration = 60` (**NEW 2026-07-27**)
-15. Register the FCM token server-side — it is written to DataStore but `observeFcmToken` has no
-    callers, so push cannot reach a device (**NEW 2026-07-27**)
+15. ✅ DONE — the FCM token is registered server-side on login/signup and on token refresh, and
+    unregistered on logout. Remaining prerequisite for push actually arriving: request
+    `POST_NOTIFICATIONS` at runtime (declared but never requested — see §9.5.8), and write a
+    Firestore rule for the new `fcmTokens` collection
 16. Encrypt DataStore session (`EncryptedSharedPreferences` or `security-crypto-ktx`) — the token
     **and** the userId/email/role are plaintext today
 17. Write and deploy Firestore Security Rules — none exist in the repo at all

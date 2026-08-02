@@ -69,12 +69,20 @@ Track E ❌ **new, open**.
   remaining repo stubs (`getCurrentClient`, `getPaymentsForProvider`, `updatePaymentStatus`,
   `updateService`). ✅ `updateProvider` is done — `IBackendService.updateProvider` now exists on both
   backends and `ProviderRepository` calls it. *(§3.1, §4)*
-- [ ] Fix the silent data drops on the Firebase path: the FCM token is written to DataStore but never
-  registered server-side (`observeFcmToken` has **0 callers**, so targeted push cannot work);
-  `searchProviders` ignores `latitude`/`longitude`/`radius` entirely. ✅ `createReview` now persists
-  `direction`/`locationTags` and `createBooking` reads real price/duration (PR #25); ✅ signup now
-  creates the profile document — in `AuthRepository`, so it covers both backends rather than only
-  the Firebase one. *(§3.5, §4)*
+- [ ] Fix the silent data drops on the Firebase path: `searchProviders` ignores
+  `latitude`/`longitude`/`radius` entirely. ✅ `createReview` now persists `direction`/`locationTags`
+  and `createBooking` reads real price/duration (PR #25); ✅ signup now creates the profile document
+  — in `AuthRepository`, so it covers both backends rather than only the Firebase one; ✅ the FCM
+  token is now registered server-side on login/signup and on refresh, and unregistered on logout.
+  *(§3.5, §4)*
+- [ ] **Push still cannot be delivered even though the token now registers.** `POST_NOTIFICATIONS`
+  is declared in the manifest but never requested at runtime, so on API 33+ the system suppresses
+  every notification regardless of registration (§9.5.8). Registration was the prerequisite; the
+  runtime permission request is the remaining half.
+- [ ] **The new `fcmTokens` collection needs a Firestore rule** before go-live: a user may write
+  only a row whose `userId` is their own uid, and no client should be able to read the collection
+  (it maps users to devices). Folded into the "no security rules at all" item below, but called out
+  separately because this collection did not exist when that item was written.
 - [ ] **Signup is two non-atomic writes** (auth credential, then profile document). A failed profile
   write leaves an orphaned auth account: the user cannot retry signup (the email is taken) and
   cannot sign in usefully (no profile). `AuthRepository.signup` reports this explicitly instead of
@@ -354,10 +362,11 @@ Backend and real-time features via Firebase.
 > ⚠️ **Review 2026-06-25, re-verified 2026-07-27 — worse than first reported.** The Firebase path is
 > materially incomplete and `release` builds enable it (`USE_MOCK_BACKEND=false`): **14
 > `FirebaseBackendService` methods return `Result.Error(Exception("… not yet implemented"))`**
-> (`FirebaseBackendService.kt:484–524`), `google-services.json` is a placeholder, `signup` never
-> writes a Client/Provider profile doc (and discards the `role` argument), and the FCM token is saved
-> locally but never registered server-side (`observeFcmToken` has 0 callers, so targeted push can't
-> work). See [TECH_LEAD_REVIEW.md §3.1, §4](TECH_LEAD_REVIEW.md#31-the-release-build-routes-to-an-unimplemented-firebase-backend).
+> (`FirebaseBackendService.kt:484–524`) and `google-services.json` is a placeholder.
+> ✅ Since fixed: `signup` now writes the Client/Provider profile doc and honours the `role`, and the
+> FCM token is registered server-side on login/signup and on refresh (unregistered on logout) — though
+> push still won't arrive on API 33+ until `POST_NOTIFICATIONS` is requested at runtime.
+> See [TECH_LEAD_REVIEW.md §3.1, §4](TECH_LEAD_REVIEW.md#31-the-release-build-routes-to-an-unimplemented-firebase-backend).
 >
 > 🔴 **New, 2026-07-27 — this is the real blocker.** Even the *implemented* Firebase methods cannot
 > read. Every DTO in `IBackendService.kt` has required (no-default) constructor params, so Kotlin

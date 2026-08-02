@@ -49,6 +49,7 @@ class AuthRepository(
                             isAuthenticated = true
                         )
                     )
+                    registerFcmTokenIfPresent(auth.uid)
                     Result.Success(auth.token)
                 }
                 is Result.Error   -> result
@@ -107,6 +108,7 @@ class AuthRepository(
                             isAuthenticated = true
                         )
                     )
+                    registerFcmTokenIfPresent(auth.uid)
                     Result.Success(auth.token)
                 }
                 is Result.Error   -> result
@@ -161,10 +163,45 @@ class AuthRepository(
 
     override suspend fun logout(): Result<Unit> {
         return try {
+            // Before the credential goes away. A token left registered keeps delivering this
+            // account's push to a device somebody else may sign into next.
+            unregisterFcmToken()
             authService.logout()
             preferencesDataStore.clearUserSession()
             Result.Success(Unit)
         } catch (e: Exception) { Result.Error(e) }
+    }
+
+    /**
+     * Registers this device's stored FCM token against [userId], if one has been received yet.
+     *
+     * FCM hands the app a token whenever it feels like it — routinely *before* anyone has logged
+     * in — so `DiamondsFcmService.onNewToken` cannot be the only registration point: at that
+     * moment there is often no user to attribute the token to. Doing it here as well means the
+     * token is claimed by whoever signs in, however the two events interleave.
+     *
+     * Deliberately best-effort: push registration failing is not a reason to fail a sign-in the
+     * user has otherwise completed. The token stays in DataStore and is retried on the next login
+     * or token refresh. This is the opposite call from the profile write in [signup], which *does*
+     * fail the operation — a missing profile breaks the app, a missing token only delays push.
+     */
+    private suspend fun registerFcmTokenIfPresent(userId: String) {
+        try {
+            val token = preferencesDataStore.observeFcmToken().first() ?: return
+            backendService.registerFcmToken(userId, token)
+        } catch (_: Exception) {
+            // Best-effort, see above.
+        }
+    }
+
+    /** Best-effort for the same reason: logout must still complete locally if the call fails. */
+    private suspend fun unregisterFcmToken() {
+        try {
+            val token = preferencesDataStore.observeFcmToken().first() ?: return
+            backendService.unregisterFcmToken(token)
+        } catch (_: Exception) {
+            // Best-effort, see above.
+        }
     }
 
     override suspend fun refreshToken(): Result<String> {
