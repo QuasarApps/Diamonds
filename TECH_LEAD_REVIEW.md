@@ -13,7 +13,7 @@ Diamonds is a **genuinely well-structured demo/portfolio app with a clean module
 
 - **The offline-first sync engine is dead code.** `SyncManager.queueOperation()` has **zero production call sites**. Every write path hard-fails when offline instead of enqueuing, so the queue, exponential backoff and conflict-resolution machinery process a table that is never populated. The headline feature of the README does not run.
 - **The multi-language feature was non-functional at review time.** 169 keys were professionally translated into ES/FR/AR/PT (845 strings, real Arabic), but the UI called `stringResource` in **exactly one file**; ~350 `Text("…")` string literals were hardcoded English, so switching language changed almost nothing on screen. ✅ *(Resolved 2026-07-27 by Track B, PRs #7–#17: `stringResource` is now used in **46 of 83** `:ui` files across **608** references, against 531 strings + 16 plurals key-complete in five locales. See §3.2 and §9. The one part still open is that no `HardcodedText` lint check was ever added.)*
-- **A `release` build is broken by construction.** The `release` buildType flips `USE_MOCK_BACKEND=false`, routing to a `FirebaseBackendService` whose **14 methods return `Result.Error(Exception("not yet implemented"))`**, against a **placeholder `google-services.json`**, with `isMinifyEnabled=false`, no `signingConfig`, and `applicationId = com.example.diamonds`. *(Still true at 2026-07-27 — and **worse** than stated here: §9.4 found that every Firestore **read** also fails, because no `*Dto` has the no-arg constructor the object mapper needs. The release path is write-only, not merely feature-incomplete.)*
+- **A `release` build is broken by construction.** The `release` buildType flips `USE_MOCK_BACKEND=false`, routing to a `FirebaseBackendService` whose **14 methods return `Result.Error(Exception("not yet implemented"))`**, against a **placeholder `google-services.json`**, with `isMinifyEnabled=false`, no `signingConfig`, and `applicationId = com.example.diamonds`. *(Still true at 2026-07-27 for the 14 stubbed methods, the placeholder `google-services.json`, `isMinifyEnabled`, `signingConfig` and `applicationId`. §9.4's additional finding — that every Firestore **read** also failed for want of a DTO no-arg constructor — has since been **fixed**, so the release path is feature-incomplete rather than write-only.)*
 - **Security posture is pre-production.** The auth token is stored **in plaintext** (while the README advertises "encrypted session storage" — a direct self-contradiction) *(corrected 2026-07-27: the README was fixed in `6f37ca4` (PR #4) and now states plaintext at `README.md:35,108`; the plaintext storage itself is unchanged)*, `allowBackup=true` exposes it, there are **no Firestore Security Rules** in the repo, and payments are marked `SUCCEEDED` with **no payment processor**.
 
 None of these block compilation — to its credit the project **does appear to compile now** (the alarming errors in the `*_build.txt` logs that were committed at review time — since deleted from the repo — were stale Windows runs; every specific error they cited was already fixed). The issue is that "structurally complete" has been mistaken for "working." This review separates the two.
@@ -179,7 +179,7 @@ The `final_build.txt` / `build_out.txt` / `test_build.txt` logs committed at rev
 
 **What changed.** Roadmap Track **A** (make the docs true, fix the two outright bugs, add CI) and Track **B** (externalize strings) are **done**. Track **D** is **partial**. §7's open question is settled: `.github/workflows/ci.yml` now runs `./gradlew assembleDebug allUnitTests` under JDK 17 on every PR to `develop` and every push to `develop`, so a real green/red signal exists and the stale `*_build.txt` logs have been deleted from the repo.
 
-**What this review got wrong in the other direction.** §3.1 framed the release build as *partly* implemented — 14 stubbed methods against otherwise-working Firestore code. That framing was too generous. Every Firestore **read** in `FirebaseBackendService` fails at runtime, for a reason no document in this repo has recorded until now (§9.4). Flipping `USE_MOCK_BACKEND=false` today does not produce a partly-working app; it produces a **write-only** one.
+**What this review got wrong in the other direction.** §3.1 framed the release build as *partly* implemented — 14 stubbed methods against otherwise-working Firestore code. That framing was too generous at the time: every Firestore **read** failed at runtime for a reason no document had recorded (§9.4), making the build write-only rather than partly working. *That specific defect is now fixed, so §3.1's original framing has become the accurate one — the remaining gap is the 14 stubbed methods.*
 
 **Bottom line for this addendum:** Track **C is entirely untouched and is now the single gate on production.** Nothing in §3.1, §3.5, §3.6 or the backend half of §4 has moved.
 
@@ -187,7 +187,7 @@ The `final_build.txt` / `build_out.txt` / `test_build.txt` logs committed at rev
 
 | § | Finding | Status at 2026-07-27 |
 |---|---|---|
-| 3.1 | `release` routes to an unimplemented Firebase backend | **STILL OPEN — verbatim.** All 14 `Result.Error(Exception("…not yet implemented"))` bodies remain at `FirebaseBackendService.kt:484–524`; `app/google-services.json` is still the placeholder (`project_number` `"000000000000"`, `api_key` `"placeholder-key-for-testing"`). See also §9.4, which makes this strictly worse. |
+| 3.1 | `release` routes to an unimplemented Firebase backend | **STILL OPEN.** All 14 `Result.Error(Exception("…not yet implemented"))` bodies remain at `FirebaseBackendService.kt:484–524`; `app/google-services.json` is still the placeholder (`project_number` `"000000000000"`, `api_key` `"placeholder-key-for-testing"`). §9.4, which used to make this strictly worse, is now resolved. |
 | 3.2 | Hardcoded UI strings / non-functional multi-language | **LARGELY SUPERSEDED** — the externalization is done (PRs #7–#17); the regression guard is not. Detail below. |
 | 3.3 | `RecurringBookingViewModel.getCurrentSession()` suspends forever | **FIXED** in `ae1d33c` (PR #2). `RecurringBookingViewModel.kt:193` now uses `authRepository.getCurrentUserSession().first()`, with a comment recording why `collect{}`/`return@collect` was wrong. |
 | 3.4 | `MessageRepository.sendMessage` silently loses offline messages | **FIXED** in `ae1d33c` (PR #2). `MessageRepository.kt:131–150` returns `Result.Error(OfflineException(…))` when offline and propagates a backend `Result.Error` instead of reporting `Success`. *(The message is still not queued for retry — that is the §4 sync-queue decision, not this bug.)* |
@@ -228,9 +228,21 @@ Every §5 item was re-checked and **all remain open**, unchanged in substance: `
 
 §6's corrections table is **still accurate and still worth keeping**, with one row now historical: *"README features: Encrypted user session storage"* was corrected in `6f37ca4` (PR #4) and the README now says plaintext (`README.md:35,108`). The other §6 retractions (locale switching *is* wired; `BookingRepositoryTest` is real; the ~15–20% coverage estimate is understated; `getReviewsForProvider` *is* filtered) hold at `4892952`.
 
-### 9.4 NEW — P1, blocking: every Firestore *read* fails, because no DTO has a no-arg constructor
+### 9.4 ~~NEW — P1, blocking: every Firestore *read* fails, because no DTO has a no-arg constructor~~ ✅ RESOLVED
 
-This is the single most consequential finding of the re-verification, and it is not recorded in any existing document.
+> **Status: fixed.** Every DTO parameter now has a default (PR #24), so Kotlin emits the no-arg
+> constructor the mapper needs, and `FirestoreDtoContractTest` fails the build if a default is ever
+> removed — it derives the expected DTO set from `IBackendService.kt` rather than hardcoding it.
+>
+> The "Fix (pick one)" note below warned that this option "makes every field silently optional".
+> That was right, and it has since been followed through: the 13 `*Dto.toDomain()` mappers validate
+> identity fields and enums and raise `MalformedDtoException` naming the DTO, field, received value
+> and valid set. One consequence is still open and recorded in ROADMAP Track C — a single malformed
+> row now fails a whole list read, and how each repository should degrade is a per-call-site call.
+>
+> The analysis below is kept as the record of the original finding.
+
+This was the single most consequential finding of the re-verification, and it was not recorded in any existing document.
 
 **Mechanism, in four steps:**
 
@@ -271,7 +283,7 @@ This is the single most consequential finding of the re-verification, and it is 
 2. **Fix the remaining silent-success bugs** — `SavedLocationRepository.kt:32,45` (§9.5.3) and the 37 `as? Result.Success` sites (§9.5.4). These are the surviving instances of the defect class that §3.4 already fixed once.
 3. **Close the CI blind spot before adding more code** — add `assembleDebugAndroidTest` (and `connectedDebugAndroidTest` once an emulator runner exists), add `lint`, and add `:core` to `allUnitTests`. Then fix `LoginScreenTest` (§9.5.1) and the `FakeRepositoryModule` binding (§9.5.2), both of which that change surfaces immediately. Land the `HardcodedText` lint baseline here too — it is the unfinished half of §3.2.
 4. **Track C, in this order** — it is one indivisible track, and (a) gates everything else in it:
-   - **(a)** DTO no-arg constructors (§9.4). Until this is fixed, nothing else in Track C is even observable against a real Firestore.
+   - **(a)** ✅ DTO no-arg constructors (§9.4) — **done**, plus mapper-level validation so the defaults that made it work cannot hide a malformed document. The rest of Track C is now observable against a real Firestore.
    - **(b)** The 14 stubbed `FirebaseBackendService` methods (§3.1) and the hard-stubbed repository methods (§4).
    - **(c)** Correctness: `direction` + `locationTags` in `createReview` (§3.5); real price/duration in Firebase `createBooking`; profile doc + role on signup; server-side FCM token registration; real geo filtering in `searchProviders`.
    - **(d)** Security, none of it optional: Firestore Security Rules; a Keystore-backed encrypted session store; `allowBackup=false`; a real PSP owning card entry with a server-derived payment status (§9.5.7).

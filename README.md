@@ -40,9 +40,9 @@ Diamonds implements a **modular, offline-first architecture** with the following
 - **BackendServiceStub**: Development stub provided
 - **Easy Swapping**: Change Firebase/REST implementation via Hilt binding
 - ⚠️ **`FirebaseBackendService` is not release-ready**: 14 methods still return
-  `Result.Error(Exception("…not yet implemented"))`, and every Firestore *read* currently fails because the
-  DTOs have no no-arg constructor — see Known Issues #6 and #26 before flipping
-  `USE_MOCK_BACKEND=false`
+  `Result.Error(Exception("…not yet implemented"))` — see Known Issue #6 before flipping
+  `USE_MOCK_BACKEND=false`. (Firestore reads themselves now work: the DTO no-arg-constructor
+  blocker, #26, is fixed.)
 
 ## Getting Started
 
@@ -184,7 +184,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed documentation:
 | 6 | **14 `FirebaseBackendService` methods return `Result.Error(Exception("not yet implemented"))`** — support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations silently fail in production | `FirebaseBackendService.kt:484–524` |
 | 7 | **`getCurrentClient()` returns `Result.Error(Exception("Not implemented"))`**                                                                                                                                                    | `ClientRepository.kt:87`         |
 | 8 | ✅ **RESOLVED** — `updateProvider()` now delegates to `IBackendService.updateProvider` (added on both backends) and caches the response, so cleaner profile editing saves again                                                    | `ProviderRepository.kt:120`     |
-| 26 | **Every Firestore *read* fails — DTOs have no no-arg constructor.** Every DTO in `IBackendService.kt` is a `data class` whose constructor params are all required (e.g. `ClientDto:113`, `BookingDto:162`), so Kotlin emits no zero-arg constructor. Firestore's object mapper needs one, so all **26** `toObject()`/`toObjects()` calls throw and are swallowed into `Result.Error` by the `firestoreCall` wrapper. Writes succeed. Flipping `USE_MOCK_BACKEND=false` today yields a **write-only app**. Fix: default every DTO field (or add explicit `@PropertyName` mappers). | `IBackendService.kt`, `FirebaseBackendService.kt` |
+| 26 | ✅ **RESOLVED** — DTOs had no no-arg constructor (all params required), which Firestore's object mapper needs, so all **26** `toObject()`/`toObjects()` calls threw into a swallowed `Result.Error` while writes succeeded: a **write-only app**. Every DTO param now has a default, pinned by `FirestoreDtoContractTest`. Because defaults also let a malformed document deserialize silently into blanks, the `*Dto.toDomain()` mappers now reject blank ids and unparseable enums with `MalformedDtoException` | `IBackendService.kt`, `Mappers.kt` |
 | 27 | **`SavedLocationRepository` reports failed remote writes as success** — `:32` maps `Result.Error → Result.Success(emptyList())` and `:45` maps `Result.Error → Result.Success(location)`, so the UI shows "saved" for data that never reached the backend. Same silent-data-loss class as the `MessageRepository` bug fixed in PR #2, and it has no tests. | `SavedLocationRepository.kt:32,45`  |
 
 ### 🟡 P2 — Important Fixes

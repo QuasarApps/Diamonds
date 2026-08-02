@@ -217,6 +217,119 @@ class MappersTest {
         assertEquals(PaymentStatus.FAILED, domain.status)
     }
 
+    // ── DTO validation ────────────────────────────────────────────────────────
+    //
+    // Every DTO parameter has a default, because Firestore's object mapper needs a no-arg
+    // constructor (see FirestoreDtoContractTest). That means a partial or malformed document
+    // deserializes silently into blanks. These tests pin the checks that put the failure back.
+
+    @Test
+    fun `a blank id is rejected rather than cached under an empty key`() {
+        // Repositories upsert by primary key, so every malformed record of a type would collide
+        // on the same "" row and overwrite the last one.
+        val e = assertThrows(MalformedDtoException::class.java) {
+            ClientDto(name = "Alice", email = "a@t.com").toDomain()
+        }
+        assertTrue(e.message!!, e.message!!.contains("ClientDto.id"))
+    }
+
+    @Test
+    fun `an unparseable enum names the field, the value received and the valid set`() {
+        val e = assertThrows(MalformedDtoException::class.java) {
+            BookingDto(
+                id = "b1", clientId = "c1", providerId = "p1", serviceId = "s1",
+                status = "TOTALLY_BOGUS", createdAt = "2026-04-07", updatedAt = "2026-04-07"
+            ).toDomain()
+        }
+        val msg = e.message!!
+        assertTrue(msg, msg.contains("BookingDto.status"))
+        assertTrue(msg, msg.contains("TOTALLY_BOGUS"))
+        assertTrue(msg, msg.contains("CANCELLED"))
+    }
+
+    @Test
+    fun `a missing enum field is reported by name rather than as No enum constant`() {
+        // status defaults to "" — before this, valueOf("") threw
+        // "No enum constant com.example.diamonds.domain.model.BookingStatus." with no hint of
+        // which document or field was at fault.
+        val e = assertThrows(MalformedDtoException::class.java) {
+            BookingDto(id = "b1", createdAt = "2026-04-07", updatedAt = "2026-04-07").toDomain()
+        }
+        assertTrue(e.message!!, e.message!!.contains("BookingDto.status"))
+    }
+
+    @Test
+    fun `verificationStatus is never guessed`() {
+        // Defaulting this either locks out a verified provider or presents an unverified one as
+        // APPROVED. ProviderDto.verificationStatus defaults to "".
+        val e = assertThrows(MalformedDtoException::class.java) {
+            ProviderDto(id = "p1", name = "Maria").toDomain()
+        }
+        assertTrue(e.message!!, e.message!!.contains("ProviderDto.verificationStatus"))
+    }
+
+    @Test
+    fun `an unrecognised specialization is reported instead of silently dropped`() {
+        // Was mapNotNull { getOrNull() }: a provider listing three specialities, one unknown,
+        // rendered two and nothing said so.
+        val e = assertThrows(MalformedDtoException::class.java) {
+            ProviderDto(
+                id = "p1", name = "Maria", verificationStatus = "APPROVED",
+                specializations = listOf("DEEP_CLEAN", "NOT_A_REAL_TYPE")
+            ).toDomain()
+        }
+        assertTrue(e.message!!, e.message!!.contains("ProviderDto.specializations"))
+    }
+
+    @Test
+    fun `an unrecognised review direction is reported instead of defaulting`() {
+        // Was defaulted to CLIENT_REVIEWS_PROVIDER, which files a cleaner's review of a customer
+        // against the customer's own profile instead.
+        val e = assertThrows(MalformedDtoException::class.java) {
+            ReviewDto(
+                id = "rv1", bookingId = "b1", clientId = "c1", providerId = "p1",
+                rating = 5, direction = "SIDEWAYS",
+                createdAt = "2026-04-07", updatedAt = "2026-04-07"
+            ).toDomain()
+        }
+        assertTrue(e.message!!, e.message!!.contains("ReviewDto.direction"))
+    }
+
+    @Test
+    fun `an absent optional enum stays null but an unparseable one does not`() {
+        val absent = BookingDto(
+            id = "b1", status = "PENDING", cleaningType = null,
+            createdAt = "2026-04-07", updatedAt = "2026-04-07"
+        ).toDomain()
+        assertNull(absent.cleaningType)
+
+        // "unspecified" and "a value we cannot read" used to collapse into the same null.
+        val e = assertThrows(MalformedDtoException::class.java) {
+            BookingDto(
+                id = "b1", status = "PENDING", cleaningType = "NONSENSE",
+                createdAt = "2026-04-07", updatedAt = "2026-04-07"
+            ).toDomain()
+        }
+        assertTrue(e.message!!, e.message!!.contains("BookingDto.cleaningType"))
+    }
+
+    @Test
+    fun `well-formed DTOs still map without complaint`() {
+        val provider = ProviderDto(
+            id = "p1", name = "Maria", email = "m@c.com", phoneNumber = "+1",
+            verificationStatus = "APPROVED", cleanerType = "EMPLOYED",
+            specializations = listOf("DEEP_CLEAN", "WINDOW_CLEANING"),
+            createdAt = "2025-01-01", updatedAt = "2026-01-01"
+        ).toDomain()
+
+        assertEquals(VerificationStatus.APPROVED, provider.verificationStatus)
+        assertEquals(CleanerType.EMPLOYED, provider.cleanerType)
+        assertEquals(
+            listOf(CleaningType.DEEP_CLEAN, CleaningType.WINDOW_CLEANING),
+            provider.specializations
+        )
+    }
+
     // ── Domain → DTO ──────────────────────────────────────────────────────────
 
     @Test

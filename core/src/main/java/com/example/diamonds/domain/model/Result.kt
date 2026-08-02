@@ -43,6 +43,20 @@ sealed class Result<out T> {
 class OfflineException(message: String = "Operation requires internet connection") : Exception(message)
 
 /**
+ * A backend document could not be turned into a valid domain object.
+ *
+ * Every DTO field carries a default so Firestore's reflective object mapper can construct the
+ * instance before populating it — without that, no read works at all. The cost is that a partial
+ * or malformed document no longer fails at deserialization: it silently yields `""`, `0` and
+ * `emptyList()`, and the mappers then either threw something unreadable (`No enum constant
+ * …VerificationStatus.`) or quietly substituted a default and carried on.
+ *
+ * This restores the check at the mapper boundary and names what was wrong, so the failure is
+ * diagnosable rather than either cryptic or invisible.
+ */
+class MalformedDtoException(message: String) : Exception(message)
+
+/**
  * Custom exception for sync failures
  */
 class SyncException(message: String, cause: Exception? = null) : Exception(message, cause)
