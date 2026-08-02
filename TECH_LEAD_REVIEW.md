@@ -75,7 +75,7 @@ None of these block compilation — to its credit the project **does appear to c
 
 **Data / correctness**
 - **Sync queue is dead code** — `SyncManager.queueOperation()` (`SyncManager.kt:37–57`) has no production callers; offline writes are dropped, not queued. Either wire repositories to enqueue write ops on offline/failure, or **delete the queue/backoff/conflict subsystem and correct the README/AUDIT**, which both claim "write operations … sync queue with exponential backoff retry."
-- **More hard-stubbed repo methods than the audit admits:** `ClientRepository.getCurrentClient()` (`:85–93`, also `observeCurrentClient` hardcodes the DB key `"current_user"` → always `null` for real users), `ProviderRepository.updateProvider()` (`:120–132`), `PaymentRepository.getPaymentsForProvider()` (`:119`) & `updatePaymentStatus()` (`:132`), `ServiceRepository.updateService()` (`:151`). All compile, all fail at runtime.
+- **More hard-stubbed repo methods than the audit admits:** `ClientRepository.getCurrentClient()` (`:85–93`, also `observeCurrentClient` hardcodes the DB key `"current_user"` → always `null` for real users), ~~`ProviderRepository.updateProvider()`~~ (**fixed** — now calls the new `IBackendService.updateProvider`), `PaymentRepository.getPaymentsForProvider()` (`:119`) & `updatePaymentStatus()` (`:132`), `ServiceRepository.updateService()` (`:151`). The rest all compile, all fail at runtime.
 - **`searchProvidersByCategory` ignores category, lat/long/radius** (`ProviderRepository.kt:87–118`) — returns the first 20 cached providers regardless; silently breaks discovery.
 - **`getReviewsForBooking` never hits the backend** (`ReviewRepository.kt:87–98`) — returns `null` if the review is only server-side, allowing duplicate reviews. Contrast the correct `getReviewForBookingByDirection`.
 - **Firebase `createBooking` uses a placeholder `price=0.0` / 60-min duration** (`FirebaseBackendService.kt:125–148`) — the Stub resolves price/duration from the seeded service (`BackendServiceStub.kt:326–349`); the Firebase path does not, so real bookings record `totalPrice = 0`. *(`cleaningType`/`locationType` are not in `CreateBookingRequest`, so neither path carries them — not a Firebase-specific loss.)*
@@ -161,7 +161,7 @@ The `final_build.txt` / `build_out.txt` / `test_build.txt` logs committed at rev
 5. Externalize the ~350 hardcoded `Text` literals to `stringResource` (and `contentDescription`); replace emoji "icons" with Material icons.
 
 **Phase C — Before flipping `USE_MOCK_BACKEND=false`**
-6. Implement the 14 `FirebaseBackendService` stubs + the repo stubs (`getCurrentClient`, `updateProvider`, payment/service methods); persist `direction` in `createReview`; populate price/duration in Firebase `createBooking`; create the profile doc on signup; register the FCM token server-side.
+6. Implement the 14 `FirebaseBackendService` stubs + the remaining repo stubs (`getCurrentClient`, payment/service methods); register the FCM token server-side. ✅ Done since: `updateProvider`, `direction` in `createReview`, price/duration in Firebase `createBooking`, and the profile doc on signup.
 7. Encrypt the session store; set `allowBackup=false`/exclude DataStore; write & deploy Firestore Security Rules; integrate a real PSP.
 8. Real `google-services.json`, real `applicationId`, `signingConfig`, keep rules + `isMinifyEnabled=true`.
 
@@ -203,7 +203,7 @@ The `final_build.txt` / `build_out.txt` / `test_build.txt` logs committed at rev
 | Finding (§4) | Status at 2026-07-27 |
 |---|---|
 | Sync queue is dead code | **STILL OPEN — the decision, not the docs.** `SyncManager.kt:37` remains the only production definition of `queueOperation()`; the only other occurrences repo-wide are the interface declaration (`core/…/Repositories.kt:147`) and the androidTest fake (`FakeRepositories.kt:451`). README/AUDIT no longer overstate it (corrected in `cb45abc`, PR #6), so this is now purely the wire-it-or-delete-it code decision — **the last Track A item open**. |
-| Hard-stubbed repo methods (`getCurrentClient`, `updateProvider`, payment/service methods) | **STILL OPEN.** `ClientRepository.kt:85–88` still returns `Result.Error(Exception("Not implemented"))` behind a `// TODO`. |
+| Hard-stubbed repo methods (`getCurrentClient`, `updateProvider`, payment/service methods) | **PARTIALLY FIXED.** `ProviderRepository.updateProvider` now delegates to `IBackendService.updateProvider`. `ClientRepository.kt:85–88` still returns `Result.Error(Exception("Not implemented"))` behind a `// TODO`; the payment/service methods are also still open. |
 | `searchProvidersByCategory` ignores category/lat/long/radius | **STILL OPEN.** `searchProviders` likewise ignores `latitude`/`longitude`/`radius` entirely. |
 | `getReviewsForBooking` never hits the backend | **STILL OPEN, and slightly worse than described.** `ReviewRepository.kt:87–97` checks the cache, returns `Result.Success(null)` when offline, and then returns `Result.Success(null)` again — there is no backend call on *any* path. |
 | Firebase `createBooking` uses placeholder price/duration | **STILL OPEN** — `totalPrice = 0.0`, `estimatedDuration = 60`. |

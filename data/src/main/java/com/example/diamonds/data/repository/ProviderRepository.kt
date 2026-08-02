@@ -3,6 +3,7 @@ package com.example.diamonds.data.repository
 import com.example.diamonds.data.connectivity.ConnectivityObserver
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.mapper.toDomain
+import com.example.diamonds.data.mapper.toDto
 import com.example.diamonds.data.mapper.toEntity
 import com.example.diamonds.data.remote.backend.IBackendService
 import com.example.diamonds.domain.model.OfflineException
@@ -124,8 +125,15 @@ class ProviderRepository(
         }
 
         return try {
-            // TODO: Add updateProvider to IBackendService
-            Result.Error(Exception("Not implemented in backend service"))
+            when (val result = backendService.updateProvider(provider.toDto())) {
+                is Result.Success -> {
+                    val updated = result.data.toDomain()
+                    providerDao.upsert(updated.toEntity())
+                    Result.Success(updated)
+                }
+                is Result.Error -> result
+                is Result.Loading -> Result.Loading
+            }
         } catch (e: Exception) {
             Result.Error(e)
         }

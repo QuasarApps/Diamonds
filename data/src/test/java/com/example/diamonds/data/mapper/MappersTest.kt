@@ -216,4 +216,39 @@ class MappersTest {
         val domain = dto.toDomain()
         assertEquals(PaymentStatus.FAILED, domain.status)
     }
+
+    // ── Domain → DTO ──────────────────────────────────────────────────────────
+
+    @Test
+    fun `Provider toDto then toDomain round-trips every field`() {
+        val provider = Provider(
+            id = "p1", name = "Maria", email = "m@c.com", phoneNumber = "+15559999",
+            profileImageUrl = "https://img.test/m.jpg", bio = "Expert",
+            rating = 4.9f, reviewCount = 143,
+            verificationStatus = VerificationStatus.APPROVED, serviceRadius = 15,
+            cleanerType = CleanerType.EMPLOYED,
+            employerId = "co1", employerName = "Sparkle Co",
+            specializations = listOf(CleaningType.DEEP_CLEAN, CleaningType.OFFICE_COMMERCIAL),
+            createdAt = "2023-01-01", updatedAt = "2026-01-01"
+        )
+
+        assertEquals(provider, provider.toDto().toDomain())
+    }
+
+    @Test
+    fun `Provider toDto serialises enums as their names`() {
+        // ProviderDto.toDomain() resolves these with valueOf(); anything else would silently
+        // fall back to a default (cleanerType) or throw (verificationStatus).
+        val dto = Provider(
+            id = "p1", name = "Maria", email = "m@c.com", phoneNumber = "+1",
+            verificationStatus = VerificationStatus.SUSPENDED,
+            cleanerType = CleanerType.COMPANY,
+            specializations = listOf(CleaningType.WINDOW_CLEANING),
+            createdAt = "2023-01-01", updatedAt = "2026-01-01"
+        ).toDto()
+
+        assertEquals("SUSPENDED", dto.verificationStatus)
+        assertEquals("COMPANY", dto.cleanerType)
+        assertEquals(listOf("WINDOW_CLEANING"), dto.specializations)
+    }
 }

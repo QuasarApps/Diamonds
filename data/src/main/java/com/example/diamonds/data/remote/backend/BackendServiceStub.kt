@@ -287,14 +287,24 @@ class BackendServiceStub : IBackendService {
 
     // ── Providers ─────────────────────────────────────────────────────────────
 
+    /** Mutable working set, so profiles created/edited in-session are visible to later reads. */
+    private val providerStore = seedProviders.toMutableList()
+
     override suspend fun getProvider(providerId: String): Result<ProviderDto> {
         delay(300)
-        return Result.Success(seedProviders.find { it.id == providerId } ?: seedProviders.first())
+        return Result.Success(providerStore.find { it.id == providerId } ?: providerStore.first())
+    }
+
+    override suspend fun updateProvider(provider: ProviderDto): Result<ProviderDto> {
+        delay(300)
+        val idx = providerStore.indexOfFirst { it.id == provider.id }
+        if (idx >= 0) providerStore[idx] = provider else providerStore.add(provider)
+        return Result.Success(provider)
     }
 
     override suspend fun searchProviders(latitude: Double, longitude: Double, radius: Int): Result<List<ProviderDto>> {
         delay(500)
-        return Result.Success(seedProviders)
+        return Result.Success(providerStore.toList())
     }
 
     // ── Services ──────────────────────────────────────────────────────────────

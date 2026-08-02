@@ -127,9 +127,10 @@ object RepositoryModule {
     @Provides
     fun provideAuthRepository(
         authService: IAuthService,
-        preferencesDataStore: PreferencesDataStore
+        preferencesDataStore: PreferencesDataStore,
+        backendService: IBackendService
     ): IAuthRepository {
-        return AuthRepository(authService, preferencesDataStore)
+        return AuthRepository(authService, preferencesDataStore, backendService)
     }
 
     @Singleton

@@ -274,4 +274,45 @@ class BackendServiceStubTest {
         val result = stub.updateClient(updated) as Result.Success
         assertEquals("Updated Name", result.data.name)
     }
+
+    // ── Provider upserts ──────────────────────────────────────────────────────
+
+    @Test
+    fun `updateProvider inserts a new provider that later reads can see`() = runTest {
+        val created = ProviderDto(
+            id = "new_cleaner", name = "Fresh Signup", email = "fresh@test.com",
+            phoneNumber = "+1777", verificationStatus = "PENDING",
+            createdAt = "2026-04-07", updatedAt = "2026-04-07"
+        )
+
+        assertEquals(created, (stub.updateProvider(created) as Result.Success).data)
+        // Without a mutable store this would fall through to the seed list's first entry.
+        assertEquals("Fresh Signup", (stub.getProvider("new_cleaner") as Result.Success).data.name)
+    }
+
+    @Test
+    fun `updateProvider overwrites an existing provider instead of duplicating it`() = runTest {
+        val before = (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data
+        val existing = before.first()
+
+        stub.updateProvider(existing.copy(name = "Renamed"))
+
+        val after = (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data
+        assertEquals(before.size, after.size)
+        assertEquals("Renamed", (stub.getProvider(existing.id) as Result.Success).data.name)
+    }
+
+    @Test
+    fun `searchProviders returns a snapshot rather than a live view of the store`() = runTest {
+        val before = (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data
+        val sizeBefore = before.size
+
+        stub.updateProvider(
+            ProviderDto(id = "brand_new", name = "Brand New", email = "bn@test.com", phoneNumber = "+1")
+        )
+
+        // The already-returned list must not grow under the caller's feet.
+        assertEquals(sizeBefore, before.size)
+        assertEquals(sizeBefore + 1, (stub.searchProviders(0.0, 0.0, 10) as Result.Success).data.size)
+    }
 }

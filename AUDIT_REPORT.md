@@ -71,7 +71,7 @@ files (target still 60% coverage; see §7)
 | Severity | File                                | Issue                                                                                                                                                                                           |
 |----------|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 🔴       | `ClientRepository.kt:87`         | `getCurrentClient()` returns `Result.Error(Exception("Not implemented"))`. `observeCurrentClient()` hardcodes `"current_user"` as the DB key — always returns `null` for real users.                       |
-| 🔴       | `ProviderRepository.kt:128`     | `updateProvider()` returns `Result.Error(Exception("Not implemented in backend service"))` — provider profile editing broken in production.                                                                |
+| ✅       | `ProviderRepository.kt:120`     | RESOLVED — `updateProvider()` now calls `IBackendService.updateProvider` (new) via a new `Provider.toDto()` mapper and caches the response. `CleanerProfileViewModel` profile saves work again.            |
 | 🟡       | `ServiceRepository.kt:151`          | TODO: `updateService` not called on backend.                                                                                                                                                    |
 | 🟡       | `PaymentRepository.kt:119,132`          | TODO: provider payments not fetched from backend.                                                                                                                                               |
 | 🔴       | `FirebaseBackendService.kt:484–524` | **14 methods** return `Result.Error(Exception("not yet implemented"))`: support tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations. Silent failures in production. |
@@ -79,7 +79,7 @@ files (target still 60% coverage; see §7)
 | 🟡       | `FirebaseBackendService.kt:79`      | `searchProviders` performs a full Firestore collection scan and **ignores `latitude`, `longitude` and `radius` entirely** — the geo arguments are accepted and dropped.                          |
 | 🟡       | `getConversationsForUser`           | Issues 2 separate Firestore queries merged in memory — doubles read cost; can miss ordering.                                                                                                    |
 | 🔴       | `SavedLocationRepository.kt:32,45`  | **NEW 2026-07-27** — `:32` maps `Result.Error → Result.Success(emptyList())` and `:45` maps `Result.Error → Result.Success(location)`. A failed remote write is reported to the UI as success — the same silent-data-loss class as the `MessageRepository` bug fixed in PR #2. Currently untested. |
-| 🟡       | `FirebaseAuthService.signup`        | **NEW 2026-07-27** — creates no Firestore profile document and **discards the `role` argument**, so a Firebase-backed signup produces an account with no profile and no role.                    |
+| ✅       | `FirebaseAuthService.signup`        | RESOLVED — `AuthRepository.signup` now writes the `ClientDto`/`ProviderDto` profile document (keyed on the auth uid, carrying `phoneNumber` and the role-derived collection) before saving the session, on **both** backends. The two writes are still not atomic: a profile-write failure leaves an orphaned auth account and is reported as an error rather than swallowed. |
 | 🟡       | `FirebaseBackendService.createBooking` | **NEW 2026-07-27** — hardcodes `totalPrice = 0.0` and `estimatedDuration = 60` rather than using the booking's own values.                                                                    |
 | 🟡       | `observeFcmToken`                   | **NEW 2026-07-27** — the FCM token is saved to DataStore but never registered server-side; `observeFcmToken` has **0** callers, so push cannot be delivered to a device.                          |
 
@@ -309,9 +309,11 @@ filter all exist).
 
 10. Provision a real Firebase project and replace the placeholder `app/google-services.json`
 11. Implement the 14 unimplemented `FirebaseBackendService` methods (`:485–524`)
-12. Implement `updateProvider()` in `ProviderRepository`
-13. Fix `FirebaseAuthService.signup` — create the Firestore profile document and honour the `role`
-    argument (**NEW 2026-07-27**)
+12. ✅ DONE — `updateProvider()` implemented in `ProviderRepository`
+13. ✅ DONE — signup now creates the profile document and honours the `role` (in `AuthRepository`,
+    so it applies to both the stub and Firebase backends). Follow-up: make the auth-account and
+    profile-document writes atomic — that needs a server-side callable function, so it cannot be
+    fixed client-side
 14. Fix `FirebaseBackendService.createBooking` — stop hardcoding `totalPrice = 0.0` /
     `estimatedDuration = 60` (**NEW 2026-07-27**)
 15. Register the FCM token server-side — it is written to DataStore but `observeFcmToken` has no

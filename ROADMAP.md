@@ -66,14 +66,20 @@ Track E ❌ **new, open**.
   behind it.
 - [ ] Implement the 14 `FirebaseBackendService` stubs at `FirebaseBackendService.kt:484–524` (support
   tickets, claims, cancel-with-reason, edit booking, refunds, help articles, saved locations) + the
-  repo stubs (`getCurrentClient`, `updateProvider`, `getPaymentsForProvider`, `updatePaymentStatus`,
-  `updateService`). *(§3.1, §4)*
-- [ ] Fix the silent data drops on the Firebase path: `createReview` still discards `direction` and
-  `locationTags`; `createBooking` hardcodes `totalPrice = 0.0` and `estimatedDuration = 60`;
-  `FirebaseAuthService.signup` creates no Firestore profile doc and discards the `role` argument;
-  the FCM token is written to DataStore but never registered server-side (`observeFcmToken` has
-  **0 callers**, so targeted push cannot work); `searchProviders` ignores `latitude`/`longitude`/
-  `radius` entirely. *(§3.5, §4)*
+  remaining repo stubs (`getCurrentClient`, `getPaymentsForProvider`, `updatePaymentStatus`,
+  `updateService`). ✅ `updateProvider` is done — `IBackendService.updateProvider` now exists on both
+  backends and `ProviderRepository` calls it. *(§3.1, §4)*
+- [ ] Fix the silent data drops on the Firebase path: the FCM token is written to DataStore but never
+  registered server-side (`observeFcmToken` has **0 callers**, so targeted push cannot work);
+  `searchProviders` ignores `latitude`/`longitude`/`radius` entirely. ✅ `createReview` now persists
+  `direction`/`locationTags` and `createBooking` reads real price/duration (PR #25); ✅ signup now
+  creates the profile document — in `AuthRepository`, so it covers both backends rather than only
+  the Firebase one. *(§3.5, §4)*
+- [ ] **Signup is two non-atomic writes** (auth credential, then profile document). A failed profile
+  write leaves an orphaned auth account: the user cannot retry signup (the email is taken) and
+  cannot sign in usefully (no profile). `AuthRepository.signup` reports this explicitly instead of
+  swallowing it, but the real fix is a server-side callable function that creates both in one
+  transaction — it cannot be done from the client.
 - [ ] **Security:** the session store is **plaintext** DataStore holding the auth token and PII
   (`data/local/preferences/PreferencesDataStore.kt:16`) — encrypt it; set `allowBackup=false` (or
   exclude DataStore — `android:allowBackup="true"` currently ships with *empty* backup rule files);

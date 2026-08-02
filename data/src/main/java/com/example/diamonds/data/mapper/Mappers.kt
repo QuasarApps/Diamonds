@@ -310,6 +310,30 @@ fun ProviderDto.toDomain(): Provider = Provider(
     updatedAt = updatedAt
 )
 
+/**
+ * Inverse of [ProviderDto.toDomain], for the write path.
+ *
+ * Enum-backed fields go over the wire as their `name`, matching what `toDomain` parses back.
+ */
+fun Provider.toDto(): ProviderDto = ProviderDto(
+    id = id,
+    name = name,
+    email = email,
+    phoneNumber = phoneNumber,
+    profileImageUrl = profileImageUrl,
+    bio = bio,
+    rating = rating,
+    reviewCount = reviewCount,
+    verificationStatus = verificationStatus.name,
+    serviceRadius = serviceRadius,
+    cleanerType = cleanerType.name,
+    employerId = employerId,
+    employerName = employerName,
+    specializations = specializations.map { it.name },
+    createdAt = createdAt,
+    updatedAt = updatedAt
+)
+
 fun ServiceDto.toDomain(): Service = Service(
     id = id,
     providerId = providerId,

@@ -44,6 +44,13 @@ class FirebaseAuthService : IAuthService {
         }
     }
 
+    /**
+     * Creates the Firebase Auth credential and sets its display name.
+     *
+     * [phoneNumber] and [role] are intentionally unused here: Firebase Auth has nowhere to put
+     * them. They are persisted by `AuthRepository.signup`, which writes the matching
+     * `clients`/`providers` profile document immediately after this call returns.
+     */
     override suspend fun signup(
         name: String,
         email: String,
