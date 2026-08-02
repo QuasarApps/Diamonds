@@ -1142,4 +1142,31 @@ class BackendServiceStub : IBackendService {
         savedLocationStore.removeAll { it.id == locationId }
         return Result.Success(Unit)
     }
+
+    // ── Push notifications ────────────────────────────────────────────────────
+
+    /** Keyed by token, mirroring the Firestore document layout. */
+    private val fcmTokenStore = mutableMapOf<String, FcmTokenDto>()
+
+    /**
+     * Test seam. [IBackendService] has no read side for tokens — a real sender queries Firestore
+     * directly — so there is no way to assert registration through the interface alone.
+     */
+    fun registeredFcmTokens(): Map<String, FcmTokenDto> = fcmTokenStore.toMap()
+
+    override suspend fun registerFcmToken(userId: String, token: String): Result<Unit> {
+        delay(200)
+        fcmTokenStore[token] = FcmTokenDto(
+            token = token,
+            userId = userId,
+            updatedAt = System.currentTimeMillis().toString()
+        )
+        return Result.Success(Unit)
+    }
+
+    override suspend fun unregisterFcmToken(token: String): Result<Unit> {
+        delay(200)
+        fcmTokenStore.remove(token)
+        return Result.Success(Unit)
+    }
 }

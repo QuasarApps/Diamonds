@@ -185,7 +185,7 @@ backend whose reads all fail. Work the Remediation Roadmap first.
 | **Zero** Firestore Security Rules in the repo — no `firestore.rules`, `firebase.json` or `.firebaserc`                                                | (absent)                                      |
 | `app/google-services.json` is a placeholder (`project_number "000000000000"`, `api_key "placeholder-key-for-testing"`)                                | `app/google-services.json`                    |
 | No `signingConfig` anywhere; `applicationId = "com.example.diamonds"` (Play rejects `com.example.*`); `isMinifyEnabled = false`; ProGuard file is the untouched empty template | `app/build.gradle.kts`, `app/proguard-rules.pro` |
-| FCM token is saved to DataStore but never registered server-side (`observeFcmToken` has 0 callers)                                                    | `PreferencesDataStore.kt`                     |
+| ✅ RESOLVED — the FCM token is registered server-side via `IBackendService.registerFcmToken` on login/signup and on token refresh, and unregistered on logout | `AuthRepository.kt`, `DiamondsFcmService.kt` |
 | `android:allowBackup="true"` with empty backup rule files — session data is ADB-extractable                                                           | `AndroidManifest.xml`                         |
 | `PaymentScreen` collects card PAN/CVV in unmasked fields with no PSP SDK and no `FLAG_SECURE`                                                         | `PaymentScreen.kt`                            |
 | `SavedLocationRepository` maps `Result.Error → Result.Success(emptyList())` (`:32`) and `Result.Error → Result.Success(location)` (`:45`) — a failed remote write is reported to the UI as success | `SavedLocationRepository.kt`                  |

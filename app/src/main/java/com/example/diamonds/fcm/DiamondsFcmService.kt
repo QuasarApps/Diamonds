@@ -11,8 +11,11 @@ import com.example.diamonds.R
 import com.example.diamonds.data.local.AppDatabase
 import com.example.diamonds.data.local.entity.NotificationEntity
 import com.example.diamonds.data.local.preferences.PreferencesDataStore
+import com.example.diamonds.data.remote.backend.IBackendService
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,14 +27,24 @@ import kotlinx.coroutines.launch
  *
  * Handles:
  *  - Incoming push notifications (data + notification messages)
- *  - Token refresh events (persisted to DataStore for server registration)
+ *  - Token refresh events (persisted to DataStore *and* registered server-side)
  *
  * Notification channels:
  *  - `diamonds_bookings`   — Booking status updates
  *  - `diamonds_payments`   — Payment confirmations
  *  - `diamonds_general`    — Promotions, system alerts
  */
+@AndroidEntryPoint
 class DiamondsFcmService : FirebaseMessagingService() {
+
+    /**
+     * Injected rather than constructed: `provideBackendService` picks the stub or the Firebase
+     * implementation from `BuildConfig.USE_MOCK_BACKEND`, and building one here by hand would
+     * quietly ignore that switch.
+     */
+    @Inject lateinit var backendService: IBackendService
+
+    @Inject lateinit var prefs: PreferencesDataStore
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -79,14 +92,21 @@ class DiamondsFcmService : FirebaseMessagingService() {
         }
     }
 
+    /**
+     * Persists the new registration token and, if someone is signed in, registers it server-side.
+     *
+     * The session check is not optional: FCM issues tokens on its own schedule, frequently on
+     * first launch before anyone has logged in, and there is no user to attribute the token to
+     * then. `AuthRepository` registers the stored token on the next login to cover that ordering.
+     */
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Persist the FCM registration token so it can be sent to the server
         serviceScope.launch {
             try {
-                val prefs = PreferencesDataStore(applicationContext)
                 prefs.saveFcmToken(token)
-            } catch (_: Exception) { /* best-effort */
+                val userId = prefs.observeUserSession().first()?.userId ?: return@launch
+                backendService.registerFcmToken(userId, token)
+            } catch (_: Exception) { /* best-effort — retried on the next login or refresh */
             }
         }
     }
@@ -110,7 +130,6 @@ class DiamondsFcmService : FirebaseMessagingService() {
         // Persist to local DB so it appears in the in-app notification list
         serviceScope.launch {
             try {
-                val prefs = PreferencesDataStore(applicationContext)
                 val session = prefs.observeUserSession().first()
                 val userId = session?.userId ?: return@launch
 

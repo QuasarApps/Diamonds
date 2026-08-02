@@ -12,8 +12,8 @@ import java.lang.reflect.Modifier
  * target reflectively and therefore require a **public no-argument constructor**. Kotlin only
  * emits one for a `data class` when *every* primary-constructor parameter has a default value.
  *
- * Before this was enforced, all 15 DTOs had at least one parameter without a default, so no DTO
- * had a no-arg constructor and **every** Firestore read threw — swallowed into `Result.Error` by
+ * Before this was enforced, all 15 DTOs that existed then had at least one parameter without a
+ * default, so no DTO had a no-arg constructor and **every** Firestore read threw — swallowed by
  * `FirebaseBackendService`'s `firestoreCall` wrapper. Writes succeeded, so flipping
  * `USE_MOCK_BACKEND=false` produced a write-only app. See `TECH_LEAD_REVIEW.md` §9.4.
  *
@@ -23,11 +23,16 @@ import java.lang.reflect.Modifier
 class FirestoreDtoContractTest {
 
     /**
-     * Every DTO that `FirebaseBackendService` reads back via `toObject`/`toObjects`.
-     * `*Request` types are deliberately excluded: they are only ever written, never deserialized,
-     * so required parameters there are a genuine safety benefit.
+     * Every `*Dto` declared in `IBackendService.kt`. `*Request` types are deliberately excluded:
+     * they are only ever written, never deserialized, so required parameters there are a genuine
+     * safety benefit.
+     *
+     * Most of these are read back via `toObject`/`toObjects` and would break at runtime without a
+     * no-arg constructor. `FcmTokenDto` is write-only today, but it is held to the same contract:
+     * defaults cost nothing, and the completeness check below is mechanical — it derives the
+     * expected set from the source, so exempting a type would mean weakening the guard itself.
      */
-    private val firestoreReadDtos = listOf(
+    private val backendDtos = listOf(
         ClientDto::class.java,
         ProviderDto::class.java,
         ServiceDto::class.java,
@@ -42,12 +47,13 @@ class FirestoreDtoContractTest {
         SupportTicketDto::class.java,
         ClaimDto::class.java,
         HelpArticleDto::class.java,
-        SavedLocationDto::class.java
+        SavedLocationDto::class.java,
+        FcmTokenDto::class.java
     )
 
     @Test
-    fun `every Firestore-read DTO exposes a public no-arg constructor`() {
-        val offenders = firestoreReadDtos.mapNotNull { type ->
+    fun `every backend DTO exposes a public no-arg constructor`() {
+        val offenders = backendDtos.mapNotNull { type ->
             val ctor = runCatching { type.getDeclaredConstructor() }.getOrNull()
             when {
                 ctor == null -> "${type.simpleName}: is missing a no-arg constructor " +
@@ -59,17 +65,18 @@ class FirestoreDtoContractTest {
         }
 
         assertTrue(
-            "Firestore's object mapper cannot deserialize these DTOs, so every read of them " +
-                    "would fail at runtime:\n  " + offenders.joinToString("\n  "),
+            "Firestore's object mapper cannot construct these DTOs. Any read of one would fail " +
+                    "at runtime, and a write-only DTO is one `toObject` call away from the same " +
+                    "fate:\n  " + offenders.joinToString("\n  "),
             offenders.isEmpty()
         )
     }
 
     @Test
-    fun `every Firestore-read DTO can actually be instantiated reflectively`() {
+    fun `every backend DTO can actually be instantiated reflectively`() {
         // getDeclaredConstructor() succeeding is necessary but not sufficient — this proves the
         // mapper can really construct the instance it then populates via setters/fields.
-        val offenders = firestoreReadDtos.mapNotNull { type ->
+        val offenders = backendDtos.mapNotNull { type ->
             runCatching { type.getDeclaredConstructor().newInstance() }
                 .exceptionOrNull()
                 ?.let { "${type.simpleName}: ${it::class.simpleName} — ${it.message}" }
@@ -85,22 +92,22 @@ class FirestoreDtoContractTest {
     @Test
     fun `every Dto declared in IBackendService is registered here`() {
         // Derived from the source rather than a hardcoded count: a size check would still pass if
-        // someone added a 16th DTO and forgot to register it, which is precisely the case this
+        // someone added one more DTO and forgot to register it, which is precisely the case this
         // guard exists to catch.
         val declared = DTO_DECLARATION
             .findAll(backendServiceSource().readText())
             .map { it.groupValues[1] }
             .toSet()
-        val registered = firestoreReadDtos.map { it.simpleName }.toSet()
+        val registered = backendDtos.map { it.simpleName }.toSet()
 
         assertTrue(
             "These *Dto types are declared in IBackendService.kt but are not registered in " +
-                    "firestoreReadDtos, so nothing verifies Firestore can deserialize them: " +
+                    "backendDtos, so nothing verifies Firestore can construct them: " +
                     (declared - registered),
             (declared - registered).isEmpty()
         )
         assertTrue(
-            "These types are registered in firestoreReadDtos but are no longer declared in " +
+            "These types are registered in backendDtos but are no longer declared in " +
                     "IBackendService.kt: " + (registered - declared),
             (registered - declared).isEmpty()
         )

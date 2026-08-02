@@ -83,7 +83,7 @@ None of these block compilation — to its credit the project **does appear to c
 - **Room `exportSchema=true` but no `schemaLocation`** (`AppDatabase.kt:59`) — no schema JSONs, so the 9 migrations cannot be validated by `MigrationTestHelper`. A migration typo would crash at runtime untested.
 
 **Remote / backend**
-- **FCM token saved locally but never registered server-side** (`DiamondsFcmService.kt:82–92`) — nothing reads `observeFcmToken()` to upload it, so targeted push can never be delivered.
+- ~~**FCM token saved locally but never registered server-side**~~ — **fixed.** `IBackendService.registerFcmToken`/`unregisterFcmToken` exist on both backends; `DiamondsFcmService.onNewToken` registers when a session is active and `AuthRepository` registers on login/signup and unregisters on logout. Rows are keyed on the token, so a device that switches accounts overwrites its own mapping instead of leaving the previous user's push going to it. Note this is necessary but **not sufficient** for delivery — see §9.5.8 on the unrequested `POST_NOTIFICATIONS` permission.
 - **`FirebaseAuthService.signup` creates an Auth user but no Firestore profile doc** (`:47–77`) — `getClient/getProvider(uid)` then throw "not found" immediately after signup, and the chosen role is lost.
 - **`searchProviders` is an unfiltered collection scan** (`:76–85`) and **`getConversationsForUser` runs two unbounded queries merged in memory** (`:350–358`) — cost/latency blockers at scale. *(README #13 — still true.)*
 
@@ -161,7 +161,7 @@ The `final_build.txt` / `build_out.txt` / `test_build.txt` logs committed at rev
 5. Externalize the ~350 hardcoded `Text` literals to `stringResource` (and `contentDescription`); replace emoji "icons" with Material icons.
 
 **Phase C — Before flipping `USE_MOCK_BACKEND=false`**
-6. Implement the 14 `FirebaseBackendService` stubs + the remaining repo stubs (`getCurrentClient`, payment/service methods); register the FCM token server-side. ✅ Done since: `updateProvider`, `direction` in `createReview`, price/duration in Firebase `createBooking`, and the profile doc on signup.
+6. Implement the 14 `FirebaseBackendService` stubs + the remaining repo stubs (`getCurrentClient`, payment/service methods). ✅ Done since: `updateProvider`, `direction` in `createReview`, price/duration in Firebase `createBooking`, the profile doc on signup, and server-side FCM token registration.
 7. Encrypt the session store; set `allowBackup=false`/exclude DataStore; write & deploy Firestore Security Rules; integrate a real PSP.
 8. Real `google-services.json`, real `applicationId`, `signingConfig`, keep rules + `isMinifyEnabled=true`.
 
@@ -209,7 +209,7 @@ The `final_build.txt` / `build_out.txt` / `test_build.txt` logs committed at rev
 | Firebase `createBooking` uses placeholder price/duration | **STILL OPEN** — `totalPrice = 0.0`, `estimatedDuration = 60`. |
 | `ConnectivityObserver` captive-portal false positive | **STILL OPEN.** `ConnectivityObserver.kt:60` still checks only `NET_CAPABILITY_INTERNET`, never `NET_CAPABILITY_VALIDATED`. |
 | Room `exportSchema=true` with no `schemaLocation` | **STILL OPEN**, and now demonstrably costly — see §9.5.5. |
-| FCM token never registered server-side | **STILL OPEN.** `observeFcmToken()` has zero callers. |
+| FCM token never registered server-side | **FIXED.** `observeFcmToken()` is now read by `AuthRepository` on login/signup and on logout; `DiamondsFcmService.onNewToken` registers directly when a session is active. |
 | `FirebaseAuthService.signup` creates no Firestore profile doc | **STILL OPEN**, and it also discards the `role` argument. |
 | `searchProviders` / `getConversationsForUser` unbounded queries | **STILL OPEN.** |
 | `:ui` depends on concrete `:data` `ConnectivityObserver` | **STILL OPEN.** `BaseViewModel.kt:6,16` still imports and takes `com.example.diamonds.data.connectivity.ConnectivityObserver`; no connectivity abstraction exists in `:core`/`:common`. |
